@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Producers Direct - MVP Business Analytics</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23123f24'/%3E%3Cpath d='M16 39c18 0 29-10 32-25 6 22-4 36-26 36' fill='%23fff'/%3E%3Cpath d='M20 45c8-12 16-18 27-27' stroke='%23123f24' stroke-width='4' fill='none'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+  
+  <!-- Libs Externas ($0 CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <div class="logo">☘</div>
+      <div>
+        <div class="brand-title">Producers<br>Direct</div>
+        <div class="brand-subtitle">Fondo Rotatorio Analytics</div>
+      </div>
+    </div>
+    
+    <nav class="nav">
+      <button class="active" data-page="summary"><span>⌂</span> Resumen & PCA</button>
+      <button data-page="production"><span>♧</span> Producción y Acopio</button>
+      <button data-page="credit"><span>S/</span> Demanda de Crédito</button>
+      <button data-page="inclusion"><span>◎</span> Inclusión & Digital</button>
+      <button data-page="producer"><span>▤</span> Reporte Productora</button>
+      <button data-page="quality"><span>✓</span> Calidad de Datos</button>
+    </nav>
+
+    <div class="privacy-box">
+      <strong>Privacidad Garantizada ($0):</strong> Procesamiento local en el navegador del usuario. Sin envíos a servidores externos.
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="header">
+      <div>
+        <h1 id="page-title">Resumen del Fondo Rotatorio</h1>
+        <p id="page-sub">Análisis de escala productivo-económica y perfil demográfico</p>
+      </div>
+      <div class="actions">
+        <label class="btn-upload" for="excel-input">📁 Cargar Excel</label>
+        <input type="file" id="excel-input" accept=".xlsx,.xls">
+        <button class="btn-print" id="btn-print-action">🖨️ Imprimir Ficha</button>
+      </div>
+    </div>
+
+    <div class="status-banner" id="status-banner">
+      <span id="status-text"><strong>Modo Demo Activo:</strong> Visualizando muestra predeterminada de productoras de Norandino y Bagua Grande.</span>
+      <span id="status-pill" style="background:var(--green); color:white; padding:4px 10px; border-radius:99px; font-weight:700; font-size:11px;">Datos Listos</span>
+    </div>
+
+    <div class="filters-bar">
+      <div class="field">
+        <label for="filter-coop">Cooperativa</label>
+        <select id="filter-coop"><option value="all">Todas las cooperativas</option></select>
+      </div>
+      <div class="field">
+        <label for="filter-territory">Distrito / Provincia</label>
+        <select id="filter-territory"><option value="all">Todos los territorios</option></select>
+      </div>
+      <div class="field">
+        <label for="filter-base">Base / Sector</label>
+        <select id="filter-base"><option value="all">Todas las bases</option></select>
+      </div>
+      <div class="field">
+        <label for="filter-producer">Productora (para Reporte)</label>
+        <select id="filter-producer"><option value="">Seleccionar Productora...</option></select>
+      </div>
+    </div>
+
+    <!-- PAGE 1: RESUMEN Y PCA -->
+    <section class="page active" id="summary-page">
+      <div class="kpis-grid">
+        <div class="kpi-card">
+          <div class="kpi-title">Total Productoras</div>
+          <div class="kpi-val" id="kpi-n">0</div>
+          <div class="kpi-sub">Socias registradas</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Monto Solicitado Total</div>
+          <div class="kpi-val" id="kpi-amount">S/ 0</div>
+          <div class="kpi-sub">Fondo de financiamiento</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Área Total de Café</div>
+          <div class="kpi-val" id="kpi-area">0 ha</div>
+          <div class="kpi-sub">Extensión acumulada</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Quintales Acopiados</div>
+          <div class="kpi-val" id="kpi-qq">0 qq</div>
+          <div class="kpi-sub">Volumen 2025</div>
+        </div>
+      </div>
+
+      <div class="grid-12">
+        <div class="card-panel col-8">
+          <h3>Mapa PCA 2D: Escala Productiva (PC1) vs. Perfil Demográfico (PC2)</h3>
+          <div style="height:300px;"><canvas id="chart-pca"></canvas></div>
+        </div>
+        <div class="card-panel col-4">
+          <h3>Interpretación de Componentes PCA</h3>
+          <div style="font-size:13px; line-height:1.5; color:var(--muted);">
+            <p><strong>PC1 (39.14% Var.):</strong> Escala productivo-económica (combina mayor área, quintales e ingreso).</p>
+            <p><strong>PC2 (23.13% Var.):</strong> Perfil demográfico (mayor edad y antigüedad vs menor carga familiar).</p>
+            <p><strong>PC3 (16.02% Var.):</strong> Convivencia familiar y vinculación cooperativa.</p>
+            <p style="background:var(--pale); padding:10px; border-radius:6px; color:var(--green); font-weight:600;">Varianza acumulada explicada: 78.28%</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 2: PRODUCCIÓN -->
+    <section class="page" id="production-page">
+      <div class="grid-12">
+        <div class="card-panel col-6">
+          <h3>Quintales Acopiados por Cooperativa</h3>
+          <div style="height:280px;"><canvas id="chart-qq-coop"></canvas></div>
+        </div>
+        <div class="card-panel col-6">
+          <h3>Área Declarada vs Rendimiento Estimado</h3>
+          <div style="height:280px;"><canvas id="chart-yield"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 3: DEMANDA DE CRÉDITO -->
+    <section class="page" id="credit-page">
+      <div class="grid-12">
+        <div class="card-panel col-6">
+          <h3>Actividades Solicitadas a Financiar</h3>
+          <div style="height:280px;"><canvas id="chart-activities"></canvas></div>
+        </div>
+        <div class="card-panel col-6">
+          <h3>Distribución de Montos Solicitados (S/)</h3>
+          <div style="height:280px;"><canvas id="chart-amounts"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 4: INCLUSIÓN DIGITAL -->
+    <section class="page" id="inclusion-page">
+      <div class="grid-12">
+        <div class="card-panel col-6">
+          <h3>Tenencia de Celular en el Hogar</h3>
+          <div style="height:260px;"><canvas id="chart-phone"></canvas></div>
+        </div>
+        <div class="card-panel col-6">
+          <h3>Dificultad de Lectoescritura Declarada</h3>
+          <div style="height:260px;"><canvas id="chart-literacy"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 5: REPORTE INDIVIDUAL -->
+    <section class="page" id="producer-page">
+      <div class="report-shell" id="report-printable">
+        <div class="report-header">
+          <div>
+            <h2>Ficha Técnica de Acompañamiento</h2>
+            <div style="color:var(--muted); font-size:14px; margin-top:4px;" id="rep-code-coop">Código: - | Cooperativa: -</div>
+          </div>
+          <div>
+            <span style="background:var(--pale); color:var(--green); font-weight:700; padding:6px 12px; border-radius:99px; font-size:12px;">Programa Fondo Rotatorio</span>
+          </div>
+        </div>
+
+        <div class="report-grid">
+          <div class="report-card">
+            <h4>Actividad Solicitada a Financiar</h4>
+            <div class="big" id="rep-act-val">-</div>
+            <div style="font-size:13px; color:var(--muted);" id="rep-act-sub">Insumos y fertilización</div>
+          </div>
+          <div class="report-card">
+            <h4>Monto de Crédito Solicitado</h4>
+            <div class="big" id="rep-amount-val">S/ 0</div>
+            <div style="font-size:13px; color:var(--muted);">Sujeto a evaluación de comité</div>
+          </div>
+          <div class="report-card">
+            <h4>Producción y Extensión</h4>
+            <div class="big" id="rep-qq-val">0 quintales</div>
+            <div style="font-size:13px; color:var(--muted);" id="rep-area-val">Área: 0 ha (Rendimiento: 0 qq/ha)</div>
+          </div>
+          <div class="report-card">
+            <h4>Ingreso Principal Anual Declarado</h4>
+            <div class="big" id="rep-income-val">S/ 0</div>
+            <div style="font-size:13px; color:var(--muted);">Declarado en encuesta de inicio</div>
+          </div>
+        </div>
+
+        <div class="advice-box">
+          <strong>💡 Recomendación Técnica para el Técnico de Campo:</strong>
+          <p style="margin:8px 0 0;" id="rep-advice-text">
+            Revisar el uso del cuaderno de registro económico. Verificar que las compras de insumos correspondan al monto entregado y acompañar la aplicación de prácticas agronómicas en parcela.
+          </p>
+        </div>
+
+        <div style="margin-top:30px; font-size:11px; color:var(--muted); text-align:center; border-top:1px solid var(--line); padding-top:14px;">
+          Documento impreso desde la Plataforma de Analítica Producers Direct | UTEC Business Analytics
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 6: CALIDAD DE DATOS -->
+    <section class="page" id="quality-page">
+      <div class="card-panel col-12">
+        <h3>Auditoría de Calidad y Cumplimiento del Contrato de Datos</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Criterio de Calidad</th>
+              <th>Resultado</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="quality-table-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Scripts modulares -->
+<script src="js/pca_engine.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

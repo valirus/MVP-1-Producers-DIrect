@@ -1,37 +1,17 @@
-// Motor de Cálculo PCA local en cliente ($0 backend)
-function computePCAClientSide(dataRecords) {
-  const vars = ['age', 'family', 'years', 'area', 'qq', 'income'];
-  const n = dataRecords.length;
-  if (n === 0) return dataRecords;
-
-  // 1. Matriz X y medias
-  const means = {};
-  const stds = {};
-  vars.forEach(v => {
-    const vals = dataRecords.map(r => r[v] || 0);
-    const m = vals.reduce((a, b) => a + b, 0) / n;
-    const std = Math.sqrt(vals.reduce((a, b) => a + Math.pow(b - m, 2), 0) / (n - 1 || 1));
-    means[v] = m;
-    stds[v] = std || 1;
-  });
-
-  // 2. Estandarización Z-score y proyección aproximada
-  return dataRecords.map(r => {
-    const zArea = (r.area - means.area) / stds.area;
-    const zQq = (r.qq - means.qq) / stds.qq;
-    const zInc = (r.income - means.income) / stds.income;
-    const zAge = (r.age - means.age) / stds.age;
-    const zFam = (r.family - means.family) / stds.family;
-    const zYrs = (r.years - means.years) / stds.years;
-
-    // Autovectores aproximados derivados del paper
-    const pc1 = 0.48 * zArea + 0.52 * zQq + 0.49 * zInc + 0.1 * zAge + 0.2 * zFam + 0.3 * zYrs;
-    const pc2 = 0.55 * zAge + 0.51 * zYrs - 0.42 * zFam - 0.1 * zArea;
-
-    return {
-      ...r,
-      pc1: Number(pc1.toFixed(2)),
-      pc2: Number(pc2.toFixed(2))
-    };
-  });
-}
+/* PCA sobre correlaciones muestrales. Jacobi simétrico; no pesos fijos. */
+(function(root){'use strict';
+function eigenSymmetric(input){const n=input.length,a=input.map(r=>[...r]),v=Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>+(i===j)));let converged=false;
+ for(let iter=0;iter<1000;iter++){let p=0,q=1,max=0;for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)if(Math.abs(a[i][j])>max){max=Math.abs(a[i][j]);p=i;q=j;}if(max<1e-12){converged=true;break;}
+ const theta=.5*Math.atan2(2*a[p][q],a[q][q]-a[p][p]),c=Math.cos(theta),s=Math.sin(theta),app=a[p][p],aqq=a[q][q],apq=a[p][q];
+ for(let k=0;k<n;k++)if(k!==p&&k!==q){const kp=a[k][p],kq=a[k][q];a[k][p]=a[p][k]=c*kp-s*kq;a[k][q]=a[q][k]=s*kp+c*kq;}
+ a[p][p]=c*c*app-2*s*c*apq+s*s*aqq;a[q][q]=s*s*app+2*s*c*apq+c*c*aqq;a[p][q]=a[q][p]=0;
+ for(let k=0;k<n;k++){const kp=v[k][p],kq=v[k][q];v[k][p]=c*kp-s*kq;v[k][q]=s*kp+c*kq;}}
+ if(!converged)throw Error('La descomposición no convergió.');return Array.from({length:n},(_,i)=>i).sort((i,j)=>a[j][j]-a[i][i]).map(i=>{const w=v.map(r=>r[i]);let im=0;w.forEach((x,j)=>{if(Math.abs(x)>Math.abs(w[im]))im=j;});return {value:Math.max(0,a[i][i]),weights:w.map(x=>x*(w[im]<0?-1:1))};});}
+function fitPCA(records,vars=['age','family','years','area','qq','income']){const complete=records.filter(r=>vars.every(k=>typeof r[k]==='number'&&Number.isFinite(r[k]))),n=complete.length;
+ if(n<=vars.length)return {ok:false,n,excluded:records.length-n,reason:'PCA no disponible: requiere al menos 7 registros completos en las seis variables.'};
+ const means=vars.map(k=>complete.reduce((s,r)=>s+r[k],0)/n),stds=vars.map((k,j)=>Math.sqrt(complete.reduce((s,r)=>s+(r[k]-means[j])**2,0)/(n-1)));
+ if(stds.some(x=>x<=1e-12))return {ok:false,n,excluded:records.length-n,reason:'PCA no disponible: hay una variable constante.'};
+ const z=complete.map(r=>vars.map((k,j)=>(r[k]-means[j])/stds[j])),cov=vars.map((_,i)=>vars.map((_,j)=>z.reduce((s,r)=>s+r[i]*r[j],0)/(n-1))),components=eigenSymmetric(cov),total=components.reduce((s,c)=>s+c.value,0),scores=new Map(complete.map((r,i)=>[r,components.map(c=>c.weights.reduce((s,w,j)=>s+w*z[i][j],0))]));
+ return {ok:true,n,excluded:records.length-n,vars,means,stds,components,variance:components.map(c=>100*c.value/total),scores};}
+root.PDPCA={eigenSymmetric,fitPCA};if(typeof module!=='undefined')module.exports=root.PDPCA;
+})(typeof globalThis!=='undefined'?globalThis:this);

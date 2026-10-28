@@ -1,171 +1,63 @@
-const fallbackData = [
-  { code:'PD-FR-001-FF-NOR', coop:'NORANDINO', territory:'Tabaconas', base:'Rico Aroma - Churuyacu', area:2.5, qq:23, amount:1375, income:30000, age:31, family:5, years:5, activity:'FERTILIZACIÓN', phone:'SMARTPHONE', literacy:'NINGUNA', pc1:-0.51, pc2:-1.20 },
-  { code:'PD-FR-003-FF-BG', coop:'BAGUA GRANDE', territory:'Aramango', base:'Sector Central', area:1.5, qq:18, amount:2500, income:18000, age:52, family:3, years:18, activity:'CRIANZA DE ANIMALES', phone:'BASICO', literacy:'LECTURA', pc1:-0.85, pc2:1.45 },
-  { code:'PD-FR-004-FF-BG', coop:'BAGUA GRANDE', territory:'Cajaruro', base:'El Triunfo', area:4.0, qq:65, amount:3000, income:65000, age:38, family:6, years:12, activity:'EMPRENDIMIENTO / OTROS', phone:'SMARTPHONE', literacy:'NINGUNA', pc1:1.80, pc2:0.85 }
-];
-
-let rawData = [...fallbackData];
-let filteredData = [...rawData];
-
-const $ = id => document.getElementById(id);
-
-// Navegación UI
-document.querySelectorAll('.nav button').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById(btn.dataset.page + '-page').classList.add('active');
-  });
-});
-
-function populateSelects() {
-  const coops = [...new Set(rawData.map(r => r.coop))].sort();
-  const terrs = [...new Set(rawData.map(r => r.territory))].sort();
-  const bases = [...new Set(rawData.map(r => r.base))].sort();
-
-  $('filter-coop').innerHTML = '<option value="all">Todas las cooperativas</option>' + coops.map(c => `<option value="${c}">${c}</option>`).join('');
-  $('filter-territory').innerHTML = '<option value="all">Todos los territorios</option>' + terrs.map(t => `<option value="${t}">${t}</option>`).join('');
-  $('filter-base').innerHTML = '<option value="all">Todas las bases</option>' + bases.map(b => `<option value="${b}">${b}</option>`).join('');
-  $('filter-producer').innerHTML = '<option value="">Seleccionar Productora...</option>' + rawData.map(r => `<option value="${r.code}">${r.code} (${r.coop})</option>`).join('');
+/* Estado de carga, mapeo revisable y filtros. Ningún dato se persiste o envía. */
+'use strict';
+const $=id=>document.getElementById(id),D=PDData,H=PDCharts;
+let rawData=[],filteredData=[],audit=null,model={ok:false,reason:'Carga una base para calcular el PCA.'},pending=null;
+const pageNames={summary:'Resumen del Fondo Rotatorio',production:'Producción y acopio',credit:'Demanda de crédito',inclusion:'Inclusión y acompañamiento',producer:'Ficha de productora',quality:'Calidad de datos',relations:'Relaciones e insights'};
+function status(text,warning=false,pill=''){ $('status-text').textContent=text;$('status-banner').classList.toggle('warning',warning);$('status-pill').textContent=pill; }
+function nav(page){document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===page+'-page'));$('page-title').textContent=pageNames[page];requestAnimationFrame(()=>H.resize());}
+document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>nav(b.dataset.page)));
+function options(select,rows,first){select.replaceChildren(new Option(first,'all'));for(const v of rows)select.add(new Option(v??'Sin dato',v??'__null__'));}
+function populate(){for(const [id,k,title] of [['filter-coop','coop','Todas las cooperativas'],['filter-territory','territory','Todos los territorios'],['filter-base','base','Todas las bases']])options($(id),[...new Set(rawData.map(r=>r[k]))].sort((a,b)=>String(a).localeCompare(String(b))),title);}
+function applyFilters(){const matches=(v,choice)=>choice==='all'||(choice==='__null__'?v==null:v===choice);
+ filteredData=rawData.filter(r=>matches(r.coop,$('filter-coop').value)&&matches(r.territory,$('filter-territory').value)&&matches(r.base,$('filter-base').value));
+ $('kpi-n').textContent=filteredData.length;$('kpi-n-sub').textContent='Registros de la selección';
+ for(const k of ['amount','area','qq']){const vals=filteredData.filter(r=>D.finite(r[k])).map(r=>r[k]);const sum=vals.reduce((a,b)=>a+b,0);$('kpi-'+k).textContent=vals.length?(k==='amount'?'S/ ':'')+H.fmt(sum,k==='area'?1:0)+(k==='qq'?' qq':''):'Sin dato';$('kpi-'+k+'-sub').textContent=`${vals.length}/${filteredData.length} con dato · ${k==='area'?'unidad por confirmar':k==='amount'?'solicitudes, no desembolsos':'acopio reportado 2025'}`;}
+ const previous=$('filter-producer').value;$('filter-producer').replaceChildren(new Option('Seleccionar productora…',''));
+ filteredData.forEach((r,i)=>$('filter-producer').add(new Option(`${r.code} (${r.coop})`,String(rawData.indexOf(r)))));
+ $('filter-producer').value=previous;if(!$('filter-producer').value)clearProducer();else showProducer(false);
+ H.render(filteredData,rawData,model);
 }
-
-function applyFilters() {
-  const coop = $('filter-coop').value;
-  const terr = $('filter-territory').value;
-  const base = $('filter-base').value;
-
-  filteredData = rawData.filter(r => {
-    return (coop === 'all' || r.coop === coop) &&
-           (terr === 'all' || r.territory === terr) &&
-           (base === 'all' || r.base === base);
-  });
-
-  $('kpi-n').textContent = filteredData.length;
-  $('kpi-amount').textContent = 'S/ ' + filteredData.reduce((t, r) => t + (r.amount || 0), 0).toLocaleString('es-PE');
-  $('kpi-area').textContent = filteredData.reduce((t, r) => t + (r.area || 0), 0).toFixed(1) + ' ha';
-  $('kpi-qq').textContent = filteredData.reduce((t, r) => t + (r.qq || 0), 0).toLocaleString('es-PE') + ' qq';
-
-  if (typeof renderCharts === "function") renderCharts(filteredData);
+function clearProducer(){$('rep-code-coop').textContent='Selecciona una productora de los filtros.';$('producer-fields').replaceChildren();$('btn-print-action').disabled=true;}
+function showProducer(go=true){const key=$('filter-producer').value;if(key===''){clearProducer();return;}const r=rawData[Number(key)];if(!r||!filteredData.includes(r)){clearProducer();return;}
+ $('rep-code-coop').textContent=`${r.code} | ${r.coop} | ${r.territory||'Territorio sin dato'}`;
+ const fields=[['Actividad solicitada',r.activityRaw??'Sin dato'],['Monto solicitado',D.finite(r.amount)?'S/ '+H.fmt(r.amount):'Sin dato'],['Acopio 2025',D.finite(r.qq)?H.fmt(r.qq)+' quintales':'Sin dato'],['Área de café',D.finite(r.area)?H.fmt(r.area)+' (unidad por confirmar)':'Sin dato'],['Ingreso principal 2025',D.finite(r.income)?'S/ '+H.fmt(r.income):'Sin dato'],['Celular propio',r.phone??'Sin dato']];
+ $('producer-fields').innerHTML=fields.map(([t,v])=>`<div class="report-card"><h4>${H.esc(t)}</h4><div class="big">${H.esc(v)}</div></div>`).join('');$('btn-print-action').disabled=false;if(go)nav('producer');
 }
-
-['filter-coop', 'filter-territory', 'filter-base'].forEach(id => $(id).addEventListener('change', applyFilters));
-
-$('filter-producer').addEventListener('change', e => {
-  if (e.target.value) {
-    document.querySelector('[data-page="producer"]').click();
-    const r = rawData.find(x => x.code === e.target.value);
-    if (!r) return;
-    $('rep-code-coop').textContent = `Código: ${r.code} | Cooperativa: ${r.coop} (${r.territory})`;
-    $('rep-act-val').textContent = r.activity || 'Sin Dato';
-    $('rep-amount-val').textContent = 'S/ ' + (r.amount || 0).toLocaleString('es-PE');
-    $('rep-qq-val').textContent = (r.qq || 0) + ' quintales';
-    $('rep-area-val').textContent = `Área: ${r.area || 0} ha`;
-    $('rep-income-val').textContent = 'S/ ' + (r.income || 0).toLocaleString('es-PE');
-  }
-});
-$('btn-print-action').addEventListener('click', () => { document.querySelector('[data-page="producer"]').click(); window.print(); });
-
-// ========================================================
-// PIPELINE DE DATOS CLIENT-SIDE Y AUDITORÍA
-// ========================================================
-$('excel-input').addEventListener('change', async e => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  $('status-text').innerHTML = `⏳ Analizando y limpiando base de datos: ${file.name}...`;
-
-  const data = await file.arrayBuffer();
-  const wb = XLSX.read(data, { type: 'array' });
-  const rawJson = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval: null});
-  
-  if (rawJson.length === 0) {
-    alert("El Excel está vacío.");
-    return;
-  }
-
-  // 1. Auditoría de Columnas Requeridas
-  const requiredCols = ['codigo_productora', 'cooperativa', 'area_cafe_reportada', 'monto_solicitado_pen', 'actividad_a_financiar'];
-  const excelCols = Object.keys(rawJson[0]);
-  const missingCols = requiredCols.filter(col => !excelCols.includes(col));
-  
-  let auditHTML = "";
-  if (missingCols.length > 0) {
-    $('status-text').innerHTML = `❌ Error Crítico: Incumplimiento de Contrato de Datos. Faltan columnas.`;
-    $('status-banner').classList.add('warning');
-    auditHTML += `<tr><td>Columnas Obligatorias</td><td>Faltan: ${missingCols.join(', ')}</td><td><span style="color:red; font-weight:700;">✗ Rechazado</span></td></tr>`;
-    $('quality-table-body').innerHTML = auditHTML;
-    return; // Detiene la ejecución si la base no sirve
-  } else {
-    auditHTML += `<tr><td>Columnas Obligatorias</td><td>100% completas</td><td><span style="color:green; font-weight:700;">✓ Aprobado</span></td></tr>`;
-  }
-
-  // 2. Limpieza, Padronización y Detección de Duplicados
-  const uniqueCodes = new Set();
-  let duplicates = 0;
-  let nullIncomes = 0;
-
-  const parsed = [];
-  rawJson.forEach((r, i) => {
-    // Check duplicados
-    const code = r.codigo_productora || `REG-${i+1}`;
-    if (uniqueCodes.has(code)) {
-      duplicates++;
-      return; // Saltar duplicados
-    }
-    uniqueCodes.add(code);
-
-    // Regla de Transformación: Agrupación de Actividades
-    let rawAct = String(r.actividad_a_financiar || 'NO ESPECIFICADO').toUpperCase();
-    let cleanAct = rawAct;
-    if (rawAct.includes('CUY') || rawAct.includes('GALLINA') || rawAct.includes('CERDO') || rawAct.includes('CRIANZA')) {
-      cleanAct = 'CRIANZA DE ANIMALES';
-    } else if (rawAct.includes('BODEGA') || rawAct.includes('APICULTURA') || rawAct.includes('CAFE') || rawAct.includes('CAFÉ')) {
-      cleanAct = 'EMPRENDIMIENTO / OTROS';
-    } else if (rawAct.includes('FERTILIZA')) {
-      cleanAct = 'FERTILIZACIÓN';
-    } else if (rawAct.includes('DIVERSIFICA')) {
-      cleanAct = 'DIVERSIFICACIÓN';
-    }
-
-    if (!r.ingreso_principal_pen_2025) nullIncomes++;
-
-    parsed.push({
-      code: code,
-      coop: String(r.cooperativa || 'NORANDINO').toUpperCase(),
-      territory: r.distrito || r.provincia || 'General',
-      base: r.base_sector || 'General',
-      area: Number(r.area_cafe_reportada || 0),
-      qq: Number(r.quintales_acopiados_2025 || 0),
-      amount: Number(r.monto_solicitado_pen || 0),
-      income: Number(r.ingreso_principal_pen_2025 || 0), // Si es nulo asume 0
-      age: Number(r.edad_al_cierre_2025 || 40), // Imputación básica
-      family: Number(r.n_familiares_convivientes || 3),
-      years: Number(r.antiguedad_socio_titular_anios || 5),
-      activity: cleanAct,
-      phone: r.tipo_celular_beneficiaria || 'SMARTPHONE',
-      literacy: r.dificultad_lectoescritura || 'NINGUNA'
-    });
-  });
-
-  // Mostrar resultados de la auditoría en la pestaña 6
-  auditHTML += `<tr><td>Registros Duplicados</td><td>${duplicates} encontrados y eliminados</td><td><span style="color:${duplicates>0?'orange':'green'}; font-weight:700;">${duplicates>0?'! Limpiado':'✓ Limpio'}</span></td></tr>`;
-  auditHTML += `<tr><td>Consistencia (Ingresos Nulos)</td><td>${nullIncomes} nulos detectados (imputados a 0)</td><td><span style="color:${nullIncomes>0?'orange':'green'}; font-weight:700;">${nullIncomes>0?'! Mitigado':'✓ Limpio'}</span></td></tr>`;
-  auditHTML += `<tr><td>Padronización Categorías</td><td>Actividades agrupadas exitosamente</td><td><span style="color:green; font-weight:700;">✓ Aprobado</span></td></tr>`;
-  
-  $('quality-table-body').innerHTML = auditHTML;
-  $('status-text').innerHTML = `✅ <strong>Éxito:</strong> Base limpiada. ${parsed.length} registros cargados correctamente.`;
-  $('status-banner').classList.remove('warning');
-
-  rawData = typeof computePCAClientSide === "function" ? computePCAClientSide(parsed) : parsed;
-  populateSelects();
-  applyFilters();
-  
-  // Forzar actualización a la pestaña de auditoría visualmente
-  document.querySelector('[data-page="quality"]').classList.add('pulse');
-  setTimeout(() => document.querySelector('[data-page="quality"]').classList.remove('pulse'), 3000);
-});
-
-// Inicialización
-populateSelects();
-applyFilters();
+$('filter-producer').addEventListener('change',()=>showProducer());$('btn-print-action').addEventListener('click',()=>{if($('filter-producer').value!==''){nav('producer');window.print();}});
+['filter-coop','filter-territory','filter-base'].forEach(k=>$(k).addEventListener('change',applyFilters));
+for(const id of ['pca-plane','qq-mode','rel-x','rel-y','corr-method'])$(id).addEventListener('change',()=>H.render(filteredData,rawData,model));
+$('correlation-matrix').addEventListener('click',e=>{const b=e.target.closest('button[data-x]');if(!b)return;$('rel-x').value=b.dataset.x;$('rel-y').value=b.dataset.y;H.render(filteredData,rawData,model);$('chart-relation').scrollIntoView({behavior:'smooth',block:'center'});});
+for(const id of ['rel-x','rel-y'])D.numeric.forEach(k=>$(id).add(new Option(D.label(k),k)));$('rel-x').value='qq';$('rel-y').value='income';
+function currentProfile(){return pending.profiles[Number($('sheet-select').value)];}
+function mappingUI(){const all=$('sheet-select').value==='known';$('header-row').disabled=all;$('fixed-coop').disabled=all;$('mapping-fields').replaceChildren();
+ if(all){$('mapping-note').textContent='Se combinarán únicamente Productoras Norandino y Productoras Bagua Grande, con encabezados detectados. Cooperativa proviene del nombre de cada hoja; revisa los datos importados en Calidad.';$('import-preview').innerHTML='';return;}
+ const p=currentProfile();$('header-row').value=p.header+1;$('fixed-coop').value=p.fixedCoop;$('mapping-note').textContent=`${Object.keys(p.map).length} campos reconocidos. Código y cooperativa son necesarios; el resto es opcional. Revisa que las preguntas tengan el mismo significado y correspondan a 2025.`;
+ for(const [k,canonical,label] of D.fields){const div=document.createElement('div');div.className='field';const lab=document.createElement('label');lab.htmlFor='map-'+k;lab.textContent=label;const select=document.createElement('select');select.id='map-'+k;select.add(new Option('No disponible',''));(p.matrix[p.header]||[]).forEach((h,i)=>select.add(new Option(`${i+1}: ${h??'(sin título)'}`,String(i))));select.value=p.map[k]===undefined?'':String(p.map[k]);select.addEventListener('change',()=>{if(select.value==='')delete p.map[k];else p.map[k]=Number(select.value);});div.append(lab,select);$('mapping-fields').append(div);}
+ $('import-preview').innerHTML=H.table((p.matrix[p.header]||[]).map(v=>String(v??'')),p.matrix.slice(p.header+1,p.header+4).map(r=>r.map(v=>v instanceof Date?v.toISOString().slice(0,10):v??'')));
+}
+$('open-file').addEventListener('click',()=>$('excel-input').click());
+$('excel-input').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;
+ try{if(typeof XLSX==='undefined')throw Error('No se cargó el lector Excel. Revisa la carpeta vendor/.');if(file.size>15*1024*1024)throw Error('El archivo supera 15 MB; reduce las hojas o filas antes de cargarlo.');
+ const wb=XLSX.read(await file.arrayBuffer(),{type:'array',cellDates:true});const profiles=wb.SheetNames.map(name=>D.sheetProfile(name,XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:null,blankrows:true,raw:true})));
+ if(!profiles.some(p=>p.matrix.some(r=>r.some(v=>v!=null))))throw Error('El archivo está vacío.');pending={profiles,fileName:file.name};$('sheet-select').replaceChildren();
+ const known=profiles.filter(p=>['Productoras Norandino','Productoras Bagua Grande'].includes(p.name)&&p.map.code!==undefined);if(known.length===2)$('sheet-select').add(new Option('Combinar los dos formularios reconocidos','known'));
+ profiles.forEach((p,i)=>$('sheet-select').add(new Option(p.name,String(i))));const preferred=profiles.findIndex(p=>p.name==='Productoras');$('sheet-select').value=preferred>=0?String(preferred):known.length===2?'known':String(Math.max(0,profiles.findIndex(p=>p.map.code!==undefined)));
+ mappingUI();$('import-panel').hidden=false;status(`Revisa el mapeo de ${file.name}. Los datos anteriores siguen activos hasta confirmar.`,false,'Carga pendiente');$('import-panel').scrollIntoView({behavior:'smooth',block:'start'});
+ }catch(err){status('Carga no aplicada: '+err.message+' Los datos anteriores se conservan.',true,'Revisar');}finally{e.target.value='';}});
+$('sheet-select').addEventListener('change',mappingUI);$('header-row').addEventListener('change',()=>{const p=currentProfile(),value=Number($('header-row').value);if(!Number.isInteger(value)||value<1||value>p.matrix.length){$('header-row').value=p.header+1;return;}p.header=value-1;p.map=D.inferMap(p.matrix[p.header]||[]);mappingUI();});
+$('cancel-import').addEventListener('click',()=>{$('import-panel').hidden=true;pending=null;status(rawData.length?`Carga activa: ${audit.fileName} (${rawData.length} registros).`:'Carga cancelada. No hay datos activos.',false,rawData.length?'Datos activos':'Sin datos');});
+$('confirm-import').addEventListener('click',()=>{if(!pending)return;try{
+ let profiles;if($('sheet-select').value==='known')profiles=pending.profiles.filter(p=>['Productoras Norandino','Productoras Bagua Grande'].includes(p.name)&&p.map.code!==undefined);else{const p=currentProfile();p.fixedCoop=$('fixed-coop').value.trim();profiles=[p];}
+ for(const p of profiles){const vals=Object.values(p.map);if(new Set(vals).size!==vals.length)throw Error('Una misma columna está asignada a varios campos. Revisa el mapeo.');}
+ const result=D.importProfiles(profiles,{numberMode:$('number-mode').value,fileName:pending.fileName});let nextModel;try{nextModel=PDPCA.fitPCA(result.records);}catch(error){nextModel={ok:false,reason:error.message};}
+ rawData=result.records;audit=result.audit;model=nextModel;pending=null;$('import-panel').hidden=true;$('filter-producer').value='';clearProducer();populate();applyFilters();renderQuality();$('download-audit').disabled=false;$('download-data').disabled=false;
+ const warnings=audit.quarantine.length+audit.issues.length;status(`${audit.fileName}: ${rawData.length} registros incluidos; ${audit.quarantine.length} filas en cuarentena; ${audit.issues.length} incidencias. No se imputó ningún valor.`,!!warnings,warnings?'Revisar calidad':'Carga completa');
+ }catch(err){status('Carga no aplicada: '+err.message+' Revisa el mapeo; los datos anteriores siguen activos.',true,'Revisar');}});
+function renderQuality(){if(!audit)return;$('quality-summary').textContent=`Contrato ${audit.contract} · corte 2025 · ${audit.accepted} registros incluidos · ${audit.quarantine.length} en cuarentena · ${audit.issues.length} incidencias · ${audit.emptyRows} filas vacías omitidas.`;
+ const rows=D.fields.filter(f=>f[0]!=='birth').map(([k,,label])=>[label,`${audit.accepted-audit.missing[k]}/${audit.accepted}`,audit.missing[k]?'Parcial / sin dato':'Completo']);
+ $('quality-table').innerHTML=H.table(['Campo','Con dato / incluidos','Cobertura'],rows)+`<p class="chart-note">Área: unidad sin confirmar. Edad: corte fijo al 31/12/2025. No se asume que una fila sea un préstamo desembolsado. Si cargas la versión optimizada de 14 columnas, no se pueden recuperar categorías que ya fueron descartadas; se recomienda la base limpia de 77 campos.</p>`;
+ $('quality-issues').innerHTML=H.table(['Hoja','Fila','Campo / código','Incidencia'],[...audit.quarantine.map(r=>[r.sourceSheet,r.sourceRow,r.code,r.reason]),...audit.issues.map(r=>[r.sheet,r.row,D.label(r.field),r.reason])].slice(0,100));}
+function download(name,text,type){const url=URL.createObjectURL(new Blob([text],{type})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+$('download-audit').addEventListener('click',()=>download('auditoria_pd.json',JSON.stringify(audit,null,2),'application/json'));
+$('download-data').addEventListener('click',()=>{const fields=D.fields.filter(f=>f[0]!=='birth');const cell=v=>'"'+String(v??'').replace(/^[=+@\-\t\r]/,"'$&").replace(/"/g,'""')+'"';const headers=[...fields.map(f=>f[1]),'hoja_origen','fila_excel_origen','actividad_original','celular_original','lectoescritura_original'];const lines=filteredData.map(r=>[...fields.map(f=>r[f[0]]),r.sourceSheet,r.sourceRow,r.activityRaw,r.phoneRaw,r.literacyRaw]);download('productoras_seleccion.csv','\ufeff'+[headers,...lines].map(r=>r.map(cell).join(',')).join('\r\n'),'text/csv;charset=utf-8');});
+populate();applyFilters();

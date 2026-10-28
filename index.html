@@ -1,20 +1,4 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Producers Direct - MVP Business Analytics</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23123f24'/%3E%3Cpath d='M16 39c18 0 29-10 32-25 6 22-4 36-26 36' fill='%23fff'/%3E%3Cpath d='M20 45c8-12 16-18 27-27' stroke='%23123f24' stroke-width='4' fill='none'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="css/style.css">
-  
-  <!-- Libs Externas ($0 CDN) -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-</head>
-<body>
-
-<div class="app">
-  <aside class="side">
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Producers Direct | Fondo Rotatorio</title><link rel="stylesheet" href="css/style.css"><script src="vendor/xlsx.full.min.js"></script><script src="vendor/chart.umd.min.js"></script></head><body><div class="app">  <aside class="side">
     <div class="brand">
       <div class="logo">☘</div>
       <div>
@@ -24,211 +8,26 @@
     </div>
     
     <nav class="nav">
-      <button class="active" data-page="summary"><span>⌂</span> Resumen & PCA</button>
+      <button class="active" data-page="summary"><span>⌂</span> Resumen y PCA</button>
       <button data-page="production"><span>♧</span> Producción y Acopio</button>
       <button data-page="credit"><span>S/</span> Demanda de Crédito</button>
-      <button data-page="inclusion"><span>◎</span> Inclusión & Digital</button>
+      <button data-page="inclusion"><span>◎</span> Inclusión y Digital</button>
       <button data-page="producer"><span>▤</span> Reporte Productora</button>
       <button data-page="quality"><span>✓</span> Calidad de Datos</button>
+      <button data-page="relations"><span>↗</span> Relaciones e insights</button>
     </nav>
 
-    <div class="privacy-box">
-      <strong>Privacidad Garantizada ($0):</strong> Procesamiento local en el navegador del usuario. Sin envíos a servidores externos.
-    </div>
+    <div class="privacy-box"><strong>Datos en tu navegador.</strong> El Excel no se envía a un servidor ni se guarda entre sesiones. Carga únicamente archivos autorizados.</div>
   </aside>
-
-  <main class="main">
-    <div class="header">
-      <div>
-        <h1 id="page-title">Resumen del Fondo Rotatorio</h1>
-        <p id="page-sub">Análisis de escala productivo-económica y perfil demográfico</p>
-      </div>
-      <div class="actions">
-        <label class="btn-upload" for="excel-input">📁 Cargar Excel</label>
-        <input type="file" id="excel-input" accept=".xlsx,.xls">
-        <button class="btn-print" id="btn-print-action">🖨️ Imprimir Ficha</button>
-      </div>
-    </div>
-
-    <div class="status-banner" id="status-banner">
-      <span id="status-text"><strong>Modo Demo Activo:</strong> Visualizando muestra predeterminada de productoras de Norandino y Bagua Grande.</span>
-      <span id="status-pill" style="background:var(--green); color:white; padding:4px 10px; border-radius:99px; font-weight:700; font-size:11px;">Datos Listos</span>
-    </div>
-
-    <div class="filters-bar">
-      <div class="field">
-        <label for="filter-coop">Cooperativa</label>
-        <select id="filter-coop"><option value="all">Todas las cooperativas</option></select>
-      </div>
-      <div class="field">
-        <label for="filter-territory">Distrito / Provincia</label>
-        <select id="filter-territory"><option value="all">Todos los territorios</option></select>
-      </div>
-      <div class="field">
-        <label for="filter-base">Base / Sector</label>
-        <select id="filter-base"><option value="all">Todas las bases</option></select>
-      </div>
-      <div class="field">
-        <label for="filter-producer">Productora (para Reporte)</label>
-        <select id="filter-producer"><option value="">Seleccionar Productora...</option></select>
-      </div>
-    </div>
-
-    <!-- PAGE 1: RESUMEN Y PCA -->
-    <section class="page active" id="summary-page">
-      <div class="kpis-grid">
-        <div class="kpi-card">
-          <div class="kpi-title">Total Productoras</div>
-          <div class="kpi-val" id="kpi-n">0</div>
-          <div class="kpi-sub">Socias registradas</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-title">Monto Solicitado Total</div>
-          <div class="kpi-val" id="kpi-amount">S/ 0</div>
-          <div class="kpi-sub">Fondo de financiamiento</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-title">Área Total de Café</div>
-          <div class="kpi-val" id="kpi-area">0 ha</div>
-          <div class="kpi-sub">Extensión acumulada</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-title">Quintales Acopiados</div>
-          <div class="kpi-val" id="kpi-qq">0 qq</div>
-          <div class="kpi-sub">Volumen 2025</div>
-        </div>
-      </div>
-
-      <div class="grid-12">
-        <div class="card-panel col-8">
-          <h3>Mapa PCA 2D: Escala Productiva (PC1) vs. Perfil Demográfico (PC2)</h3>
-          <div style="height:300px;"><canvas id="chart-pca"></canvas></div>
-        </div>
-        <div class="card-panel col-4">
-          <h3>Interpretación de Componentes PCA</h3>
-          <div style="font-size:13px; line-height:1.5; color:var(--muted);">
-            <p><strong>PC1 (39.14% Var.):</strong> Escala productivo-económica (combina mayor área, quintales e ingreso).</p>
-            <p><strong>PC2 (23.13% Var.):</strong> Perfil demográfico (mayor edad y antigüedad vs menor carga familiar).</p>
-            <p><strong>PC3 (16.02% Var.):</strong> Convivencia familiar y vinculación cooperativa.</p>
-            <p style="background:var(--pale); padding:10px; border-radius:6px; color:var(--green); font-weight:600;">Varianza acumulada explicada: 78.28%</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- PAGE 2: PRODUCCIÓN -->
-    <section class="page" id="production-page">
-      <div class="grid-12">
-        <div class="card-panel col-6">
-          <h3>Quintales Acopiados por Cooperativa</h3>
-          <div style="height:280px;"><canvas id="chart-qq-coop"></canvas></div>
-        </div>
-        <div class="card-panel col-6">
-          <h3>Área Declarada vs Rendimiento Estimado</h3>
-          <div style="height:280px;"><canvas id="chart-yield"></canvas></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- PAGE 3: DEMANDA DE CRÉDITO -->
-    <section class="page" id="credit-page">
-      <div class="grid-12">
-        <div class="card-panel col-6">
-          <h3>Actividades Solicitadas a Financiar</h3>
-          <div style="height:280px;"><canvas id="chart-activities"></canvas></div>
-        </div>
-        <div class="card-panel col-6">
-          <h3>Distribución de Montos Solicitados (S/)</h3>
-          <div style="height:280px;"><canvas id="chart-amounts"></canvas></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- PAGE 4: INCLUSIÓN DIGITAL -->
-    <section class="page" id="inclusion-page">
-      <div class="grid-12">
-        <div class="card-panel col-6">
-          <h3>Tenencia de Celular en el Hogar</h3>
-          <div style="height:260px;"><canvas id="chart-phone"></canvas></div>
-        </div>
-        <div class="card-panel col-6">
-          <h3>Dificultad de Lectoescritura Declarada</h3>
-          <div style="height:260px;"><canvas id="chart-literacy"></canvas></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- PAGE 5: REPORTE INDIVIDUAL -->
-    <section class="page" id="producer-page">
-      <div class="report-shell" id="report-printable">
-        <div class="report-header">
-          <div>
-            <h2>Ficha Técnica de Acompañamiento</h2>
-            <div style="color:var(--muted); font-size:14px; margin-top:4px;" id="rep-code-coop">Código: - | Cooperativa: -</div>
-          </div>
-          <div>
-            <span style="background:var(--pale); color:var(--green); font-weight:700; padding:6px 12px; border-radius:99px; font-size:12px;">Programa Fondo Rotatorio</span>
-          </div>
-        </div>
-
-        <div class="report-grid">
-          <div class="report-card">
-            <h4>Actividad Solicitada a Financiar</h4>
-            <div class="big" id="rep-act-val">-</div>
-            <div style="font-size:13px; color:var(--muted);" id="rep-act-sub">Insumos y fertilización</div>
-          </div>
-          <div class="report-card">
-            <h4>Monto de Crédito Solicitado</h4>
-            <div class="big" id="rep-amount-val">S/ 0</div>
-            <div style="font-size:13px; color:var(--muted);">Sujeto a evaluación de comité</div>
-          </div>
-          <div class="report-card">
-            <h4>Producción y Extensión</h4>
-            <div class="big" id="rep-qq-val">0 quintales</div>
-            <div style="font-size:13px; color:var(--muted);" id="rep-area-val">Área: 0 ha (Rendimiento: 0 qq/ha)</div>
-          </div>
-          <div class="report-card">
-            <h4>Ingreso Principal Anual Declarado</h4>
-            <div class="big" id="rep-income-val">S/ 0</div>
-            <div style="font-size:13px; color:var(--muted);">Declarado en encuesta de inicio</div>
-          </div>
-        </div>
-
-        <div class="advice-box">
-          <strong>💡 Recomendación Técnica para el Técnico de Campo:</strong>
-          <p style="margin:8px 0 0;" id="rep-advice-text">
-            Revisar el uso del cuaderno de registro económico. Verificar que las compras de insumos correspondan al monto entregado y acompañar la aplicación de prácticas agronómicas en parcela.
-          </p>
-        </div>
-
-        <div style="margin-top:30px; font-size:11px; color:var(--muted); text-align:center; border-top:1px solid var(--line); padding-top:14px;">
-          Documento impreso desde la Plataforma de Analítica Producers Direct | UTEC Business Analytics
-        </div>
-      </div>
-    </section>
-
-    <!-- PAGE 6: CALIDAD DE DATOS -->
-    <section class="page" id="quality-page">
-      <div class="card-panel col-12">
-        <h3>Auditoría de Calidad y Cumplimiento del Contrato de Datos</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Criterio de Calidad</th>
-              <th>Resultado</th>
-              <th>Estado</th>
-            </tr>
-          </thead>
-          <tbody id="quality-table-body"></tbody>
-        </table>
-      </div>
-    </section>
-  </main>
-</div>
-
-<!-- Scripts modulares -->
-<script src="js/pca_engine.js"></script>
-<script src="js/charts.js"></script>
-<script src="js/app.js"></script>
-</body>
-</html>
+<main class="main"><header class="header"><div><h1 id="page-title">Resumen del Fondo Rotatorio</h1><p id="page-sub">Base 2025 · perfiles, solicitudes y acompañamiento</p></div><div class="actions"><button class="btn-upload" id="open-file">Cargar Excel</button><input type="file" id="excel-input" accept=".xlsx,.xls"><button class="btn-print" id="btn-print-action" disabled>Imprimir ficha</button></div></header>
+<div class="status-banner" id="status-banner" role="status" aria-live="polite"><span id="status-text">Carga una base para comenzar. No se muestran datos de demostración.</span><span id="status-pill">Sin datos</span></div>
+<section class="card-panel importer" id="import-panel" hidden aria-label="Configurar importación"><h2>Revisar la carga</h2><p>Confirma qué columnas corresponden a cada campo. Los campos que no existen quedan sin dato. Este MVP analiza el corte 2025.</p><div class="import-controls"><div class="field"><label for="sheet-select">Hoja</label><select id="sheet-select"></select></div><div class="field"><label for="header-row">Fila de encabezados</label><input id="header-row" type="number" min="1" value="1"></div><div class="field"><label for="fixed-coop">Cooperativa de la hoja si no hay columna</label><input id="fixed-coop" placeholder="Nombre confirmado por el responsable"></div><div class="field"><label for="number-mode">Formato de números escritos como texto</label><select id="number-mode"><option value="auto">Automático estricto</option><option value="dot">Punto decimal: 1,234.50</option><option value="comma">Coma decimal: 1.234,50</option></select></div></div><p id="mapping-note"></p><div id="mapping-fields" class="mapping-fields"></div><details><summary>Vista previa de filas</summary><div id="import-preview" class="table-scroll"></div></details><div class="actions"><button class="btn-upload" id="confirm-import">Confirmar e importar</button><button class="btn-print" id="cancel-import">Cancelar</button></div></section>
+<div class="filters-bar"><div class="field"><label for="filter-coop">Cooperativa</label><select id="filter-coop"></select></div><div class="field"><label for="filter-territory">Distrito / provincia</label><select id="filter-territory"></select></div><div class="field"><label for="filter-base">Base / sector</label><select id="filter-base"></select></div><div class="field"><label for="filter-producer">Productora de la selección</label><select id="filter-producer"></select></div></div>
+<section class="page active" id="summary-page"><div class="kpis-grid"><div class="kpi-card"><div class="kpi-title">Productoras</div><div class="kpi-val" id="kpi-n">—</div><div class="kpi-sub" id="kpi-n-sub">Registros incluidos</div></div><div class="kpi-card"><div class="kpi-title">Monto solicitado</div><div class="kpi-val" id="kpi-amount">—</div><div class="kpi-sub" id="kpi-amount-sub">Solicitudes, no desembolsos</div></div><div class="kpi-card"><div class="kpi-title">Área de café reportada</div><div class="kpi-val" id="kpi-area">—</div><div class="kpi-sub" id="kpi-area-sub">Unidad por confirmar</div></div><div class="kpi-card"><div class="kpi-title">Acopio 2025</div><div class="kpi-val" id="kpi-qq">—</div><div class="kpi-sub" id="kpi-qq-sub">Quintales reportados</div></div></div><div class="grid-12"><article class="card-panel col-8"><h3>Mapa PCA de productoras</h3><div class="field"><label for="pca-plane">Ejes del mapa</label><select id="pca-plane"><option value="1">PC1 y PC2</option><option value="2">PC1 y PC3</option></select></div><div class="chart-box"><canvas id="chart-pca" role="img" aria-label="Mapa PCA de productoras"></canvas></div><p class="chart-note" id="chart-pca-note"></p><div id="chart-pca-table" class="table-scroll"></div></article><article class="card-panel col-4"><h3>Lectura de los componentes</h3><div id="pca-reading"></div><p class="chart-note">PCA describe patrones; no asigna mérito ni riesgo crediticio. La antigüedad es del socio titular y los convivientes no equivalen a dependientes.</p></article><article class="card-panel col-6"><h3>Varianza acumulada del PCA</h3><div class="chart-box"><canvas id="chart-variance" role="img" aria-label="Varianza acumulada del PCA"></canvas></div><p class="chart-note" id="chart-variance-note"></p><div id="chart-variance-table" class="table-scroll"></div></article><article class="card-panel col-6"><h3>Pesos del PCA calculado</h3><div id="pca-loadings" class="table-scroll"></div><p class="chart-note">Variables estandarizadas con desviación muestral. Modelo ajustado una vez sobre la base cargada; los filtros muestran sus puntos sin cambiar los ejes.</p></article></div></section>
+<section class="page" id="production-page"><div class="grid-12"><article class="card-panel col-6"><h3>Acopio por cooperativa</h3><div class="field"><label for="qq-mode">Medida</label><select id="qq-mode"><option value="median">Mediana por productora</option><option value="total">Total reportado</option></select></div><div class="chart-box"><canvas id="chart-qq-coop" role="img" aria-label="Acopio por cooperativa"></canvas></div><p class="chart-note" id="chart-qq-coop-note"></p><div id="chart-qq-coop-table" class="table-scroll"></div></article><article class="card-panel col-6"><h3>Área de café y acopio</h3><div class="chart-box"><canvas id="chart-yield" role="img" aria-label="Área de café y acopio"></canvas></div><p class="chart-note" id="chart-yield-note"></p><div id="chart-yield-table" class="table-scroll"></div></article></div></section>
+<section class="page" id="credit-page"><div class="grid-12"><article class="card-panel col-6"><h3>Destino de las solicitudes por cooperativa</h3><div class="chart-box"><canvas id="chart-activities" role="img" aria-label="Destino de las solicitudes por cooperativa"></canvas></div><p class="chart-note" id="chart-activities-note"></p><div id="chart-activities-table" class="table-scroll"></div></article><article class="card-panel col-6"><h3>Distribución del monto solicitado</h3><div class="chart-box"><canvas id="chart-amounts" role="img" aria-label="Distribución del monto solicitado"></canvas></div><p class="chart-note" id="chart-amounts-note"></p><div id="chart-amounts-table" class="table-scroll"></div></article></div></section>
+<section class="page" id="inclusion-page"><div class="grid-12"><article class="card-panel col-6"><h3>Celular propio por cooperativa</h3><div class="chart-box"><canvas id="chart-phone" role="img" aria-label="Celular propio por cooperativa"></canvas></div><p class="chart-note" id="chart-phone-note"></p><div id="chart-phone-table" class="table-scroll"></div></article><article class="card-panel col-6"><h3>Lectoescritura por cooperativa</h3><div class="chart-box"><canvas id="chart-literacy" role="img" aria-label="Lectoescritura por cooperativa"></canvas></div><p class="chart-note" id="chart-literacy-note"></p><div id="chart-literacy-table" class="table-scroll"></div></article></div><p class="scope-note">Estas medidas ayudan a planear canales y materiales de acompañamiento. Tener smartphone no demuestra acceso a internet ni uso de WhatsApp.</p></section>
+<section class="page" id="relations-page"><div class="card-panel relation-controls"><h2>Explorar relaciones</h2><p>¿Qué variables se mueven juntas y cambia el patrón entre cooperativas?</p><div class="import-controls"><div class="field"><label for="rel-x">Eje X</label><select id="rel-x"></select></div><div class="field"><label for="rel-y">Eje Y</label><select id="rel-y"></select></div><div class="field"><label for="corr-method">Coeficiente</label><select id="corr-method"><option value="pearson">Pearson: relación lineal</option><option value="spearman">Spearman: orden de los valores</option></select></div></div></div><div class="grid-12"><article class="card-panel col-8"><h3>Relación entre las variables seleccionadas</h3><div class="chart-box"><canvas id="chart-relation" role="img" aria-label="Relación entre las variables seleccionadas"></canvas></div><p class="chart-note" id="chart-relation-note"></p><div id="chart-relation-table" class="table-scroll"></div></article><article class="card-panel col-4"><h3>Qué muestra la selección</h3><p id="relation-insight"></p><div id="relation-groups" class="table-scroll"></div><p class="chart-note">Asociación no implica causalidad. Compara el total con cada cooperativa; la mezcla de grupos y los extremos pueden cambiar el coeficiente. No se calculan pruebas de significancia.</p></article><article class="card-panel col-12"><h3>Matriz de correlaciones</h3><p class="chart-note">Pulsa una celda para llevar ese par al gráfico. Cada coeficiente usa solo sus pares completos; los tamaños de muestra pueden variar.</p><div id="correlation-matrix" class="table-scroll"></div></article></div></section>
+<section class="page" id="producer-page"><div class="report-shell" id="report-printable"><div class="report-header"><div><h2>Ficha de acompañamiento</h2><p id="rep-code-coop">Selecciona una productora de los filtros.</p></div></div><div id="producer-fields" class="report-grid"></div><div class="advice-box"><strong>Puntos para la visita</strong><p id="rep-advice-text">Confirma con la productora el destino solicitado, las unidades y los datos pendientes. Esta ficha no evalúa solvencia ni aprueba un crédito.</p></div></div></section>
+<section class="page" id="quality-page"><div class="card-panel"><h2>Calidad y cobertura de la carga</h2><p id="quality-summary">Aún no hay una base cargada.</p><div class="actions"><button class="btn-print" id="download-audit" disabled>Descargar auditoría JSON</button><button class="btn-print" id="download-data" disabled>Descargar datos normalizados CSV</button></div><p class="chart-note">La auditoría corresponde a la carga completa. Los gráficos y sus denominadores responden a los filtros.</p><div id="quality-table" class="table-scroll"></div><details><summary>Filas en cuarentena e incidencias (primeras 100; detalle completo en JSON)</summary><div id="quality-issues" class="table-scroll"></div></details></div></section>
+</main></div><script src="js/data_core.js"></script><script src="js/pca_engine.js"></script><script src="js/charts.js"></script><script src="js/app.js"></script></body></html>

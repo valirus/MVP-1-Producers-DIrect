@@ -158,3 +158,23 @@ tr.ins td { color: var(--muted); }
   .col-4, .col-6, .col-8 { grid-column: span 12; }
 }
 
+
+/* Ordenar por objetivos del Fondo */
+.nav-group { margin: 14px 0 2px; padding: 0 14px; font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,0.5); }
+.nav-group:first-child { margin-top: 0; }
+.fund-strip { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1.4fr; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+.fund-strip > div { background: var(--pale); padding: 14px 16px; display: grid; gap: 3px; align-content: start; }
+.fund-strip b { color: var(--green); font-size: 15px; }
+.fund-strip span { color: var(--muted); font-size: 12.5px; line-height: 1.4; }
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 8px; }
+.step { border-left: 3px solid var(--green); background: var(--warm); border-radius: 0 8px 8px 0; padding: 12px 14px; display: grid; gap: 4px; align-content: start; }
+.step b { color: var(--green); font-size: 14px; }
+.step span { color: var(--muted); font-size: 13px; line-height: 1.5; }
+.page > .card-panel { margin-bottom: 16px; }
+.check-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 10px; font-size: 14px; }
+.check-list li { display: flex; align-items: center; gap: 10px; }
+.check-list .box { width: 16px; height: 16px; border: 2px solid var(--green); border-radius: 3px; flex: none; }
+.plain-list { margin: 8px 0 0; padding-left: 18px; font-size: 14px; line-height: 1.6; display: grid; gap: 6px; }
+@media(max-width:1100px) { .fund-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); } .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media(max-width:760px) { .nav-group { grid-column: 1 / -1; } .steps, .fund-strip { grid-template-columns: 1fr; } }
+.side { overflow-y: auto; }

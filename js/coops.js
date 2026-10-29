@@ -22,7 +22,7 @@ const COOP_CONFIG = {
     label: 'Bagua Grande',
     groupBy: 'territory',
     focus: 'Entender el territorio: acceso, producción y riesgo por distrito',
-    cross: ['heat', 'radar', 'infocorp', 'gaps', 'bubble', 'services', 'corr', 'age']
+    cross: ['heat', 'radar', 'edu', 'gaps', 'bubble', 'services', 'corr', 'age']
   },
   DEFAULT: {
     label: 'Cooperativa',

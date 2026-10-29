@@ -338,6 +338,6 @@ function renderTerritory(data, view) {
       <div class="kpi-card"><div class="kpi-title">Zonas sin evaluar</div><div class="kpi-val">${nIns}</div><div class="kpi-sub">datos insuficientes</div></div>
     </div>
     <div class="card-panel col-12"><table class="terr"><thead><tr><th>Zona</th><th>Productoras</th><th>Área (ha)</th><th>Rend. (qq/ha)</th><th>Sin internet en casa</th><th>Dificultad lectura/escritura</th><th>Con ahorro o crédito en la cooperativa</th><th>Estado</th></tr></thead><tbody>${rowsHtml}</tbody></table>
-    <p class="cx-note">Reglas: alerta si ≥ ${th.net}% sin internet en casa, si ≥ ${th.lit}% con dificultad de lectoescritura, o si el rendimiento está más de ${th.yd} % por debajo del rendimiento típico (${refYield ? refYield.toFixed(1) : '—'} qq/ha). Infocorp solo existe en los formularios que lo incluyen.</p>
+    <p class="cx-note">Reglas: alerta si ≥ ${th.net}% sin internet en casa, si ≥ ${th.lit}% con dificultad de lectoescritura, o si el rendimiento está más de ${th.yd} % por debajo del rendimiento típico (${refYield ? refYield.toFixed(1) : '—'} qq/ha).</p>
     <p class="cx-note"><span class="pill-pending">Pendiente</span> Pagos y mora por zona: se podrán medir cuando haya cuotas pagadas del primer ciclo de créditos. Tampoco hay datos de cuánto café se vende a otros compradores, que es lo que más afecta el acopio cuando el precio fluctúa. La columna de ahorro o crédito en la cooperativa es informativa: Producers Direct la considera más útil que el historial de Infocorp para anticipar el repago.</p></div>`;
 }

@@ -46,4 +46,4 @@ Los textos visibles usan el lenguaje de la empresa y no los términos de clase. 
 
 ## Orden del tablero
 
-El menú sigue los objetivos del Fondo Rotatorio: panorama, quiénes son las productoras, cómo funciona el crédito, seguimiento y alertas, y análisis y datos. El detalle de qué respondió Producers Direct y dónde se refleja está en `docs/OBJETIVOS_PD.md`.
+El menú sigue los objetivos del Fondo Rotatorio: panorama, quiénes son las productoras, solicitudes de crédito, seguimiento y alertas, y análisis y datos. El detalle de qué respondió Producers Direct y dónde se refleja está en `docs/OBJETIVOS_PD.md`.

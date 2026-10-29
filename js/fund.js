@@ -1,87 +1,8 @@
-// Páginas ligadas a los objetivos del Fondo Rotatorio: condiciones del crédito,
-// apoyo a la preselección, participación y cobertura de datos.
-// Usa utilidades de coops.js y cross.js (share, groupRows, median, newChart, fmtPct).
-
-const FUND = { rate: 0.08, minMonths: 6, maxMonths: 12 };
-
-// Cuota mensual con cuotas iguales. Es una referencia: el cronograma real depende
-// del periodo en que se entregue el crédito.
-function monthlyPayment(principal, months, annualRate = FUND.rate) {
-  const r = annualRate / 12;
-  return r === 0 ? principal / months : principal * r / (1 - Math.pow(1 + r, -months));
-}
+// Páginas de participación (capacitación) y de cobertura de datos.
+// Usa utilidades de coops.js y cross.js (share, groupRows, newChart).
 
 let fundCharts = {};
-const money = v => v === null || v === undefined ? '—' : 'S/ ' + Math.round(v).toLocaleString('es-PE');
-const esc2 = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const table2 = (heads, rows, cls = '') => `<table class="terr ${cls}"><thead><tr>${heads.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
-
-// ---------- Condiciones del Fondo ----------
-
-function renderFund(data) {
-  const amountEl = document.getElementById('fund-amount'), monthsEl = document.getElementById('fund-months');
-  if (!amountEl) return;
-  const amounts = data.map(r => r.amount).filter(v => Number.isFinite(v) && v > 0);
-  if (!amountEl.dataset.touched) amountEl.value = amounts.length ? Math.round(median(amounts)) : '';
-  const months = Math.min(FUND.maxMonths, Math.max(FUND.minMonths, +monthsEl.value || FUND.minMonths));
-  const P = +amountEl.value;
-  const out = document.getElementById('fund-result');
-  if (P > 0) {
-    const cuota = monthlyPayment(P, months), total = cuota * months;
-    out.innerHTML = `<div class="kpis-grid kpis-3">
-      <div class="kpi-card"><div class="kpi-title">Cuota mensual aprox.</div><div class="kpi-val">${money(cuota)}</div><div class="kpi-sub">${months} cuotas iguales</div></div>
-      <div class="kpi-card"><div class="kpi-title">Intereses del periodo</div><div class="kpi-val">${money(total - P)}</div><div class="kpi-sub">8% anual</div></div>
-      <div class="kpi-card"><div class="kpi-title">Total a devolver</div><div class="kpi-val">${money(total)}</div><div class="kpi-sub">capital + intereses</div></div></div>`;
-  } else out.innerHTML = '<p class="cx-empty">Escribe un monto para estimar la cuota.</p>';
-
-  const body = document.getElementById('fund-portfolio');
-  const groups = groupRows(data, 'coop');
-  if (!groups.length) { body.innerHTML = '<p class="cx-empty">Carga una base para ver las solicitudes por cooperativa.</p>'; return; }
-  const rows = groups.map(([g, rs]) => {
-    const a = rs.map(r => r.amount).filter(v => Number.isFinite(v) && v > 0);
-    const sum = a.reduce((t, v) => t + v, 0), inter = a.reduce((t, v) => t + monthlyPayment(v, months) * months - v, 0);
-    return [`<b>${groupLabel(g)}</b>`, a.length + ' de ' + rs.length, money(sum), a.length >= MIN_N ? money(median(a)) : '—', money(inter)];
-  });
-  body.innerHTML = table2(['Cooperativa', 'Productoras con monto', 'Total solicitado', 'Monto típico', `Intereses estimados a ${months} meses`], rows) +
-    '<p class="cx-note">Son montos solicitados en la encuesta, no créditos entregados. Los intereses son una estimación con cuotas iguales; el cronograma real depende de la fecha de entrega. El crédito se entrega en insumos, no en efectivo.</p>';
-}
-
-// ---------- Apoyo a la preselección ----------
-
-function renderSelect(data) {
-  const root = document.getElementById('select-body');
-  if (!root) return;
-  const yEl = document.getElementById('sel-years'), qEl = document.getElementById('sel-qq');
-  const ys = data.map(r => r.years).filter(Number.isFinite), qs = data.map(r => r.qq).filter(Number.isFinite);
-  if (!yEl.dataset.touched) yEl.value = ys.length ? Math.round(median(ys)) : 0;
-  if (!qEl.dataset.touched) qEl.value = qs.length ? Math.round(median(qs)) : 0;
-  const minY = +yEl.value || 0, minQ = +qEl.value || 0;
-  if (!data.length) { root.innerHTML = '<p class="cx-empty">No hay productoras con los filtros actuales.</p>'; return; }
-  const known = data.filter(r => Number.isFinite(r.years) && Number.isFinite(r.qq));
-  const both = known.filter(r => r.years >= minY && r.qq >= minQ);
-  const onlyY = known.filter(r => r.years >= minY && r.qq < minQ).length;
-  const onlyQ = known.filter(r => r.years < minY && r.qq >= minQ).length;
-  const none = known.length - both.length - onlyY - onlyQ;
-  const unknown = data.length - known.length;
-  const kpi = (t, v, s) => `<div class="kpi-card"><div class="kpi-title">${t}</div><div class="kpi-val">${v}</div><div class="kpi-sub">${s}</div></div>`;
-  let html = `<div class="kpis-grid">${kpi('Cumplen los dos criterios', both.length, 'años de asociada y acopio')}${kpi('Solo años de asociada', onlyY, 'acopio por debajo del mínimo')}${kpi('Solo acopio', onlyQ, 'menos años de asociada')}${kpi('No cumplen ninguno', none, unknown ? unknown + ' sin dato en algún criterio' : 'con ambos datos')}</div>`;
-
-  const byCoop = groupRows(data, 'coop').map(([g, rs]) => {
-    const k = rs.filter(r => Number.isFinite(r.years) && Number.isFinite(r.qq)), b = k.filter(r => r.years >= minY && r.qq >= minQ).length;
-    return [`<b>${groupLabel(g)}</b>`, rs.length, b, k.length ? Math.round(100 * b / k.length) + '%' : '—'];
-  });
-  const link = [['Ahorro en la cooperativa', r => r.savingsCoop ?? null], ['Crédito vigente en la cooperativa', r => r.coopCredit ?? null], ['Capacitación de la cooperativa 2025', r => r.trainedCoop ?? null]]
-    .map(([t, f]) => { const s = share(both, f); return [t, s.pct === null ? (s.n ? 'Pocas respuestas (' + s.n + ')' : 'Sin dato en esta base') : s.pct.toFixed(0) + '%']; });
-  html += `<div class="grid-12"><div class="card-panel col-6"><h3>Cuántas cumplen, por cooperativa</h3>${table2(['Cooperativa', 'Productoras', 'Cumplen los dos', '% con ambos datos'], byCoop)}</div>
-    <div class="card-panel col-6"><h3>Vínculo con la cooperativa de quienes cumplen</h3>${table2(['Qué relación tienen', 'Productoras'], link)}
-    <p class="cx-note">Según Producers Direct, el acceso a otros beneficios de la cooperativa (préstamos, ahorro, acopio) es más útil que el historial de Infocorp para anticipar el repago.</p></div></div>`;
-
-  const list = both.slice().sort((a, b) => b.years - a.years || b.qq - a.qq).slice(0, 40);
-  html += `<div class="card-panel"><h3>Productoras que cumplen ambos criterios${both.length > 40 ? ' (primeras 40)' : ''}</h3><div class="table-scroll">${table2(['Código', 'Cooperativa', 'Distrito', 'Años de asociada', 'Acopio 2025 (qq)', 'Área (ha)', 'Monto solicitado'],
-    list.map(r => [esc2(r.code), groupLabel(r.coop), esc2(r.territory ? groupLabel(r.territory) : '—'), r.years, r.qq, Number.isFinite(r.area) ? r.area : '—', money(r.amount)]))}</div>
-    <p class="cx-note">Esta lista apoya, no reemplaza, la preselección que hace la cooperativa: ella conoce a las socias activas y a sus familias. Los años de asociada son los del socio titular. Las mujeres que son esposas o hijas de socios entran con la antigüedad del titular.</p></div>`;
-  root.innerHTML = html;
-}
 
 // ---------- Participación (capacitación) ----------
 
@@ -95,7 +16,7 @@ function renderParticipation(data) {
   if (!groups.length) return;
   fundCharts.part = newChart(cv, {
     type: 'bar',
-    data: { labels: groups.map(([g]) => groupLabel(g)), datasets: [{ data: groups.map(([, s]) => +s.pct.toFixed(1)), backgroundColor: BRAND, borderRadius: 4 }] },
+    data: { labels: groups.map(([g, s]) => `${groupLabel(g)}: ${s.pct.toFixed(0)}%`), datasets: [{ data: groups.map(([, s]) => +s.pct.toFixed(1)), backgroundColor: BRAND, borderRadius: 4 }] },
     options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { min: 0, max: 100, grid: { display: false }, title: { display: true, text: '% de productoras que recibieron capacitación en 2025' } }, y: { grid: { display: false } } } }
   });
   note.textContent = 'Reto de Producers Direct: que las socias asistan ellas mismas, y no solo sus esposos. Este dato mide si recibieron capacitación, no quién asistió.';
@@ -133,5 +54,5 @@ function renderCoverage(data) {
 }
 
 function renderFundPages(data) {
-  renderFund(data); renderSelect(data); renderParticipation(data); renderCoverage(data);
+  renderParticipation(data); renderCoverage(data);
 }

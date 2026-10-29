@@ -38,3 +38,8 @@ Las categorías en una barra 100% deben ser mutuamente excluyentes y sumar el de
 Selecciona su hoja/fila y mapea solo equivalencias comprobadas. Guarda la auditoría JSON para conservar el mapeo efectivo. Si el formato va a repetirse, añade un adaptador **explícito** a `inferMap` con pruebas, conservando el valor original y su versión. No unir automáticamente todas las hojas de un archivo: puede contener diccionarios, totales o copias del mismo registro.
 
 Un archivo por carga. Para acumular años/cooperativas y versionar correcciones haría falta una capa de almacenamiento, periodo explícito y reconciliación de identidad; eso no lo resuelve una página estática por sí sola.
+
+## Gráficos por cooperativa
+
+Cada cooperativa declara en `COOP_CONFIG` (`js/coops.js`) su nivel territorial y la lista de gráficos de la página Análisis cruzado. Para un gráfico nuevo: agrega su entrada en `CROSS` (`js/cross.js`) con `build` (el panel) y `draw` (el cálculo), y su id en la lista de las cooperativas que lo necesiten. Una pregunta nueva del formulario se añade a `fields` y `extraKinds` en `data_core.js` como texto, opción múltiple o 0/1.
+

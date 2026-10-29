@@ -27,13 +27,25 @@ Se reconocen estos perfiles adjuntos:
 | edad_al_cierre_2025 | entero nullable, 0–120 | Edad de la beneficiaria al 31/12/2025. Si se proporciona fecha Excel o ISO, puede derivarse. Una fecha de texto ambigua no se adivina. |
 | n_familiares_convivientes | entero nullable >= 0 | Familiares convivientes. No demuestra dependencia económica ni trabajo en finca. |
 | antiguedad_socio_titular_anios | número nullable >= 0 | Antigüedad del titular, que puede ser cónyuge/padre. No implica experiencia personal de la beneficiaria. |
-| area_cafe_reportada | número nullable >= 0 | Unidad sin confirmar. No se etiqueta ha ni se convierte. Si fuentes futuras usan unidades diferentes, normalizar con unidad explícita antes de unirlas. |
+| area_cafe_reportada | número nullable >= 0 | Hectáreas (confirmado por Producers Direct). Si fuentes futuras usan otras unidades, normalizar con unidad explícita antes de unirlas. |
 | quintales_acopiados_2025 | número nullable >= 0 | Acopio reportado, no producción total. Admite decimales. No se mezclan proyecciones con valores observados. Peso del quintal por confirmar. |
 | ingreso_principal_pen_2025 | número nullable >= 0 | Ingreso principal anual declarado en PEN; no utilidad ni ingreso familiar total. |
 | monto_solicitado_pen | número nullable >= 0 | Solicitud, no desembolso, saldo ni deuda vigente. |
 | actividad_a_financiar | texto nullable | Se conserva original y se agrupa para gráficos. Fertilización tiene prioridad; crianza agrupa cuyes/gallinas/cerdos; bodega/apicultura/tostado se agrupan como emprendimiento. Otras descripciones se conservan. |
 | tipo_celular_beneficiaria | categoría nullable | SMARTPHONE, BASICO, NINGUNO, OTRO / REVISAR. TECLAS es BASICO. No representa celular del hogar, acceso a internet ni uso de WhatsApp. |
 | dificultad_lectoescritura | categoría nullable | NINGUNA, LECTURA, ESCRITURA, AMBAS, OTRO / REVISAR. Ausente no equivale a NINGUNA. |
+
+### Campos propios de cada formulario (opcionales)
+
+Cada cooperativa tiene su propio formulario y puede cambiarlo entre iteraciones. Estos campos se reconocen por su nombre en la base limpia; si no existen, quedan en null y los gráficos que los usan lo avisan, sin afectar al resto.
+
+| Campo | Tipo lógico | Uso |
+|---|---|---|
+| nivel_educativo, acceso_internet, agua_desague, infocorp_categoria | categoría nullable | Perfil, brechas de acceso, historial crediticio (solo formularios que lo incluyen). Infocorp no es mora. |
+| servicios_financieros, canales_preferidos | **opción múltiple** (valores separados por `;` o `,`) | Lista de opciones por registro. Se muestra como % de productoras que marcaron cada opción, con su denominador. No suma 100 %. |
+| usa_yape, ahorro_capitalizacion_cooperativa, credito_vigente_socio_cooperativa, credito_vigente_beneficiaria_sistema, capacitacion_cooperativa_2025 | 0 / 1 (también SI / NO) | Indicadores de inclusión. Otro valor se trata como ausente con incidencia. |
+
+Las pestañas **Análisis cruzado** y **Territorio y alertas** usan estos campos. La configuración de cada cooperativa (qué gráficos, qué nivel territorial) está en `js/coops.js`. Los datos de mora, pagos, saldo y PAR30/PAR60 no forman parte de la base actual.
 
 `fecha_nacimiento_beneficiaria` es una entrada auxiliar; el CSV exporta edad, no la fecha. La trazabilidad incluye hoja/fila y categorías originales. Variables adicionales del archivo no se usan sin definir su significado.
 

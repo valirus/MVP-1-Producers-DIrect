@@ -41,7 +41,7 @@ Cada cooperativa tiene su propio formulario y puede cambiarlo entre iteraciones.
 
 | Campo | Tipo lógico | Uso |
 |---|---|---|
-| nivel_educativo, acceso_internet, agua_desague, infocorp_categoria | categoría nullable | Perfil, brechas de acceso, historial crediticio (solo formularios que lo incluyen). Infocorp no es mora. |
+| nivel_educativo, acceso_internet, agua_desague, infocorp_categoria | categoría nullable | Perfil, brechas de acceso, historial crediticio (solo formularios que lo incluyen). Infocorp no es mora y Producers Direct indicó que no es determinante para el repago: el tablero no lo usa como señal de riesgo. |
 | servicios_financieros, canales_preferidos | **opción múltiple** (valores separados por `;` o `,`) | Lista de opciones por registro. Se muestra como % de productoras que marcaron cada opción, con su denominador. No suma 100 %. |
 | usa_yape, ahorro_capitalizacion_cooperativa, credito_vigente_socio_cooperativa, credito_vigente_beneficiaria_sistema, capacitacion_cooperativa_2025 | 0 / 1 (también SI / NO) | Indicadores de inclusión. Otro valor se trata como ausente con incidencia. |
 

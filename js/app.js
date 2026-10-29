@@ -2,9 +2,10 @@
 'use strict';
 const $=id=>document.getElementById(id),D=PDData,H=PDCharts;
 let rawData=[],filteredData=[],audit=null,model={ok:false,reason:'Carga una base para armar el mapa de perfiles.'},pending=null;
-const pageNames={summary:'Resumen del Fondo Rotatorio',production:'Producción y acopio',credit:'Demanda de crédito',inclusion:'Inclusión y acompañamiento',producer:'Ficha de productora',quality:'Revisión de datos',relations:'Qué se relaciona con qué',cross:'Cruces de datos',territory:'Territorio y alertas'};
+const pageNames={summary:'Panorama del Fondo Rotatorio',production:'Producción y acopio',credit:'Demanda de crédito',inclusion:'Participación y acceso digital',fund:'Condiciones del Fondo',select:'Apoyo a la preselección',producer:'Ficha y verificación',quality:'Revisión de datos',relations:'Qué se relaciona con qué',cross:'Cruces de datos',territory:'Territorio y alertas',coverage:'Datos que faltan'};
+const pageSubs={summary:'Qué hay que saber del Fondo antes de decidir',production:'Cuánto produce y acopia cada cooperativa',credit:'Qué piden las productoras y para qué',inclusion:'Cómo llegar a las productoras y lograr que participen',fund:'Plazo, interés, entrega en insumos y cuota estimada',select:'Cuántas productoras cumplen años de asociada y acopio',producer:'Datos de la productora y revisión del uso del crédito',quality:'Qué se cargó, qué se apartó y por qué',relations:'Qué variables suben o bajan juntas',cross:'Comparaciones entre cooperativas y zonas',territory:'Zonas que necesitan más acompañamiento',coverage:'Qué información falta y qué cooperativa la recoge'};
 function status(text,warning=false,pill=''){ $('status-text').textContent=text;$('status-banner').classList.toggle('warning',warning);$('status-pill').textContent=pill; }
-function nav(page){document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===page+'-page'));$('page-title').textContent=pageNames[page];requestAnimationFrame(()=>H.resize());}
+function nav(page){document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===page+'-page'));$('page-title').textContent=pageNames[page];$('page-sub').textContent=pageSubs[page]||'';requestAnimationFrame(()=>H.resize());}
 document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>nav(b.dataset.page)));
 function options(select,rows,first){select.replaceChildren(new Option(first,'all'));for(const v of rows)select.add(new Option(v??'Sin dato',v??'__null__'));}
 function populate(){for(const [id,k,title] of [['filter-coop','coop','Todas las cooperativas'],['filter-territory','territory','Todos los territorios'],['filter-base','base','Todas las bases']])options($(id),[...new Set(rawData.map(r=>r[k]))].sort((a,b)=>String(a).localeCompare(String(b))),title);
@@ -21,18 +22,20 @@ function applyFilters(){const matches=(v,choice)=>choice==='all'||(choice==='__n
  filteredData.forEach((r,i)=>$('filter-producer').add(new Option(`${r.code} (${r.coop})`,String(rawData.indexOf(r)))));
  $('filter-producer').value=previous;if(!$('filter-producer').value)clearProducer();else showProducer(false);
  H.render(filteredData,rawData,model);
- renderCross(filteredData,$('view-select').value);renderTerritory(filteredData,$('view-select').value);
+ renderCross(filteredData,$('view-select').value);renderTerritory(filteredData,$('view-select').value);renderFundPages(filteredData);
  $('view-badge').textContent=coopConfig($('view-select').value).label;
 }
 function clearProducer(){$('rep-code-coop').textContent='Selecciona una productora de los filtros.';$('producer-fields').replaceChildren();$('btn-print-action').disabled=true;}
 function showProducer(go=true){const key=$('filter-producer').value;if(key===''){clearProducer();return;}const r=rawData[Number(key)];if(!r||!filteredData.includes(r)){clearProducer();return;}
  $('rep-code-coop').textContent=`${r.code} | ${r.coop} | ${r.territory||'Territorio sin dato'}`;
- const fields=[['Actividad solicitada',r.activityRaw??'Sin dato'],['Monto solicitado',D.finite(r.amount)?'S/ '+H.fmt(r.amount):'Sin dato'],['Acopio 2025',D.finite(r.qq)?H.fmt(r.qq)+' quintales':'Sin dato'],['Área de café',D.finite(r.area)?H.fmt(r.area)+' ha':'Sin dato'],['Ingreso principal 2025',D.finite(r.income)?'S/ '+H.fmt(r.income):'Sin dato'],['Celular propio',r.phone??'Sin dato']];
+ const fields=[['Actividad solicitada',r.activityRaw??'Sin dato'],['Monto solicitado',D.finite(r.amount)?'S/ '+H.fmt(r.amount):'Sin dato'],['Acopio 2025',D.finite(r.qq)?H.fmt(r.qq)+' quintales':'Sin dato'],['Área de café',D.finite(r.area)?H.fmt(r.area)+' ha':'Sin dato'],['Ingreso principal 2025',D.finite(r.income)?'S/ '+H.fmt(r.income):'Sin dato'],['Celular propio',r.phone??'Sin dato'],['Años de asociada (titular)',D.finite(r.years)?r.years+' años':'Sin dato'],['Ahorro / crédito en la cooperativa',r.savingsCoop==null&&r.coopCredit==null?'Sin dato':[r.savingsCoop?'Ahorro':'',r.coopCredit?'Crédito':''].filter(Boolean).join(' y ')||'Ninguno']];
  $('producer-fields').innerHTML=fields.map(([t,v])=>`<div class="report-card"><h4>${H.esc(t)}</h4><div class="big">${H.esc(v)}</div></div>`).join('');$('btn-print-action').disabled=false;if(go)nav('producer');
 }
 $('filter-producer').addEventListener('change',()=>showProducer());$('btn-print-action').addEventListener('click',()=>{if($('filter-producer').value!==''){nav('producer');window.print();}});
 ['filter-coop','filter-territory','filter-base'].forEach(k=>$(k).addEventListener('change',applyFilters));
 $('view-select').addEventListener('change',applyView);
+for(const id of ['fund-amount','sel-years','sel-qq'])$(id).addEventListener('input',e=>{e.target.dataset.touched='1';renderFundPages(filteredData);});
+$('fund-months').addEventListener('change',()=>renderFundPages(filteredData));
 ['terr-group','th-net','th-lit','th-yield'].forEach(id=>$(id).addEventListener('input',()=>renderTerritory(filteredData,$('view-select').value)));
 for(const id of ['pca-plane','qq-mode','rel-x','rel-y','corr-method'])$(id).addEventListener('change',()=>H.render(filteredData,rawData,model));
 $('correlation-matrix').addEventListener('click',e=>{const b=e.target.closest('button[data-x]');if(!b)return;$('rel-x').value=b.dataset.x;$('rel-y').value=b.dataset.y;H.render(filteredData,rawData,model);$('chart-relation').scrollIntoView({behavior:'smooth',block:'center'});});

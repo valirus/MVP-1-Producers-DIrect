@@ -259,26 +259,6 @@ const CROSS = {
     }
   },
 
-  infocorp: {
-    span: 6,
-    build: (data) => data.some(r => r.infocorp)
-      ? card('infocorp', 'Categoría Infocorp (solo formularios que la incluyen)', '')
-      : emptyCard('infocorp', 'Categoría Infocorp', 'Este formulario no incluye la categoría Infocorp.'),
-    draw: (data) => {
-      const rows = data.filter(r => r.infocorp);
-      if (!rows.length) return;
-      const order = ['EXCELENTE', 'BUENO', 'MEDIO', 'BAJO'];
-      const cats = order.filter(o => rows.some(r => r.infocorp === o));
-      const counts = cats.map(c => rows.filter(r => r.infocorp === c).length);
-      crossCharts.infocorp = newChart($('cv-infocorp'), {
-        type: 'bar',
-        data: { labels: cats.map(prettyLabel), datasets: [{ data: counts, backgroundColor: cats.map(c => c === 'BAJO' ? '#8A5424' : c === 'MEDIO' ? '#DEC199' : '#729267'), borderRadius: 4 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { display: false }, title: { display: true, text: 'Productoras' } } } }
-      });
-      $('note-infocorp').textContent = `Dato disponible para ${rows.length} productoras. No es mora: refleja el historial crediticio al ingresar.`;
-    }
-  },
-
   age: {
     span: 6,
     build: () => card('age', '¿Cómo son las entrevistadas? Edad', ''),
@@ -342,8 +322,7 @@ function renderTerritory(data, view) {
       return;
     }
     const net = share(rows, GAPS[0].f).pct, lit = share(rows, GAPS[2].f).pct;
-    const ic = rows.filter(r => r.infocorp);
-    const icLow = ic.length >= MIN_N ? 100 * ic.filter(r => ['BAJO', 'MEDIO'].includes(r.infocorp)).length / ic.length : null;
+    const link = share(rows, r => r.savingsCoop == null && r.coopCredit == null ? null : +!!(r.savingsCoop || r.coopCredit)).pct;
     const flags = [];
     if (net !== null && net >= th.net) flags.push(`Sin internet en casa ${net.toFixed(0)}%`);
     if (lit !== null && lit >= th.lit) flags.push(`Dificultad lectura/escritura ${lit.toFixed(0)}%`);
@@ -351,14 +330,14 @@ function renderTerritory(data, view) {
     const level = flags.length === 0 ? 'ok' : flags.length === 1 ? 'warn' : 'bad';
     if (level === 'ok') nOk++; else nAlert++;
     const label = { ok: 'Sin alertas', warn: '1 alerta', bad: flags.length + ' alertas' }[level];
-    rowsHtml += `<tr><td><b>${g}</b></td><td>${n}</td><td>${area.toFixed(1)}</td><td>${yld === null ? '—' : yld.toFixed(1)}</td><td>${fmtPct(net)}</td><td>${fmtPct(lit)}</td><td>${icLow === null ? '—' : icLow.toFixed(0) + '%'}</td><td><span class="sem sem-${level}" title="${flags.join(' · ') || 'Dentro de los umbrales'}">${label}</span>${flags.length ? `<div class="flags">${flags.join(' · ')}</div>` : ''}</td></tr>`;
+    rowsHtml += `<tr><td><b>${g}</b></td><td>${n}</td><td>${area.toFixed(1)}</td><td>${yld === null ? '—' : yld.toFixed(1)}</td><td>${fmtPct(net)}</td><td>${fmtPct(lit)}</td><td>${link === null ? '—' : fmtPct(link)}</td><td><span class="sem sem-${level}" title="${flags.join(' · ') || 'Dentro de los umbrales'}">${label}</span>${flags.length ? `<div class="flags">${flags.join(' · ')}</div>` : ''}</td></tr>`;
   });
   root.innerHTML = `<div class="kpis-grid kpis-3">
       <div class="kpi-card"><div class="kpi-title">Zonas evaluadas</div><div class="kpi-val">${nOk + nAlert}</div><div class="kpi-sub">con ${MIN_N} o más productoras</div></div>
       <div class="kpi-card"><div class="kpi-title">Zonas con alerta</div><div class="kpi-val">${nAlert}</div><div class="kpi-sub">según los umbrales de arriba</div></div>
       <div class="kpi-card"><div class="kpi-title">Zonas sin evaluar</div><div class="kpi-val">${nIns}</div><div class="kpi-sub">datos insuficientes</div></div>
     </div>
-    <div class="card-panel col-12"><table class="terr"><thead><tr><th>Zona</th><th>Productoras</th><th>Área (ha)</th><th>Rend. (qq/ha)</th><th>Sin internet en casa</th><th>Dificultad lectura/escritura</th><th>Infocorp bajo o medio</th><th>Estado</th></tr></thead><tbody>${rowsHtml}</tbody></table>
+    <div class="card-panel col-12"><table class="terr"><thead><tr><th>Zona</th><th>Productoras</th><th>Área (ha)</th><th>Rend. (qq/ha)</th><th>Sin internet en casa</th><th>Dificultad lectura/escritura</th><th>Con ahorro o crédito en la cooperativa</th><th>Estado</th></tr></thead><tbody>${rowsHtml}</tbody></table>
     <p class="cx-note">Reglas: alerta si ≥ ${th.net}% sin internet en casa, si ≥ ${th.lit}% con dificultad de lectoescritura, o si el rendimiento está más de ${th.yd} % por debajo del rendimiento típico (${refYield ? refYield.toFixed(1) : '—'} qq/ha). Infocorp solo existe en los formularios que lo incluyen.</p>
-    <p class="cx-note"><span class="pill-pending">Pendiente</span> Mora y PAR30/PAR60 por zona: la base actual no incluye datos de pagos. Cuando Producers Direct los entregue se agregan aquí como una regla más.</p></div>`;
+    <p class="cx-note"><span class="pill-pending">Pendiente</span> Pagos y mora por zona: se podrán medir cuando haya cuotas pagadas del primer ciclo de créditos. Tampoco hay datos de cuánto café se vende a otros compradores, que es lo que más afecta el acopio cuando el precio fluctúa. La columna de ahorro o crédito en la cooperativa es informativa: Producers Direct la considera más útil que el historial de Infocorp para anticipar el repago.</p></div>`;
 }

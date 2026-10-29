@@ -43,3 +43,7 @@ El antiguo ETL Python se retira para evitar dos juegos de reglas. No hace falta 
 ## Lenguaje del tablero
 
 Los textos visibles usan el lenguaje de la empresa y no los términos de clase. Las equivalencias están en `docs/GLOSARIO.md`.
+
+## Orden del tablero
+
+El menú sigue los objetivos del Fondo Rotatorio: panorama, quiénes son las productoras, cómo funciona el crédito, seguimiento y alertas, y análisis y datos. El detalle de qué respondió Producers Direct y dónde se refleja está en `docs/OBJETIVOS_PD.md`.

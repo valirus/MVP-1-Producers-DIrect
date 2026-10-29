@@ -25,13 +25,14 @@ function applyFilters(){const matches=(v,choice)=>choice==='all'||(choice==='__n
  renderCross(filteredData,$('view-select').value);renderTerritory(filteredData,$('view-select').value);renderFundPages(filteredData);
  $('view-badge').textContent=coopConfig($('view-select').value).label;
 }
-function clearProducer(){$('rep-code-coop').textContent='Selecciona una productora de los filtros.';$('producer-fields').replaceChildren();$('btn-print-action').disabled=true;}
+function resetChecks(){document.querySelectorAll('.check-list input').forEach(i=>{i.checked=false;});}
+function clearProducer(){resetChecks();$('rep-code-coop').textContent='Selecciona una productora de los filtros.';$('producer-fields').replaceChildren();$('btn-print-action').disabled=true;}
 function showProducer(go=true){const key=$('filter-producer').value;if(key===''){clearProducer();return;}const r=rawData[Number(key)];if(!r||!filteredData.includes(r)){clearProducer();return;}
  $('rep-code-coop').textContent=`${r.code} | ${groupLabel(r.coop)} | ${r.territory?groupLabel(r.territory):'Territorio sin dato'}`;
  const fields=[['Actividad solicitada',r.activity?prettyLabel(r.activity):'Sin dato'],['Monto solicitado',D.finite(r.amount)?'S/ '+H.fmt(r.amount):'Sin dato'],['Acopio 2025',D.finite(r.qq)?H.fmt(r.qq)+' quintales':'Sin dato'],['Área de café',D.finite(r.area)?H.fmt(r.area)+' ha':'Sin dato'],['Ingreso principal 2025',D.finite(r.income)?'S/ '+H.fmt(r.income):'Sin dato'],['Celular propio',r.phone?({SMARTPHONE:'Smartphone',BASICO:'Celular básico',NINGUNO:'Sin celular'}[r.phone]||prettyLabel(r.phone)):'Sin dato'],['Años de asociada (titular)',D.finite(r.years)?r.years+' años':'Sin dato'],['Ahorro / crédito en la cooperativa',r.savingsCoop==null&&r.coopCredit==null?'Sin dato':[r.savingsCoop?'Ahorro':'',r.coopCredit?'Crédito':''].filter(Boolean).join(' y ')||'Ninguno']];
  $('producer-fields').innerHTML=fields.map(([t,v])=>`<div class="report-card"><h4>${H.esc(t)}</h4><div class="big">${H.esc(v)}</div></div>`).join('');$('btn-print-action').disabled=false;if(go)nav('producer');
 }
-$('filter-producer').addEventListener('change',()=>showProducer());$('btn-print-action').addEventListener('click',()=>{if($('filter-producer').value!==''){nav('producer');window.print();}});
+$('filter-producer').addEventListener('change',()=>{resetChecks();showProducer();});$('btn-print-action').addEventListener('click',()=>{if($('filter-producer').value!==''){nav('producer');window.print();}});
 ['filter-coop','filter-territory','filter-base'].forEach(k=>$(k).addEventListener('change',applyFilters));
 $('view-select').addEventListener('change',applyView);
 

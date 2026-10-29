@@ -31,3 +31,12 @@ Frontend HTML/JS/CSS compatible con el GitHub Pages actual. No requiere npm, ser
 - `tests/sources.test.cjs`: comprobación opcional con los tres Excel locales; `node tests/sources.test.cjs "C:\ruta\a\los\Excel"`.
 
 El antiguo ETL Python se retira para evitar dos juegos de reglas. No hace falta ejecutarlo. Los archivos de la empresa se mantienen fuera del código público. `.github/workflows/deploy.yml` conserva el despliegue existente; el parche no publica ni hace push.
+
+## Vistas por cooperativa y análisis cruzado
+
+- **Vista del tablero** (barra lateral): Producers Direct ve la distribución global y cada cooperativa por separado. La vista de una cooperativa muestra solo sus registros y su propio conjunto de gráficos, definido en `js/coops.js`. Agregar una cooperativa o cambiar su formulario no exige tocar el código de los gráficos. La separación es de presentación; el control de acceso real depende del despliegue.
+- **Análisis cruzado**: radar de inclusión, barras apiladas al 100 % (respuesta única), ranking de opciones para preguntas de opción múltiple, mapa de calor grupo × indicador, correlaciones de Spearman, burbujas (área, acopio y monto solicitado), ranking de brechas y perfil de edad, con una nota de lectura calculada para cada uno.
+- **Territorio y alertas**: semáforo por zona con umbrales editables. Mora y PAR30/PAR60 quedan pendientes hasta que exista el dato.
+- **Reglas**: áreas en hectáreas, opción múltiple sin sumar porcentajes y celdas con menos de 5 productoras suprimidas.
+- **Pruebas**: `node tests/cross.test.cjs`.
+

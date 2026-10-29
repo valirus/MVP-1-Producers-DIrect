@@ -7,6 +7,11 @@
       </div>
     </div>
     
+    <div class="view-box">
+      <label for="view-select">Vista del tablero</label>
+      <select id="view-select"><option value="GLOBAL">Producers Direct (global)</option></select>
+    </div>
+
     <nav class="nav">
       <button class="active" data-page="summary"><span>⌂</span> Resumen y PCA</button>
       <button data-page="production"><span>♧</span> Producción y Acopio</button>
@@ -15,6 +20,8 @@
       <button data-page="producer"><span>▤</span> Reporte Productora</button>
       <button data-page="quality"><span>✓</span> Calidad de Datos</button>
       <button data-page="relations"><span>↗</span> Relaciones e insights</button>
+      <button data-page="cross"><span>▦</span> Análisis cruzado</button>
+      <button data-page="territory"><span>◉</span> Territorio y alertas</button>
     </nav>
 
     <div class="privacy-box"><strong>Datos en tu navegador.</strong> El Excel no se envía a un servidor ni se guarda entre sesiones. Carga únicamente archivos autorizados.</div>
@@ -28,6 +35,19 @@
 <section class="page" id="credit-page"><div class="grid-12"><article class="card-panel col-6"><h3>Destino de las solicitudes por cooperativa</h3><div class="chart-box"><canvas id="chart-activities" role="img" aria-label="Destino de las solicitudes por cooperativa"></canvas></div><p class="chart-note" id="chart-activities-note"></p><div id="chart-activities-table" class="table-scroll"></div></article><article class="card-panel col-6"><h3>Distribución del monto solicitado</h3><div class="chart-box"><canvas id="chart-amounts" role="img" aria-label="Distribución del monto solicitado"></canvas></div><p class="chart-note" id="chart-amounts-note"></p><div id="chart-amounts-table" class="table-scroll"></div></article></div></section>
 <section class="page" id="inclusion-page"><div class="grid-12"><article class="card-panel col-6"><h3>Celular propio por cooperativa</h3><div class="chart-box"><canvas id="chart-phone" role="img" aria-label="Celular propio por cooperativa"></canvas></div><p class="chart-note" id="chart-phone-note"></p><div id="chart-phone-table" class="table-scroll"></div></article><article class="card-panel col-6"><h3>Lectoescritura por cooperativa</h3><div class="chart-box"><canvas id="chart-literacy" role="img" aria-label="Lectoescritura por cooperativa"></canvas></div><p class="chart-note" id="chart-literacy-note"></p><div id="chart-literacy-table" class="table-scroll"></div></article></div><p class="scope-note">Estas medidas ayudan a planear canales y materiales de acompañamiento. Tener smartphone no demuestra acceso a internet ni uso de WhatsApp.</p></section>
 <section class="page" id="relations-page"><div class="card-panel relation-controls"><h2>Explorar relaciones</h2><p>¿Qué variables se mueven juntas y cambia el patrón entre cooperativas?</p><div class="import-controls"><div class="field"><label for="rel-x">Eje X</label><select id="rel-x"></select></div><div class="field"><label for="rel-y">Eje Y</label><select id="rel-y"></select></div><div class="field"><label for="corr-method">Coeficiente</label><select id="corr-method"><option value="pearson">Pearson: relación lineal</option><option value="spearman">Spearman: orden de los valores</option></select></div></div></div><div class="grid-12"><article class="card-panel col-8"><h3>Relación entre las variables seleccionadas</h3><div class="chart-box"><canvas id="chart-relation" role="img" aria-label="Relación entre las variables seleccionadas"></canvas></div><p class="chart-note" id="chart-relation-note"></p><div id="chart-relation-table" class="table-scroll"></div></article><article class="card-panel col-4"><h3>Qué muestra la selección</h3><p id="relation-insight"></p><div id="relation-groups" class="table-scroll"></div><p class="chart-note">Asociación no implica causalidad. Compara el total con cada cooperativa; la mezcla de grupos y los extremos pueden cambiar el coeficiente. No se calculan pruebas de significancia.</p></article><article class="card-panel col-12"><h3>Matriz de correlaciones</h3><p class="chart-note">Pulsa una celda para llevar ese par al gráfico. Cada coeficiente usa solo sus pares completos; los tamaños de muestra pueden variar.</p><div id="correlation-matrix" class="table-scroll"></div></article></div></section>
+<section class="page" id="cross-page">
+  <div class="view-head"><span class="view-chip" id="view-badge">Producers Direct (global)</span> <span id="cross-focus"></span></div>
+  <div class="grid-12" id="cross-grid"></div>
+</section>
+<section class="page" id="territory-page">
+  <div class="card-panel terr-controls">
+    <div class="field"><label for="terr-group">Agrupar por</label><select id="terr-group"><option value="territory">Distrito</option><option value="province">Provincia</option><option value="base">Base / sector</option></select></div>
+    <div class="field"><label for="th-net">Alerta: sin internet en casa ≥ (%)</label><input type="number" id="th-net" value="30" min="0" max="100"></div>
+    <div class="field"><label for="th-lit">Alerta: dificultad de lectoescritura ≥ (%)</label><input type="number" id="th-lit" value="25" min="0" max="100"></div>
+    <div class="field"><label for="th-yield">Alerta: rendimiento bajo la mediana en (%)</label><input type="number" id="th-yield" value="25" min="0" max="100"></div>
+  </div>
+  <div id="territory-body"></div>
+</section>
 <section class="page" id="producer-page"><div class="report-shell" id="report-printable"><div class="report-header"><div><h2>Ficha de acompañamiento</h2><p id="rep-code-coop">Selecciona una productora de los filtros.</p></div></div><div id="producer-fields" class="report-grid"></div><div class="advice-box"><strong>Puntos para la visita</strong><p id="rep-advice-text">Confirma con la productora el destino solicitado, las unidades y los datos pendientes. Esta ficha no evalúa solvencia ni aprueba un crédito.</p></div></div></section>
 <section class="page" id="quality-page"><div class="card-panel"><h2>Calidad y cobertura de la carga</h2><p id="quality-summary">Aún no hay una base cargada.</p><div class="actions"><button class="btn-print" id="download-audit" disabled>Descargar auditoría JSON</button><button class="btn-print" id="download-data" disabled>Descargar datos normalizados CSV</button></div><p class="chart-note">La auditoría corresponde a la carga completa. Los gráficos y sus denominadores responden a los filtros.</p><div id="quality-table" class="table-scroll"></div><details><summary>Filas en cuarentena e incidencias (primeras 100; detalle completo en JSON)</summary><div id="quality-issues" class="table-scroll"></div></details></div></section>
-</main></div><script src="js/data_core.js"></script><script src="js/pca_engine.js"></script><script src="js/charts.js"></script><script src="js/app.js"></script></body></html>
+</main></div><script src="js/data_core.js"></script><script src="js/coops.js"></script><script src="js/pca_engine.js"></script><script src="js/charts.js"></script><script src="js/cross.js"></script><script src="js/app.js"></script></body></html>

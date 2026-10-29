@@ -40,3 +40,6 @@ El antiguo ETL Python se retira para evitar dos juegos de reglas. No hace falta 
 - **Reglas**: áreas en hectáreas, opción múltiple sin sumar porcentajes y celdas con menos de 5 productoras suprimidas.
 - **Pruebas**: `node tests/cross.test.cjs`.
 
+## Lenguaje del tablero
+
+Los textos visibles usan el lenguaje de la empresa y no los términos de clase. Las equivalencias están en `docs/GLOSARIO.md`.

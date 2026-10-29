@@ -18,7 +18,7 @@ function destroyCross() {
   crossCharts = {};
 }
 
-const fmtPct = v => v === null || v === undefined ? 'n<' + MIN_N : v.toFixed(0) + '%';
+const fmtPct = v => v === null || v === undefined ? '<' + MIN_N : v.toFixed(0) + '%';
 
 function groupsFor(data, view) {
   // Vista global: se compara por cooperativa. Vista de cooperativa: por territorio (n >= MIN_N)
@@ -64,7 +64,7 @@ const CROSS = {
       const { kept } = groupsFor(data, view);
       if (axes.length < 3) return;
       const sets = kept.slice(0, 4).map(([g, rows], i) => ({
-        label: `${groupLabel(g)} (n=${rows.length})`,
+        label: `${groupLabel(g)} (${rows.length} productoras)`,
         data: axes.map(a => { const s = share(rows, a.f); return s.pct === null ? null : +s.pct.toFixed(1); }),
         borderColor: SERIES[i], backgroundColor: SERIES[i] + '26', pointBackgroundColor: SERIES[i], borderWidth: 2, pointRadius: 3, spanGaps: true
       }));
@@ -92,7 +92,7 @@ const CROSS = {
     build: (data, view) => {
       const { kept } = groupsFor(data, view);
       if (!kept.length || !data.some(r => r.education)) return emptyCard('edu', 'Nivel educativo por grupo', 'No hay datos de nivel educativo para esta selección.');
-      return card('edu', 'Nivel educativo por grupo (respuesta única, % de cada grupo)', '');
+      return card('edu', 'Nivel educativo por grupo (% de cada grupo)', '');
     },
     draw: (data, view) => {
       const { kept } = groupsFor(data, view);
@@ -105,7 +105,7 @@ const CROSS = {
       crossCharts.edu = newChart($('cv-edu'), {
         type: 'bar',
         data: {
-          labels: kept.map(([g, r]) => `${groupLabel(g)} (n=${r.length})`),
+          labels: kept.map(([g, r]) => `${groupLabel(g)} (${r.length} productoras)`),
           datasets: cats.map((c, i) => ({
             label: prettyLabel(c),
             data: kept.map(([, rows]) => +(100 * rows.filter(r => r.education === c).length / rows.filter(r => r.education).length || 0).toFixed(1)),
@@ -127,7 +127,7 @@ const CROSS = {
   services: {
     span: 6,
     build: (data) => data.some(r => Array.isArray(r.services))
-      ? card('services', 'Servicios financieros que usan (opción múltiple)', '')
+      ? card('services', 'Servicios financieros que usan (podían marcar varios)', '')
       : emptyCard('services', 'Servicios financieros que usan', 'Esta base no trae la pregunta de servicios financieros.'),
     draw: (data) => {
       const { items, n } = multiShare(data, 'services');
@@ -141,14 +141,14 @@ const CROSS = {
           scales: { x: { max: 100, ticks: { callback: v => v + '%' }, grid: { display: false } }, y: { grid: { display: false } } }
         }
       });
-      $('note-services').textContent = `Pregunta de opción múltiple: una productora puede marcar varias opciones, por eso los porcentajes no suman 100%. Base: ${n} respuestas.`;
+      $('note-services').textContent = `Cada productora pudo marcar varias opciones, por eso los porcentajes no suman 100 %. Respondieron ${n} productoras.`;
     }
   },
 
   channels: {
     span: 6,
     build: (data) => data.some(r => Array.isArray(r.channels))
-      ? card('channels', 'Canales de contacto preferidos (opción múltiple)', '')
+      ? card('channels', 'Canales de contacto preferidos (podían marcar varios)', '')
       : emptyCard('channels', 'Canales de contacto preferidos', 'Esta base no trae la pregunta de canales.'),
     draw: (data) => {
       const { items, n } = multiShare(data, 'channels');
@@ -162,36 +162,36 @@ const CROSS = {
           scales: { x: { max: 100, ticks: { callback: v => v + '%' }, grid: { display: false } }, y: { grid: { display: false } } }
         }
       });
-      $('note-channels').textContent = items.length ? `«${prettyLabel(items[0].option)}» es el canal más elegido (${items[0].pct.toFixed(0)}%). Opción múltiple: no suma 100%.` : '';
+      $('note-channels').textContent = items.length ? `«${prettyLabel(items[0].option)}» es el canal más elegido (${items[0].pct.toFixed(0)}%). Se podía marcar más de una, por eso no suma 100 %.` : '';
     }
   },
 
   heat: {
     span: 12,
-    build: () => tableCard('heat', 'Mapa de calor: grupo × indicador (% de productoras)'),
+    build: () => tableCard('heat', 'Comparación por grupo: % de productoras con cada característica'),
     draw: (data, view) => {
       const { kept, hidden } = groupsFor(data, view);
       const el = $('tb-heat');
       if (!kept.length) { el.innerHTML = `<p class="cx-empty">Ningún grupo alcanza ${MIN_N} productoras.</p>`; return; }
       const cols = INDICATORS;
-      let h = '<table class="heat"><thead><tr><th>Grupo</th><th>n</th>' + cols.map(c => `<th><div class="rot">${c.label}</div></th>`).join('') + '</tr></thead><tbody>';
+      let h = '<table class="heat"><thead><tr><th>Grupo</th><th>Productoras</th>' + cols.map(c => `<th><div class="rot">${c.label}</div></th>`).join('') + '</tr></thead><tbody>';
       kept.forEach(([g, rows]) => {
         h += `<tr><th>${groupLabel(g)}</th><td>${rows.length}</td>` + cols.map(c => {
           const s = share(rows, c.f);
-          if (s.pct === null) return `<td class="na" title="Menos de ${MIN_N} respuestas">n&lt;${MIN_N}</td>`;
+          if (s.pct === null) return `<td class="na" title="Menos de ${MIN_N} respuestas">&lt;${MIN_N}</td>`;
           const a = (s.pct / 100).toFixed(2);
           const dark = s.pct > 55;
-          return `<td style="background:rgba(18,63,36,${(0.08 + 0.85 * a).toFixed(2)});color:${dark ? '#fff' : '#172019'}" title="${c.label}: ${s.pct.toFixed(1)}% (n=${s.n})">${s.pct.toFixed(0)}%</td>`;
+          return `<td style="background:rgba(18,63,36,${(0.08 + 0.85 * a).toFixed(2)});color:${dark ? '#fff' : '#172019'}" title="${c.label}: ${s.pct.toFixed(1)}% (${s.n} productoras)">${s.pct.toFixed(0)}%</td>`;
         }).join('') + '</tr>';
       });
       el.innerHTML = h + '</tbody></table>';
-      $('note-heat').textContent = `Color más oscuro = mayor porcentaje. Se omiten las celdas con menos de ${MIN_N} respuestas${hidden ? ` y ${hidden} grupo(s) con menos de ${MIN_N} productoras` : ''}.`;
+      $('note-heat').textContent = `Cuanto más oscuro, mayor el porcentaje. Se omiten las casillas con menos de ${MIN_N} respuestas${hidden ? ` y ${hidden} grupo(s) con menos de ${MIN_N} productoras` : ''}.`;
     }
   },
 
   gaps: {
     span: 6,
-    build: () => card('gaps', 'Ranking de brechas (% de productoras afectadas)', ''),
+    build: () => card('gaps', 'Principales brechas (% de productoras afectadas)', ''),
     draw: (data) => {
       const rows = GAPS.map(g => ({ label: g.label, s: share(data, g.f) })).filter(x => x.s.pct !== null).sort((a, b) => b.s.pct - a.s.pct);
       if (!rows.length) { $('note-gaps').textContent = `Menos de ${MIN_N} respuestas por indicador.`; return; }
@@ -200,7 +200,7 @@ const CROSS = {
         data: { labels: rows.map(r => r.label), datasets: [{ data: rows.map(r => +r.s.pct.toFixed(1)), backgroundColor: rows.map((_, i) => i < 2 ? BRAND : GREY), borderRadius: 4 }] },
         options: {
           indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.parsed.x}% (n=${rows[c.dataIndex].s.n})` } } },
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.parsed.x}% (${rows[c.dataIndex].s.n} productoras)` } } },
           scales: { x: { max: 100, ticks: { callback: v => v + '%' }, grid: { display: false } }, y: { grid: { display: false } } }
         }
       });
@@ -238,7 +238,7 @@ const CROSS = {
 
   corr: {
     span: 12,
-    build: () => tableCard('corr', 'Correlaciones (Spearman) entre variables numéricas', 8),
+    build: () => tableCard('corr', 'Qué variables suben o bajan juntas', 8),
     draw: (data) => {
       const vars = [['area', 'Área (ha)'], ['qq', 'Quintales'], ['income', 'Ingreso principal'], ['amount', 'Monto solicitado'], ['age', 'Edad'], ['years', 'Antigüedad'], ['family', 'Familiares']];
       const el = $('tb-corr');
@@ -255,7 +255,7 @@ const CROSS = {
         }).join('') + '</tr>';
       });
       el.innerHTML = h + '</tbody></table>';
-      $('note-corr').textContent = `Verde = se mueven juntas, marrón = en sentido opuesto. Es asociación, no causa. Base: ${rows.length} productoras.`;
+      $('note-corr').textContent = `Verde: suben juntas. Marrón: una sube y la otra baja. Que vayan juntas no significa que una cause la otra. Productoras: ${rows.length}.`;
     }
   },
 
@@ -293,7 +293,7 @@ const CROSS = {
         data: { labels: bins.map(b => b[0]), datasets: [{ data: counts, backgroundColor: counts.map((_, i) => i === max ? BRAND : GREY), borderRadius: 4 }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, title: { display: true, text: 'Edad al cierre 2025 (años)' } }, y: { grid: { display: false }, title: { display: true, text: 'Productoras' } } } }
       });
-      $('note-age').textContent = `Mediana de edad: ${median(ages)} años. El grupo más numeroso es el de ${bins[max][0]} años.`;
+      $('note-age').textContent = `Edad central: ${median(ages)} años (la mitad es menor y la mitad mayor). El grupo más numeroso es el de ${bins[max][0]} años.`;
     }
   }
 };
@@ -338,7 +338,7 @@ function renderTerritory(data, view) {
     const yld = area > 0 ? qq / area : null;
     if (n < MIN_N) {
       nIns++;
-      rowsHtml += `<tr class="ins"><td>${g}</td><td>${n}</td><td colspan="5">Datos insuficientes (n&lt;${MIN_N})</td><td><span class="sem sem-na">Sin evaluar</span></td></tr>`;
+      rowsHtml += `<tr class="ins"><td>${g}</td><td>${n}</td><td colspan="5">Datos insuficientes (menos de ${MIN_N} productoras)</td><td><span class="sem sem-na">Sin evaluar</span></td></tr>`;
       return;
     }
     const net = share(rows, GAPS[0].f).pct, lit = share(rows, GAPS[2].f).pct;
@@ -346,7 +346,7 @@ function renderTerritory(data, view) {
     const icLow = ic.length >= MIN_N ? 100 * ic.filter(r => ['BAJO', 'MEDIO'].includes(r.infocorp)).length / ic.length : null;
     const flags = [];
     if (net !== null && net >= th.net) flags.push(`Sin internet en casa ${net.toFixed(0)}%`);
-    if (lit !== null && lit >= th.lit) flags.push(`Dificultad lectoescritura ${lit.toFixed(0)}%`);
+    if (lit !== null && lit >= th.lit) flags.push(`Dificultad lectura/escritura ${lit.toFixed(0)}%`);
     if (yld !== null && refYield && yld < refYield * (1 - th.yd / 100)) flags.push(`Rendimiento ${yld.toFixed(1)} qq/ha`);
     const level = flags.length === 0 ? 'ok' : flags.length === 1 ? 'warn' : 'bad';
     if (level === 'ok') nOk++; else nAlert++;
@@ -358,7 +358,7 @@ function renderTerritory(data, view) {
       <div class="kpi-card"><div class="kpi-title">Zonas con alerta</div><div class="kpi-val">${nAlert}</div><div class="kpi-sub">según los umbrales de arriba</div></div>
       <div class="kpi-card"><div class="kpi-title">Zonas sin evaluar</div><div class="kpi-val">${nIns}</div><div class="kpi-sub">datos insuficientes</div></div>
     </div>
-    <div class="card-panel col-12"><table class="terr"><thead><tr><th>Zona</th><th>n</th><th>Área (ha)</th><th>Rend. (qq/ha)</th><th>Sin internet en casa</th><th>Dif. lectoescritura</th><th>Infocorp bajo o medio</th><th>Estado</th></tr></thead><tbody>${rowsHtml}</tbody></table>
-    <p class="cx-note">Reglas: alerta si ≥ ${th.net}% sin internet en casa, si ≥ ${th.lit}% con dificultad de lectoescritura, o si el rendimiento está más de ${th.yd}% por debajo de la mediana (${refYield ? refYield.toFixed(1) : '—'} qq/ha). Infocorp solo existe en los formularios que lo incluyen.</p>
+    <div class="card-panel col-12"><table class="terr"><thead><tr><th>Zona</th><th>Productoras</th><th>Área (ha)</th><th>Rend. (qq/ha)</th><th>Sin internet en casa</th><th>Dificultad lectura/escritura</th><th>Infocorp bajo o medio</th><th>Estado</th></tr></thead><tbody>${rowsHtml}</tbody></table>
+    <p class="cx-note">Reglas: alerta si ≥ ${th.net}% sin internet en casa, si ≥ ${th.lit}% con dificultad de lectoescritura, o si el rendimiento está más de ${th.yd} % por debajo del rendimiento típico (${refYield ? refYield.toFixed(1) : '—'} qq/ha). Infocorp solo existe en los formularios que lo incluyen.</p>
     <p class="cx-note"><span class="pill-pending">Pendiente</span> Mora y PAR30/PAR60 por zona: la base actual no incluye datos de pagos. Cuando Producers Direct los entregue se agregan aquí como una regla más.</p></div>`;
 }

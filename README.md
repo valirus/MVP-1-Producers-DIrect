@@ -6,15 +6,15 @@ Frontend HTML/JS/CSS compatible con el GitHub Pages actual. No requiere npm, ser
 
 1. Abre la raíz del proyecto (donde están `index.html`, `css`, `js` y `data`).
 2. Clic derecho en `index.html` → **Open with Live Server**. Ya tienes el botón **Go Live** en tu captura. Alternativa, si tienes Python: `python -m http.server 8000` y abre `http://localhost:8000`.
-3. Pulsa **Cargar Excel**, revisa el mapeo y pulsa **Confirmar e importar**.
-4. Para comenzar se recomienda `Base_Nor_BG_limpia(2).xlsx`, hoja **Productoras**. También se admite la optimizada o el original anónimo con la opción de combinar los dos formularios reconocidos.
-5. En **Relaciones e insights**, cambia los ejes y alterna Pearson/Spearman. Pulsa una celda de la matriz para explorar ese par. Los filtros afectan a gráficos, comentarios y CSV.
-6. En **Calidad de Datos**, revisa cobertura/cuarentena y descarga auditoría JSON. El CSV exporta solo la selección activa; el JSON describe la carga completa.
+3. Pulsa **Cargar Excel**. Las hojas reconocidas se importan automáticamente; no hay una pantalla de revisión previa.
+4. Se prioriza la hoja **Productoras**. Si no existe, se combinan las hojas reconocidas de Norandino y Bagua Grande; si el archivo contiene varias hojas posibles, se muestra un aviso y se conserva la base activa.
+5. En **Qué se relaciona con qué**, cambia las variables y alterna Pearson/Spearman. Pulsa una celda de la matriz para explorar ese par. Los filtros afectan a gráficos, comentarios y CSV.
+6. **Exportar selección** descarga un CSV de los registros que muestran los filtros actuales.
 
 ## Qué cambió
 
 - Contrato mínimo de identidad y datos opcionales por visual; sin valores inventados.
-- Selector de hoja, encabezado y mapeo para formularios nuevos. Adaptadores revisados para los dos originales adjuntos. No adivina equivalencia semántica de nuevas preguntas.
+- Carga automática para los formularios reconocidos. Para agregar un formato nuevo, registra un adaptador explícito en `js/data_core.js`; no se adivina la equivalencia de preguntas.
 - PCA calculado, con pesos/varianza reales; planos PC1–PC2 y PC1–PC3. Modelo fijo durante los filtros para conservar ejes comparables.
 - Dispersión configurable y matriz Pearson/Spearman con n de pares y desglose por cooperativa.
 - Barras 100% por cooperativa, comentarios calculados y tablas de apoyo, inspiradas en la comparación por grupos del informe PwC.
@@ -46,4 +46,4 @@ Los textos visibles usan el lenguaje de la empresa y no los términos de clase. 
 
 ## Orden del tablero
 
-El menú sigue los objetivos del Fondo Rotatorio: panorama, quiénes son las productoras, solicitudes de crédito, seguimiento y alertas, y análisis y datos. El detalle de qué respondió Producers Direct y dónde se refleja está en `docs/OBJETIVOS_PD.md`.
+El menú sigue los objetivos del Fondo Rotatorio: panorama, quiénes son las productoras, solicitudes de crédito, seguimiento y alertas, y análisis. El detalle de qué respondió Producers Direct y dónde se refleja está en `docs/OBJETIVOS_PD.md`.

@@ -32,7 +32,7 @@ function card(id, title, note, span = 6, height = 300) {
   return `<div class="card-panel col-${span}" id="cx-${id}">
     <h3>${title}</h3>
     <div class="cx-body" style="height:${height}px"><canvas id="cv-${id}"></canvas></div>
-    <p class="cx-note" id="note-${id}">${note || ''}</p>
+    <details class="chart-details"><summary>Ver detalles</summary><p class="cx-note" id="note-${id}">${note || ''}</p></details>
   </div>`;
 }
 

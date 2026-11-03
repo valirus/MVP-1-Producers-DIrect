@@ -4,11 +4,7 @@ El tablero lo usa Producers Direct y las cooperativas, no personas de analítica
 
 | Término técnico | Cómo se dice en el tablero | Qué significa |
 |---|---|---|
-| PCA, componente principal (PC1, PC2, PC3) | Mapa de perfiles, ejes 1, 2 y 3 | Resume 6 datos de cada productora en pocos ejes para ver quiénes se parecen. Cada eje recibe un nombre según lo que más pesa (por ejemplo, "Tamaño de la producción"). |
-| Varianza explicada | Cuánta información conserva el mapa; "% de las diferencias entre productoras" | Qué parte de las diferencias entre productoras se ve en el mapa. |
-| Pesos, cargas, autovectores | Qué variables definen cada eje | Cuánto influye cada dato en un eje. |
-| Variables estandarizadas | (no se muestra) | Se pasan a una escala común para que los soles no pesen más que los años. |
-| Correlación, Pearson, Spearman | Qué variables suben o bajan juntas; relación débil, moderada o fuerte | Si dos datos tienden a moverse juntos. Se muestra con palabras; los coeficientes quedan en la tabla de colores. |
+| Correlación, Spearman | Qué variables suben o bajan juntas; relación débil, moderada o fuerte | Si dos datos tienden a moverse juntos. Se muestra con palabras; los coeficientes quedan en la tabla de colores. El tablero usa Spearman fijo, sin elegir entre Pearson y Spearman. |
 | Mediana | Productora típica, valor central | La mitad está por encima y la otra mitad por debajo. |
 | n, tamaño de muestra | Número de productoras | Cuántas productoras respondieron. |
 | Mapa de calor | Comparación por grupo; tabla de colores | Cuanto más oscuro, mayor el porcentaje. |

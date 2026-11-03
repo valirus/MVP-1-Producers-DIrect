@@ -4,60 +4,60 @@
 
 const MIN_N = 5; // mínimo de productoras por celda para mostrar un porcentaje
 
-// Gráficos disponibles en la página "Análisis cruzado" (ids definidos en cross.js)
+// Cada cooperativa define cómo se agrupa cuando se analiza por separado.
 const COOP_CONFIG = {
-  GLOBAL: {
-    label: 'Producers Direct (global)',
-    groupBy: 'coop',
-    focus: 'Comparación entre cooperativas',
-    cross: ['radar', 'edu', 'services', 'heat', 'gaps', 'bubble', 'corr', 'age']
-  },
-  'NORANDINO': {
-    label: 'Norandino',
-    groupBy: 'territory',
-    focus: 'Acopio, capacitación y acceso digital por distrito',
-    cross: ['radar', 'services', 'channels', 'heat', 'gaps', 'bubble', 'edu', 'age']
-  },
-  'BAGUA GRANDE': {
-    label: 'Bagua Grande',
-    groupBy: 'territory',
-    focus: 'Entender el territorio: acceso, producción y riesgo por distrito',
-    cross: ['heat', 'radar', 'edu', 'gaps', 'bubble', 'services', 'corr', 'age']
-  },
-  DEFAULT: {
-    label: 'Cooperativa',
-    groupBy: 'territory',
-    focus: 'Perfil de las socias por territorio',
-    cross: ['radar', 'heat', 'gaps', 'bubble', 'edu', 'age']
-  }
+  GLOBAL: { label: 'Producers Direct (global)', groupBy: 'coop' },
+  NORANDINO: { label: 'Norandino', groupBy: 'territory' },
+  'BAGUA GRANDE': { label: 'Bagua Grande', groupBy: 'territory' },
+  DEFAULT: { label: 'Cooperativa', groupBy: 'territory' }
 };
 
 function coopConfig(view) {
   return COOP_CONFIG[view] || { ...COOP_CONFIG.DEFAULT, label: view };
 }
 
+// Las respuestas llegan como texto libre ("En casa", "FUERA_DE_CASA", "No tiene").
+// Se normalizan a 1 / 0 / null sin inventar valores.
+const canonical = (value) => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase().replace(/\s+/g, '_');
+
+function homeInternet(value) {
+  const text = canonical(value);
+  if (!text) return null;
+  if (text === 'EN_CASA' || text === 'CASA' || text === 'SI' || text === 'SÍ') return 1;
+  if (text === 'NO' || text === 'NINGUNO' || text === 'NO_TIENE' || text.includes('FUERA')) return 0;
+  return text.startsWith('EN') ? 1 : 0;
+}
+
+function hasSewer(value) {
+  const text = canonical(value);
+  if (!text) return null;
+  if (text === 'AMBOS' || text === 'AGUA_Y_DESAGUE' || text === 'SOLO_DESAGUE' || text === 'DESAGUE') return 1;
+  if (text === 'NINGUNO' || text === 'SOLO_AGUA' || text === 'NO' || text === 'NO_TIENE') return 0;
+  return null;
+}
+
 // Indicadores binarios (1 / 0 / null). "good" indica si 1 es el sentido positivo.
 const INDICATORS = [
   { id: 'smart', label: 'Smartphone propio', good: true, f: r => r.phone ? +(r.phone === 'SMARTPHONE') : null },
-  { id: 'net', label: 'Internet en casa', good: true, f: r => r.internet ? +(r.internet === 'EN_CASA') : null },
+  { id: 'net', label: 'Internet en casa', good: true, f: r => homeInternet(r.internet) },
   { id: 'lit', label: 'Sin dificultad de lectoescritura', good: true, f: r => r.literacy ? +(r.literacy === 'NINGUNA') : null },
   { id: 'train', label: 'Capacitación de la cooperativa', good: true, f: r => r.trainedCoop ?? null },
   { id: 'save', label: 'Ahorro en la cooperativa', good: true, f: r => r.savingsCoop ?? null },
   { id: 'wa', label: 'Prefiere WhatsApp', good: true, f: r => r.channels ? +r.channels.includes('WHATSAPP') : null },
   { id: 'call', label: 'Prefiere llamadas', good: true, f: r => r.channels ? +r.channels.includes('LLAMADAS') : null },
   { id: 'yape', label: 'Usa Yape', good: true, f: r => r.yape ?? null },
-  { id: 'sewer', label: 'Tiene desagüe', good: true, f: r => r.water ? +['AMBOS', 'SOLO_DESAGUE'].includes(r.water) : null },
+  { id: 'sewer', label: 'Tiene desagüe', good: true, f: r => hasSewer(r.water) },
   { id: 'coopcred', label: 'Crédito vigente en la cooperativa', good: true, f: r => r.coopCredit ?? null }
 ];
 
 // Brechas = lo contrario de un indicador positivo (para el ranking de brechas)
 const GAPS = [
-  { label: 'Sin internet en casa', f: r => r.internet ? +(r.internet !== 'EN_CASA') : null },
+  { label: 'Sin internet en casa', f: r => { const value = homeInternet(r.internet); return value == null ? null : 1 - value; } },
   { label: 'Sin smartphone propio', f: r => r.phone ? +(r.phone !== 'SMARTPHONE') : null },
   { label: 'Dificultad de lectoescritura', f: r => r.literacy ? +(r.literacy !== 'NINGUNA') : null },
   { label: 'Sin capacitación de la cooperativa', f: r => r.trainedCoop != null ? 1 - r.trainedCoop : null },
   { label: 'Sin ahorro en la cooperativa', f: r => r.savingsCoop != null ? 1 - r.savingsCoop : null },
-  { label: 'Sin desagüe', f: r => r.water ? +!['AMBOS', 'SOLO_DESAGUE'].includes(r.water) : null },
+  { label: 'Sin desagüe', f: r => { const value = hasSewer(r.water); return value == null ? null : 1 - value; } },
   { label: 'Sin Yape', f: r => r.yape != null ? 1 - r.yape : null }
 ];
 

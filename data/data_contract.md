@@ -68,9 +68,8 @@ Las pestañas **Análisis cruzado** y **Territorio y alertas** usan estos campos
 | Totales de solicitud, área, acopio | Solo mediciones válidas; se informa n con dato / n seleccionado. No sumar áreas de unidades distintas. |
 | Destino, celular, lectoescritura | Identidad + categoría; SIN DATO incluido en el denominador del grupo. |
 | Correlación y dispersión | Dos campos numéricos válidos del mismo registro. Coeficiente solo con n >= 3 y varianza no nula. La correlación no prueba causalidad. |
-| PCA | Seis variables completas, n >= 7 y todas con variación. Estandarización con ddof=1. Descomposición de matriz de correlación; eigenvectores ortonormales y autovalores calculados. |
 
-El PCA se ajusta a la carga completa elegible; los filtros no lo reentrenan. Los porcentajes, pesos y ejes se calculan de nuevo al cargar otra base. La proyección PC1–PC2 conserva solo su varianza sumada; el 78,28% corresponde a **tres componentes del conjunto adjunto**, no a cualquier archivo futuro ni al plano 2D.
+El coeficiente de correlación se usa con Spearman fijo, sin selector Pearson/Spearman, y solo para explorar relaciones de orden entre campos numéricos del mismo registro.
 
 ## Gobierno mínimo con la empresa
 

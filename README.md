@@ -5,19 +5,27 @@ Frontend HTML/JS/CSS compatible con el GitHub Pages actual. No requiere npm, ser
 ## Probar desde Visual Studio Code
 
 1. Abre la raíz del proyecto (donde están `index.html`, `css`, `js` y `data`).
-2. Clic derecho en `index.html` → **Open with Live Server**. Ya tienes el botón **Go Live** en tu captura. Alternativa, si tienes Python: `python -m http.server 8000` y abre `http://localhost:8000`.
+2. Clic derecho en `index.html` → **Open with Live Server**. Alternativa, si tienes Python: `python -m http.server 8000` y abre `http://localhost:8000`.
 3. Pulsa **Cargar Excel**. Las hojas reconocidas se importan automáticamente; no hay una pantalla de revisión previa.
 4. Se prioriza la hoja **Productoras**. Si no existe, se combinan las hojas reconocidas de Norandino y Bagua Grande; si el archivo contiene varias hojas posibles, se muestra un aviso y se conserva la base activa.
-5. En **Qué se relaciona con qué**, cambia las variables y alterna Pearson/Spearman. Pulsa una celda de la matriz para explorar ese par. Los filtros afectan a gráficos, comentarios y CSV.
+5. Usa los filtros encadenados (cooperativa → distrito → base → productora). Al elegir una cooperativa, los demás filtros solo ofrecen opciones válidas para ella.
 6. **Exportar selección** descarga un CSV de los registros que muestran los filtros actuales.
+7. **Imprimir ficha** genera una hoja A4 lista para trabajo de campo.
 
 ## Qué cambió
 
 - Contrato mínimo de identidad y datos opcionales por visual; sin valores inventados.
 - Carga automática para los formularios reconocidos. Para agregar un formato nuevo, registra un adaptador explícito en `js/data_core.js`; no se adivina la equivalencia de preguntas.
-- PCA calculado, con pesos/varianza reales; planos PC1–PC2 y PC1–PC3. Modelo fijo durante los filtros para conservar ejes comparables.
-- Dispersión configurable y matriz Pearson/Spearman con n de pares y desglose por cooperativa.
-- Barras 100% por cooperativa, comentarios calculados y tablas de apoyo, inspiradas en la comparación por grupos del informe PwC.
+- Filtros encadenados (`js/filters.js`) que reducen y desactivan opciones según la selección previa.
+- Panorama: solo KPIs y perfiles típicos por cooperativa, en lenguaje convencional (sin términos técnicos).
+- Producción y acopio: gráfico de acopio por productora, texto mínimo.
+- Participación y acceso digital: celular propio, lectoescritura y vínculo con la cooperativa.
+- Demanda de crédito: para qué piden y cuánto solicitan, limpio y directo.
+- Ficha de productora imprimible (A4), consolidada y poco subjetiva.
+- Territorio y alertas: semáforo por zona, texto claro de un vistazo, filtros superpuestos eliminados.
+- Dos pestañas de análisis orientadas a preguntas de negocio: “Fortalezas y brechas” y “Relaciones entre datos”.
+- Paleta propia (verde bosque, terracota, salvia, papel cálido), tipografía display serif para títulos y KPIs, foco, reduced-motion e impresión A4.
+- Barras 100 % por cooperativa, comentarios calculados y tablas de apoyo.
 - Comparación de acopio por mediana o total; se publican los tamaños de grupo.
 - Celular básico separado de ninguno. No se supone que el área esté en hectáreas ni que el acopio sea rendimiento.
 - Inicio vacío, ficha imprimible, exportación, vista móvil y dependencias locales en `vendor/`.
@@ -26,19 +34,23 @@ Frontend HTML/JS/CSS compatible con el GitHub Pages actual. No requiere npm, ser
 
 - `data/data_contract.md`: contrato v2, requisitos de cada visual y reglas de resolución.
 - `docs/AUDITORIA_DATASET.md`: hallazgos, comparación de las tres bases, evidencia, preguntas de negocio propuestas y límites.
+- `docs/OBJETIVOS_PD.md`: qué respondió Producers Direct y dónde se ve en el tablero.
 - `docs/COMO_EXTENDER.md`: cómo añadir una pregunta/visual o un adaptador sin mezclar conceptos.
-- `tests/core.test.cjs`: pruebas sintéticas de funciones críticas; ejecutar con `node tests/core.test.cjs` si tienes Node.
-- `tests/sources.test.cjs`: comprobación opcional con los tres Excel locales; `node tests/sources.test.cjs "C:\ruta\a\los\Excel"`.
+- `docs/GLOSARIO.md`: equivalencias entre términos técnicos y lenguaje del tablero.
+- `tests/core.test.cjs`, `tests/cross.test.cjs`, `tests/filters.test.cjs`: pruebas sintéticas; ejecutar con `node`.
 
 El antiguo ETL Python se retira para evitar dos juegos de reglas. No hace falta ejecutarlo. Los archivos de la empresa se mantienen fuera del código público. `.github/workflows/deploy.yml` conserva el despliegue existente; el parche no publica ni hace push.
 
-## Vistas por cooperativa y análisis cruzado
+## Vistas y análisis
 
-- **Vista del tablero** (barra lateral): Producers Direct ve la distribución global y cada cooperativa por separado. La vista de una cooperativa muestra solo sus registros y su propio conjunto de gráficos, definido en `js/coops.js`. Agregar una cooperativa o cambiar su formulario no exige tocar el código de los gráficos. La separación es de presentación; el control de acceso real depende del despliegue.
-- **Análisis cruzado**: radar de inclusión, barras apiladas al 100 % (respuesta única), ranking de opciones para preguntas de opción múltiple, mapa de calor grupo × indicador, correlaciones de Spearman, burbujas (área, acopio y monto solicitado), ranking de brechas y perfil de edad, con una nota de lectura calculada para cada uno.
-- **Territorio y alertas**: semáforo por zona con umbrales editables. Mora y PAR30/PAR60 quedan pendientes hasta que exista el dato.
-- **Reglas**: áreas en hectáreas, opción múltiple sin sumar porcentajes y celdas con menos de 5 productoras suprimidas.
-- **Pruebas**: `node tests/cross.test.cjs`.
+- **Panorama del fondo**: KPIs (productoras, monto solicitado, área de café, acopio 2025) y perfil típico por cooperativa.
+- **Producción y acopio**: cuánto acopió cada productora en 2025.
+- **Participación y acceso digital**: celular propio, dificultad de lectoescritura y vínculo con la cooperativa.
+- **Demanda de crédito**: actividad a financiar y monto solicitado.
+- **Territorio y alertas**: semáforo por zona (sin internet, lectoescritura, rendimiento).
+- **Ficha de productora**: hoja A4 para trabajo de campo.
+- **Fortalezas y brechas**: dónde están las oportunidades y qué falta con más frecuencia.
+- **Relaciones entre datos**: qué variables se mueven juntas (Spearman fijo).
 
 ## Lenguaje del tablero
 
@@ -47,3 +59,7 @@ Los textos visibles usan el lenguaje de la empresa y no los términos de clase. 
 ## Orden del tablero
 
 El menú sigue los objetivos del Fondo Rotatorio: panorama, quiénes son las productoras, solicitudes de crédito, seguimiento y alertas, y análisis. El detalle de qué respondió Producers Direct y dónde se refleja está en `docs/OBJETIVOS_PD.md`.
+
+## Reglas
+
+Áreas en hectáreas, opción múltiple sin sumar porcentajes y celdas con menos de 5 productoras suprimidas. Pruebas: `node tests/filters.test.cjs`, `node tests/cross.test.cjs`, `node tests/core.test.cjs`.

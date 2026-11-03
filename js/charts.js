@@ -707,12 +707,19 @@ const PDCharts = (() => {
     if (matrix) matrix.innerHTML = html;
   }
 
+  function safeRender(fn, id, label) {
+    try { fn(); } catch (error) {
+      console.error(`Error renderizando ${label}:`, error);
+      if (id) showEmpty(id, 'No se pudo renderizar este gráfico. Revisa que la base tenga el campo correspondiente.');
+    }
+  }
+
   function render(rows, allRows) {
-    renderSummary(rows, allRows);
-    renderProduction(rows, allRows);
-    renderInclusion(rows, allRows);
-    renderCredit(rows, allRows);
-    renderRelations(rows, allRows);
+    safeRender(() => renderSummary(rows, allRows), null, 'resumen');
+    safeRender(() => renderProduction(rows, allRows), 'chart-acopio', 'acopio');
+    safeRender(() => renderInclusion(rows, allRows), 'chart-phone', 'acceso');
+    safeRender(() => renderCredit(rows, allRows), 'chart-activities', 'crédito');
+    safeRender(() => renderRelations(rows, allRows), 'chart-relation', 'relaciones');
   }
 
   return {

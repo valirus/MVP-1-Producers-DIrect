@@ -170,6 +170,20 @@ summary:focus-visible,
 
 .main { min-width: 0; padding: 30px clamp(18px, 3.4vw, 48px) 64px; }
 
+/* ---------- diagnóstico de campos ---------- */
+.diag-shell { margin: 10px 0 14px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); font-size: 12.5px; }
+.diag-shell h4 { margin: 0 0 8px; color: var(--forest-900); font-size: 11px; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; }
+.diag-item { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; border-bottom: 1px solid rgba(0,0,0,.04); }
+.diag-item:last-child { border-bottom: 0; }
+.diag-label { color: var(--ink-soft); font-weight: 600; }
+.diag-count { font-variant-numeric: tabular-nums; }
+.diag-ok .diag-count { color: var(--forest-700); font-weight: 700; }
+.diag-missing .diag-count { color: var(--clay-dark); font-weight: 700; }
+.contract-shell { margin: 0 0 14px; }
+.contract-link { display: inline-flex; align-items: center; gap: 8px; color: var(--forest-700); text-decoration: none; border: 1px solid var(--line); padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 600; background: var(--paper); transition: border-color .16s, background .16s; }
+.contract-link:hover { border-color: var(--forest-400); background: #EEF5EF; }
+.contract-link span { font-size: 14px; }
+
 /* ---------- cabecera ---------- */
 .header {
   display: flex;

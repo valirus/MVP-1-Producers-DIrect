@@ -1,0 +1,86 @@
+- generic [ref=e2]:
+  - complementary [ref=e3]:
+    - generic [ref=e5]:
+      - generic [aria-hidden] [ref=e6]: PD
+      - generic [ref=e7]:
+        - generic [ref=e8]: ProducersDirect
+        - generic [ref=e9]: Fondo Rotatorio · 2025
+    - navigation "Secciones del tablero" [ref=e10]:
+      - generic [ref=e11]: Panorama
+      - button "Panorama del fondo" [ref=e12] [cursor=pointer]
+      - generic [ref=e16]: Productoras
+      - button "Producción y acopio" [ref=e17] [cursor=pointer]
+      - button "Participación y acceso digital" [ref=e22] [cursor=pointer]
+      - generic [ref=e26]: Crédito
+      - button "Demanda de crédito" [ref=e27] [cursor=pointer]
+      - generic [ref=e32]: Seguimiento
+      - button "Territorio y alertas" [ref=e33] [cursor=pointer]
+      - button "Ficha de productora" [ref=e38] [cursor=pointer]
+      - generic [ref=e44]: Análisis
+      - button "Fortalezas y brechas" [ref=e45] [cursor=pointer]
+      - button "Relaciones entre datos" [ref=e49] [cursor=pointer]
+    - generic [ref=e56]:
+      - strong [ref=e57]: Datos en tu navegador.
+      - text: El Excel no se envía a un servidor ni se guarda entre sesiones. Carga únicamente archivos autorizados.
+  - main [ref=e58]:
+    - generic [ref=e59]:
+      - generic [ref=e60]:
+        - paragraph [ref=e61]: Producers Direct · Fondo Rotatorio
+        - heading "Panorama del fondo" [level=1] [ref=e62]
+        - paragraph [ref=e63]: Lo esencial del Fondo Rotatorio en una vista.
+      - generic "Acciones del tablero" [ref=e64]:
+        - button "Cargar Excel" [ref=e65] [cursor=pointer]
+        - button "Exportar selección" [disabled] [ref=e69]
+        - button "Imprimir ficha" [disabled] [ref=e73]
+    - status [ref=e77]:
+      - generic [ref=e79]: Carga una base para comenzar. No se muestran datos de demostración.
+      - generic [ref=e80]: Sin datos
+    - region "Filtros del tablero" [ref=e81]:
+      - generic [ref=e82]:
+        - generic [ref=e83]:
+          - generic [ref=e84]: Cooperativa
+          - combobox "Cooperativa" [disabled] [ref=e85]:
+            - option "Todas las cooperativas" [selected]
+        - generic [ref=e86]:
+          - generic [ref=e87]: Distrito / provincia
+          - combobox "Distrito / provincia" [disabled] [ref=e88]:
+            - option "Todos los distritos" [selected]
+        - generic [ref=e89]:
+          - generic [ref=e90]: Base / sector
+          - combobox "Base / sector" [disabled] [ref=e91]:
+            - option "Todas las bases" [selected]
+        - generic [ref=e92]:
+          - generic [ref=e93]: Productora
+          - combobox "Productora" [disabled] [ref=e94]:
+            - option "Seleccionar productora…" [selected]
+      - generic [ref=e95]: Sin datos cargados
+    - generic [ref=e98]:
+      - region "Panorama del fondo" [ref=e99]:
+        - generic [ref=e100]:
+          - article [ref=e101]:
+            - generic [ref=e102]: Productoras
+            - generic [ref=e103]: —
+            - generic [ref=e104]: Sin datos cargados
+          - article [ref=e105]:
+            - generic [ref=e106]: Monto solicitado
+            - generic [ref=e107]: —
+            - generic [ref=e108]: Sin montos declarados
+          - article [ref=e109]:
+            - generic [ref=e110]: Área de café
+            - generic [ref=e111]: —
+            - generic [ref=e112]: Sin área declarada
+          - article [ref=e113]:
+            - generic [ref=e114]: Acopio 2025
+            - generic [ref=e115]: —
+            - generic [ref=e116]: Sin acopio declarado
+        - article [ref=e117]:
+          - generic [ref=e118]:
+            - generic [ref=e119]:
+              - paragraph [ref=e120]: Perfil típico
+              - heading "Así son las productoras de cada cooperativa" [level=2] [ref=e121]
+            - generic [ref=e122]: Sin datos
+          - generic [ref=e124]:
+            - strong [ref=e125]: Sin datos para mostrar
+            - generic [ref=e126]: Carga una base o ajusta los filtros.
+          - paragraph
+      - text: Carga una base con acopio reportado para ver esta distribución. Carga una base para comparar el acceso. Carga una base para comparar la lectoescritura. Carga una base para ver el destino de las solicitudes. Carga una base para ver los montos solicitados. No hay productoras con ambos datos en la selección.

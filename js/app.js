@@ -247,6 +247,42 @@ function yesNo(value) {
   return value == null ? null : value ? 'Sí' : 'No';
 }
 
+/* ---------- diagnóstico de campos de la base ---------- */
+
+const DIAG_FIELDS = [
+  ['qq', 'Acopio 2025 (quintales)'],
+  ['phone', 'Tipo de celular'],
+  ['literacy', 'Lectoescritura'],
+  ['activity', 'Actividad a financiar'],
+  ['amount', 'Monto solicitado'],
+  ['area', 'Área de café'],
+  ['income', 'Ingreso anual'],
+  ['age', 'Edad']
+];
+
+function renderFieldDiagnosis(missing) {
+  const wrap = $('field-diagnosis');
+  if (!wrap) return;
+  const rows = DIAG_FIELDS.map(([key, label]) => {
+    const m = missing[key] == null ? 0 : missing[key];
+    const present = rawData.length - m;
+    const ok = present > 0;
+    return `<div class="diag-item${ok ? ' diag-ok' : ' diag-missing'}">
+      <span class="diag-label">${esc(label)}</span>
+      <span class="diag-count">${present} / ${rawData.length}</span>
+    </div>`;
+  }).join('');
+  wrap.innerHTML = `<h4>Campos de esta base</h4>${rows}`;
+}
+
+function renderContractLink(fileName) {
+  const wrap = $('contract-link');
+  if (!wrap) return;
+  wrap.innerHTML = `<a href="data/data_contract.md" target="_blank" rel="noopener" class="contract-link">
+    <span>📄</span> Contrato de datos v2.0 — qué debe llevar tu Excel para que los gráficos se alimenten de él
+  </a>`;
+}
+
 function renderReport() {
   const content = $('report-content');
   const printButton = $('btn-print-action');
@@ -475,6 +511,9 @@ $('excel-input')?.addEventListener('change', async (event) => {
 
     refresh();
     setPage('summary', false);
+
+    renderFieldDiagnosis(audit.missing);
+    renderContractLink(audit.fileName);
 
     const warnings = audit.quarantine.length + audit.issues.length;
     const warningText = warnings

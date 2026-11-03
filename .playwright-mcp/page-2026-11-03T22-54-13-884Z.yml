@@ -1,0 +1,128 @@
+- generic [ref=e2]:
+  - complementary [ref=e3]:
+    - generic [ref=e5]:
+      - generic [aria-hidden] [ref=e6]: PD
+      - generic [ref=e7]:
+        - generic [ref=e8]: ProducersDirect
+        - generic [ref=e9]: Fondo Rotatorio · 2025
+    - navigation "Secciones del tablero" [ref=e10]:
+      - generic [ref=e11]: Panorama
+      - button "Panorama del fondo" [ref=e12] [cursor=pointer]
+      - generic [ref=e16]: Productoras
+      - button "Producción y acopio" [ref=e17] [cursor=pointer]
+      - button "Participación y acceso digital" [ref=e22] [cursor=pointer]
+      - generic [ref=e26]: Crédito
+      - button "Demanda de crédito" [ref=e27] [cursor=pointer]
+      - generic [ref=e32]: Seguimiento
+      - button "Territorio y alertas" [ref=e33] [cursor=pointer]
+      - button "Ficha de productora" [ref=e38] [cursor=pointer]
+      - generic [ref=e44]: Análisis
+      - button "Fortalezas y brechas" [ref=e45] [cursor=pointer]
+      - button "Relaciones entre datos" [ref=e49] [cursor=pointer]
+    - generic [ref=e56]:
+      - strong [ref=e57]: Datos en tu navegador.
+      - text: El Excel no se envía a un servidor ni se guarda entre sesiones. Carga únicamente archivos autorizados.
+  - main [ref=e58]:
+    - generic [ref=e59]:
+      - generic [ref=e60]:
+        - paragraph [ref=e61]: Producers Direct · Fondo Rotatorio
+        - heading "Panorama del fondo" [level=1] [ref=e62]
+        - paragraph [ref=e63]: Lo esencial del Fondo Rotatorio en una vista.
+      - generic "Acciones del tablero" [ref=e64]:
+        - button "Cargar Excel" [active] [ref=e65] [cursor=pointer]
+        - button "Exportar selección" [ref=e69] [cursor=pointer]
+        - button "Imprimir ficha" [disabled] [ref=e73]
+    - status [ref=e77]:
+      - generic [ref=e79]: "productoras-demo.xlsx: 16 productoras cargadas."
+      - generic [ref=e80]: Carga completa
+    - region "Filtros del tablero" [ref=e81]:
+      - generic [ref=e82]:
+        - generic [ref=e83]:
+          - generic [ref=e84]: Cooperativa
+          - combobox "Cooperativa" [ref=e85]:
+            - option "Todas las cooperativas"
+            - option "Bagua Grande" [selected]
+            - option "Norandino"
+        - generic [ref=e86]:
+          - generic [ref=e87]: Distrito / provincia
+          - combobox "Distrito / provincia" [ref=e88]:
+            - option "Todos los distritos" [selected]
+            - option "Bagua Grande"
+            - option "La Peca"
+        - generic [ref=e89]:
+          - generic [ref=e90]: Base / sector
+          - combobox "Base / sector" [ref=e91]:
+            - option "Todas las bases" [selected]
+            - option "Centro"
+            - option "La Peca"
+        - generic [ref=e92]:
+          - generic [ref=e93]: Productora
+          - combobox "Productora" [ref=e94]:
+            - option "Seleccionar productora…" [selected]
+            - option "B-01 · Bagua Grande"
+            - option "B-02 · Bagua Grande"
+            - option "B-03 · Bagua Grande"
+            - option "B-04 · Bagua Grande"
+            - option "B-05 · Bagua Grande"
+            - option "B-06 · Bagua Grande"
+            - option "B-07 · Bagua Grande"
+            - option "B-08 · Bagua Grande"
+      - generic [ref=e95]:
+        - 'button "Quitar filtro Cooperativa: Bagua Grande" [ref=e240] [cursor=pointer]':
+          - generic [ref=e241]: Cooperativa
+          - strong [ref=e242]: Bagua Grande
+          - generic [aria-hidden] [ref=e243]: ×
+        - generic [ref=e96]:
+          - generic [ref=e97]:
+            - strong [ref=e244]: "8"
+            - text: de 16 productoras
+          - button "Limpiar filtros" [ref=e245] [cursor=pointer]
+    - region "Panorama del fondo" [ref=e99]:
+      - generic [ref=e100]:
+        - article [ref=e101]:
+          - generic [ref=e102]: Productoras
+          - generic [ref=e103]: "8"
+          - generic [ref=e104]: de 16 en la base
+        - article [ref=e105]:
+          - generic [ref=e106]: Monto solicitado
+          - generic [ref=e107]: S/ 11,680
+          - generic [ref=e108]: 8 solicitudes con monto
+        - article [ref=e109]:
+          - generic [ref=e110]: Área de café
+          - generic [ref=e111]: 16.6 ha
+          - generic [ref=e112]: 8 productoras con área
+        - article [ref=e113]:
+          - generic [ref=e114]: Acopio 2025
+          - generic [ref=e115]: 232 qq
+          - generic [ref=e116]: 8 productoras con acopio
+      - article [ref=e117]:
+        - generic [ref=e118]:
+          - generic [ref=e119]:
+            - paragraph [ref=e120]: Perfil típico
+            - heading "Así son las productoras de cada cooperativa" [level=2] [ref=e121]
+          - generic [ref=e122]: 8 productoras · valores típicos
+        - table [ref=e246]:
+          - rowgroup [ref=e247]:
+            - row [ref=e248]:
+              - columnheader "Indicador" [ref=e249]
+              - columnheader "Bagua Grande" [ref=e250]
+          - rowgroup [ref=e251]:
+            - row [ref=e252]:
+              - rowheader "Edad típica" [ref=e253]
+              - cell "42 años" [ref=e254]
+            - row [ref=e259]:
+              - rowheader "Años en la cooperativa" [ref=e260]
+              - cell "8 años" [ref=e261]
+            - row [ref=e266]:
+              - rowheader "Personas en el hogar" [ref=e267]
+              - cell "4 personas" [ref=e268]
+            - row [ref=e273]:
+              - rowheader "Área de café" [ref=e274]
+              - cell "2.1 ha" [ref=e275]
+            - row [ref=e280]:
+              - rowheader "Acopio 2025" [ref=e281]
+              - cell "29 qq" [ref=e282]
+            - row [ref=e287]:
+              - rowheader "Ingreso anual declarado" [ref=e288]
+              - cell "S/ 4,525" [ref=e289]
+        - paragraph [ref=e238]: La mediana describe a la productora típica y no se ve afectada por casos extremos.

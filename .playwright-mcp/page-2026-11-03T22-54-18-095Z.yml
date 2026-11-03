@@ -1,0 +1,143 @@
+- generic [ref=e2]:
+  - complementary [ref=e3]:
+    - generic [ref=e5]:
+      - generic [aria-hidden] [ref=e6]: PD
+      - generic [ref=e7]:
+        - generic [ref=e8]: ProducersDirect
+        - generic [ref=e9]: Fondo Rotatorio · 2025
+    - navigation "Secciones del tablero" [ref=e10]:
+      - generic [ref=e11]: Panorama
+      - button "Panorama del fondo" [ref=e12] [cursor=pointer]
+      - generic [ref=e16]: Productoras
+      - button "Producción y acopio" [ref=e17] [cursor=pointer]
+      - button "Participación y acceso digital" [ref=e22] [cursor=pointer]
+      - generic [ref=e26]: Crédito
+      - button "Demanda de crédito" [ref=e27] [cursor=pointer]
+      - generic [ref=e32]: Seguimiento
+      - button "Territorio y alertas" [ref=e33] [cursor=pointer]
+      - button "Ficha de productora" [ref=e38] [cursor=pointer]
+      - generic [ref=e44]: Análisis
+      - button "Fortalezas y brechas" [ref=e45] [cursor=pointer]
+      - button "Relaciones entre datos" [ref=e49] [cursor=pointer]
+    - generic [ref=e56]:
+      - strong [ref=e57]: Datos en tu navegador.
+      - text: El Excel no se envía a un servidor ni se guarda entre sesiones. Carga únicamente archivos autorizados.
+  - main [ref=e58]:
+    - generic [ref=e59]:
+      - generic [ref=e60]:
+        - paragraph [ref=e61]: Producers Direct · Fondo Rotatorio
+        - heading "Fortalezas y brechas" [active] [level=1] [ref=e294]
+        - paragraph [ref=e63]: Dónde están las mayores oportunidades.
+      - generic "Acciones del tablero" [ref=e64]:
+        - button "Cargar Excel" [ref=e65] [cursor=pointer]
+        - button "Exportar selección" [ref=e69] [cursor=pointer]
+        - button "Imprimir ficha" [disabled] [ref=e73]
+    - status [ref=e77]:
+      - generic [ref=e79]: "productoras-demo.xlsx: 16 productoras cargadas."
+      - generic [ref=e80]: Carga completa
+    - region "Filtros del tablero" [ref=e81]:
+      - generic [ref=e82]:
+        - generic [ref=e83]:
+          - generic [ref=e84]: Cooperativa
+          - combobox "Cooperativa" [ref=e85]:
+            - option "Todas las cooperativas"
+            - option "Bagua Grande" [selected]
+            - option "Norandino"
+        - generic [ref=e86]:
+          - generic [ref=e87]: Distrito / provincia
+          - combobox "Distrito / provincia" [ref=e88]:
+            - option "Todos los distritos" [selected]
+            - option "Bagua Grande"
+            - option "La Peca"
+        - generic [ref=e89]:
+          - generic [ref=e90]: Base / sector
+          - combobox "Base / sector" [ref=e91]:
+            - option "Todas las bases" [selected]
+            - option "Centro"
+            - option "La Peca"
+        - generic [ref=e92]:
+          - generic [ref=e93]: Productora
+          - combobox "Productora" [ref=e94]:
+            - option "Seleccionar productora…" [selected]
+            - option "B-01 · Bagua Grande"
+            - option "B-02 · Bagua Grande"
+            - option "B-03 · Bagua Grande"
+            - option "B-04 · Bagua Grande"
+            - option "B-05 · Bagua Grande"
+            - option "B-06 · Bagua Grande"
+            - option "B-07 · Bagua Grande"
+            - option "B-08 · Bagua Grande"
+      - generic [ref=e95]:
+        - 'button "Quitar filtro Cooperativa: Bagua Grande" [ref=e240] [cursor=pointer]':
+          - generic [ref=e241]: Cooperativa
+          - strong [ref=e242]: Bagua Grande
+          - generic [aria-hidden] [ref=e243]: ×
+        - generic [ref=e96]:
+          - generic [ref=e97]:
+            - strong [ref=e244]: "8"
+            - text: de 16 productoras
+          - button "Limpiar filtros" [ref=e245] [cursor=pointer]
+    - region "Fortalezas y brechas" [ref=e295]:
+      - generic [ref=e296]:
+        - generic [ref=e297]:
+          - paragraph [ref=e298]: Pregunta de negocio
+          - heading "¿Dónde están las mayores oportunidades?" [level=2] [ref=e299]
+          - paragraph [ref=e300]: Acceso, participación y brechas que conviene atender primero.
+        - generic [ref=e301]:
+          - generic [ref=e302]:
+            - generic [ref=e303]: Brecha principal
+            - strong [ref=e304]: Sin internet en casa 63%
+            - generic [ref=e305]: 8 respuestas · cuanto más alto, más productoras afectadas
+          - generic [ref=e306]:
+            - generic [ref=e307]: Fortaleza principal
+            - strong [ref=e308]: Crédito vigente en la cooperativa 75%
+            - generic [ref=e309]: 8 respuestas · ya está presente en el grupo
+          - generic [ref=e310]:
+            - generic [ref=e311]: Mayor oportunidad
+            - strong [ref=e312]: Bagua Grande
+            - generic [ref=e313]: Acceso promedio 57% en los indicadores clave
+      - generic [ref=e314]:
+        - article [ref=e315]:
+          - generic [ref=e316]:
+            - generic [ref=e317]:
+              - paragraph [ref=e318]: Brechas
+              - heading "Qué falta con más frecuencia" [level=2] [ref=e319]
+            - generic [ref=e320]: 8 productoras en la selección
+          - img "Brechas más frecuentes" [ref=e322]
+          - paragraph [ref=e323]: La brecha más frecuente es «sin internet en casa» (63%). Se omiten los indicadores con menos de 5 respuestas.
+        - article [ref=e324]:
+          - generic [ref=e325]:
+            - generic [ref=e326]:
+              - paragraph [ref=e327]: Fortalezas
+              - heading "Qué ya está presente" [level=2] [ref=e328]
+            - generic [ref=e329]: 8 productoras en la selección
+          - img "Fortalezas más extendidas" [ref=e331]
+          - paragraph [ref=e332]: La fortaleza más extendida es «crédito vigente en la cooperativa» (75%). Un porcentaje alto indica una base sobre la que apoyarse.
+        - article [ref=e333]:
+          - generic [ref=e334]:
+            - generic [ref=e335]:
+              - paragraph [ref=e336]: Comparación
+              - heading "Acceso y participación por grupo" [level=2] [ref=e337]
+            - generic [ref=e338]: Verde más intenso = mayor proporción
+          - table [ref=e340]:
+            - rowgroup [ref=e341]:
+              - row [ref=e342]:
+                - columnheader "Grupo" [ref=e343]
+                - columnheader "Productoras" [ref=e344]
+                - columnheader "Smartphone" [ref=e345]
+                - columnheader "Internet" [ref=e346]
+                - columnheader "Lectoescritura" [ref=e347]
+                - columnheader "Ahorro" [ref=e348]
+                - columnheader "Crédito" [ref=e349]
+                - columnheader "WhatsApp" [ref=e350]
+            - rowgroup [ref=e351]:
+              - row [ref=e352]:
+                - rowheader "Bagua Grande" [ref=e353]
+                - cell "5" [ref=e354]
+                - cell "80%" [ref=e355]
+                - cell "40%" [ref=e356]
+                - cell "60%" [ref=e357]
+                - cell "40%" [ref=e358]
+                - cell "60%" [ref=e359]
+                - cell "60%" [ref=e360]
+          - paragraph [ref=e361]: Porcentaje de productoras de cada grupo que cumple el indicador. Las celdas con menos de 5 respuestas se muestran como «—».

@@ -1,0 +1,11 @@
+[   48548ms] TypeError: format is not a function
+    at http://127.0.0.1:8765/js/charts.js:124:24
+    at Array.forEach (<anonymous>)
+    at http://127.0.0.1:8765/js/charts.js:121:49
+    at Array.forEach (<anonymous>)
+    at Object.afterDatasetsDraw (http://127.0.0.1:8765/js/charts.js:120:27)
+    at d (http://127.0.0.1:8765/vendor/chart.umd.min.js:13:1113)
+    at sn._notify (http://127.0.0.1:8765/vendor/chart.umd.min.js:19:82974)
+    at sn.notify (http://127.0.0.1:8765/vendor/chart.umd.min.js:19:82795)
+    at An.notifyPlugins (http://127.0.0.1:8765/vendor/chart.umd.min.js:19:101789)
+    at An._drawDatasets (http://127.0.0.1:8765/vendor/chart.umd.min.js:19:97650)

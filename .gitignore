@@ -2,3 +2,6 @@
 .playwright-mcp/
 *.png
 *.log
+
+# Contratos de datos fuente (no subirse al repositorio)
+contratos/

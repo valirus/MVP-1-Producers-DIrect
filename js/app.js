@@ -20,6 +20,41 @@ const PAGES = {
   relations: { title: 'Relaciones entre datos', sub: 'Qué variables se mueven juntas y qué conviene revisar.' }
 };
 
+/* Charts de Canvas que solo se crean cuando su página es visible.
+   Chart.js no puede medir un canvas dentro de un elemento con display:none,
+   por lo que se quedan en 0x0 si se crean antes de mostrar la página. */
+const PAGE_CHART_IDS = {
+  production: ['chart-acopio'],
+  inclusion: ['chart-phone', 'chart-literacy'],
+  credit: ['chart-activities', 'chart-amounts'],
+  relations: ['chart-relation'],
+  strengths: ['cv-strengths-gaps', 'cv-strengths-wins']
+};
+
+function destroyChartsByIds(ids) {
+  ids.forEach((id) => {
+    if (H.charts[id]) {
+      try { H.charts[id].destroy(); } catch (error) { /* noop */ }
+      delete H.charts[id];
+    }
+    if (typeof crossCharts !== 'undefined' && crossCharts[id]) {
+      try { crossCharts[id].destroy(); } catch (error) { /* noop */ }
+      delete crossCharts[id];
+    }
+  });
+}
+
+function renderChartsForPage(page, rows, allRows) {
+  const ids = PAGE_CHART_IDS[page];
+  if (!ids) return;
+  destroyChartsByIds(ids);
+  if (page === 'production') H.renderProduction(rows, allRows);
+  if (page === 'inclusion') H.renderInclusion(rows, allRows);
+  if (page === 'credit') H.renderCredit(rows, allRows);
+  if (page === 'relations') H.renderRelations(rows, allRows);
+  if (page === 'strengths') renderStrengths(rows, filters.coop || 'all');
+}
+
 const GEO_FILTERS = [
   ['coop', 'Cooperativa', 'Todas las cooperativas'],
   ['territory', 'Distrito', 'Todos los distritos'],
@@ -109,6 +144,7 @@ function setPage(page, moveFocus = true) {
   requestAnimationFrame(() => {
     H.resize();
     if (typeof resizeCross === 'function') resizeCross();
+    renderChartsForPage(page, filteredData, rawData);
   });
 
   if (moveFocus) $('page-title').focus({ preventScroll: true });
@@ -391,10 +427,11 @@ function refresh({ goProducer = false } = {}) {
   renderSelectionSummary();
   updateKpis();
 
-  H.render(filteredData, rawData);
-  renderStrengths(filteredData, filters.coop);
+  H.renderSummary(filteredData, rawData);
   renderTerritory(filteredData, filters.coop);
   renderReport();
+
+  renderChartsForPage(currentPage, filteredData, rawData);
 
   if (goProducer && filters.producer !== '') setPage('producer');
 }

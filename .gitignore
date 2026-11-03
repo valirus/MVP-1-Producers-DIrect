@@ -1,0 +1,4 @@
+# Playwright verification artifacts
+.playwright-mcp/
+*.png
+*.log

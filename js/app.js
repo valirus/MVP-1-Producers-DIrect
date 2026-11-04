@@ -16,7 +16,6 @@ const PAGES = {
   credit: { title: 'Demanda de crédito', sub: 'Qué piden y cuánto solicitan las productoras.' },
   territory: { title: 'Territorio y alertas', sub: 'Zonas que conviene acompañar primero.' },
   producer: { title: 'Ficha de productora', sub: 'Una ficha breve para trabajo de campo.' },
-  seguimiento: { title: 'Seguimiento del crédito', sub: 'Uso del insumo, ventas y gastos de cada mes.' },
   strengths: { title: 'Fortalezas y brechas', sub: 'Dónde están las mayores oportunidades.' },
   relations: { title: 'Relaciones entre datos', sub: 'Qué variables se mueven juntas y qué conviene revisar.' }
 };
@@ -46,7 +45,6 @@ function destroyChartsByIds(ids) {
 }
 
 function renderChartsForPage(page, rows, allRows) {
-  if (page === 'seguimiento' && typeof renderSeguimiento === 'function') return renderSeguimiento(rows, allRows);
   const ids = PAGE_CHART_IDS[page];
   if (!ids) return;
   destroyChartsByIds(ids);

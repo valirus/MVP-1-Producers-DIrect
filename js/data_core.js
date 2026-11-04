@@ -28,17 +28,6 @@ function inferMap(headers){const map={};headers.forEach((h,i)=>{const s=norm(h),
  const pats=[['code',/^1\. CODIGO\/PRODUCTORA$/],['birth',/^3\. FECHA DE NACIMIENTO DE LA BENEFICIARIA$/],['base',/^4\. BASE\/SECTOR DE LA BENEFICIARIA$/],['territory',/^4\.1 DISTRITO Y PROVINCIA DE LA BENEFICIARIA$/],['family',/^6\. NUMERO DE MIEMBROS DE LA FAMILIA/],['years',/^7\. TIEMPO DE ASOCIADO/],['area',/^9\. AREA DE CULTIVO DE CAFE$/],['qq',/^10\. QUINTALES ACOPIADOS DURANTE EL 2025$/],['income',/^(20|25)\. INGRESO ANUAL.*ACTIVIDAD PRINCIPAL.*2025/],['amount',/^(13|14)\. MONTO REQUERIDO EN SOLES$/],['activity',/^(12\. ACTIVIDAD SECUNDARIA PRODUCTIVA A FINANCIAR|13\. ¿CUAL ES LA ACTIVIDAD PRODUCTIVA A FINANCIAR)/],['phone',/^(26|27)\. ¿LA PRODUCTORA BENEFICIARIA TIENE SMARTPHONE/],['literacy',/^(25|26)\. ¿LA PRODUCTORA BENEFICIARIA TIENE DIFICULTADES PARA LEER Y ESCRIBIR/]];
  pats.forEach(([k,re])=>{if(re.test(s))map[k]=i;});});return map;}
 function sheetProfile(name,matrix){let header=0,score=-1;matrix.slice(0,15).forEach((r,i)=>{const n=Object.keys(inferMap(r)).length;if(n>score){score=n;header=i;}});const s=norm(name),fixedCoop=s==='PRODUCTORAS NORANDINO'?'NORANDINO':s==='PRODUCTORAS BAGUA GRANDE'?'BAGUA GRANDE':'';return {name,matrix,header,map:inferMap(matrix[header]||[]),score,fixedCoop};}
-function selectProfiles(profiles){
- const productoras=profiles.find(p=>p.name==='Productoras'&&p.map.code!==undefined);
- if(productoras)return [productoras];
- const known=profiles.filter(p=>['Productoras Norandino','Productoras Bagua Grande'].includes(p.name)&&p.map.code!==undefined);
- if(known.length===2)return known;
- const candidates=profiles.filter(p=>p.map.code!==undefined&&(p.map.coop!==undefined||p.fixedCoop));
- if(!candidates.length)throw Error('No se encontró una hoja de productoras con código y cooperativa reconocibles.');
- const score=Math.max(...candidates.map(p=>p.score)),best=candidates.filter(p=>p.score===score);
- if(best.length!==1)throw Error('El archivo contiene varias hojas posibles. Usa una hoja llamada Productoras o carga un solo formulario.');
- return best;
-}
 function ageAt2025(v){let d;if(v instanceof Date)d=v;else if(typeof v==='number')d=new Date(Date.UTC(1899,11,30)+v*86400000);else if(/^\d{4}-\d{2}-\d{2}/.test(String(v)))d=new Date(String(v).slice(0,10)+'T00:00:00Z');else return null;return finite(d.getTime())?2025-d.getUTCFullYear():null;}
 function importProfiles(profiles,{numberMode='auto',fileName=''}={}){
  const candidates=[],issues=[],quarantine=[];let emptyRows=0;
@@ -63,5 +52,5 @@ const mean=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:null;
 function median(a){const b=a.filter(finite).sort((a,b)=>a-b);return b.length?(b[Math.floor((b.length-1)/2)]+b[Math.ceil((b.length-1)/2)])/2:null;}
 function ranks(a){const b=a.map((v,i)=>({v,i})).sort((a,b)=>a.v-b.v),r=[];for(let i=0;i<b.length;){let j=i+1;while(j<b.length&&b[j].v===b[i].v)j++;for(let k=i;k<j;k++)r[b[k].i]=(i+j+1)/2;i=j;}return r;}
 function correlation(rows,x,y,method='pearson'){const pairs=rows.filter(r=>finite(r[x])&&finite(r[y]));let a=pairs.map(r=>r[x]),b=pairs.map(r=>r[y]);const n=a.length;if(n<3)return {n,value:null};if(method==='spearman'){a=ranks(a);b=ranks(b);}const ma=mean(a),mb=mean(b);let aa=0,bb=0,ab=0;a.forEach((v,i)=>{aa+=(v-ma)**2;bb+=(b[i]-mb)**2;ab+=(v-ma)*(b[i]-mb);});return {n,value:aa>0&&bb>0?Math.max(-1,Math.min(1,ab/Math.sqrt(aa*bb))):null};}
-const api={norm,fields,extraKinds,numeric,pcaVars,label,parseNumber,phone,literacy,activity,inferMap,sheetProfile,selectProfiles,importProfiles,finite,mean,median,ranks,correlation};root.PDData=api;if(typeof module!=='undefined')module.exports=api;
+const api={norm,fields,extraKinds,numeric,pcaVars,label,parseNumber,phone,literacy,activity,inferMap,sheetProfile,importProfiles,finite,mean,median,ranks,correlation};root.PDData=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

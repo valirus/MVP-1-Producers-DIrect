@@ -5,17 +5,17 @@ Corte admitido: 2025. Grano: una observación de productora por cooperativa en e
 ## Entrada variable, salida estable
 
 1. Se conserva el archivo fuente fuera del repositorio. El dashboard lee una copia en memoria.
-2. Se detectan automáticamente la hoja y los encabezados de los formularios reconocidos.
+2. Se elige hoja y fila de encabezados, se revisa el mapeo y se confirma.
 3. Dos campos de identidad permiten incluir la fila. Los campos analíticos son opcionales.
 4. Cada visual usa las observaciones válidas de sus campos y publica su denominador. Un dato faltante no bloquea gráficos independientes.
-5. Se puede exportar a CSV la selección filtrada. Las filas apartadas y observaciones se resumen al terminar la carga.
+5. La salida CSV y el JSON de auditoría permiten revisar transformaciones, filas omitidas y cobertura.
 
 Se reconocen estos perfiles adjuntos:
 
 - Base limpia: hoja `Productoras` (77 campos). No se cargan sus hojas Diccionario, Revision ni Origen_* como observaciones adicionales.
 - Base optimizada: `Sheet1` con 14 campos. No se reconstruye información perdida aguas arriba.
 - Formulario original: `Productoras Norandino` y `Productoras Bagua Grande`, encabezados en fila 3. Se combinan solo esas hojas reconocidas; los nombres de hoja aportan la cooperativa y la edad se deriva de la fecha de nacimiento al 31/12/2025.
-- Otra estructura: debe agregarse un adaptador explícito antes de cargarla. No se asignan preguntas por similitud del texto, porque dos preguntas parecidas pueden medir cosas distintas.
+- Otra estructura: el usuario selecciona hoja, fila y columnas, e indica cooperativa si no hay columna. El mapeo es una decisión semántica: dos preguntas parecidas pueden medir cosas distintas. No existe limpieza universal por similitud del texto.
 
 ## Esquema canónico
 
@@ -57,8 +57,8 @@ Las pestañas **Análisis cruzado** y **Territorio y alertas** usan estos campos
 - Cero explícito se conserva. Ausente es null; no hay imputación ni mediana/moda automática.
 - Formato numérico: las celdas Excel numéricas se respetan. Para texto se elige coma/punto decimal; el modo automático rechaza `1,234` o `1.234` por ambiguos, en lugar de multiplicar un valor por mil accidentalmente.
 - Categorías desconocidas de celular/lectoescritura: OTRO / REVISAR + incidencia; el original queda disponible. SIN DATO se muestra separado.
-- Las observaciones de carga describen la base completa. CSV y visuales describen la selección filtrada. Una carga fallida no sustituye la base activa.
-- No se mezclan cortes distintos en la actual implementación. Antes de incorporar 2026 hay que añadir periodo, tipo de observación y unidades al contrato y actualizar los campos fechados.
+- La auditoría describe la base completa. CSV y visuales describen la selección filtrada. La carga fallida no sustituye la base activa.
+- La versión es explícita en la auditoría. No se mezclan cortes distintos en la actual implementación. Antes de incorporar 2026 hay que añadir periodo, tipo de observación y unidades al contrato y actualizar los campos fechados.
 
 ## Requisitos por visual
 
@@ -68,9 +68,10 @@ Las pestañas **Análisis cruzado** y **Territorio y alertas** usan estos campos
 | Totales de solicitud, área, acopio | Solo mediciones válidas; se informa n con dato / n seleccionado. No sumar áreas de unidades distintas. |
 | Destino, celular, lectoescritura | Identidad + categoría; SIN DATO incluido en el denominador del grupo. |
 | Correlación y dispersión | Dos campos numéricos válidos del mismo registro. Coeficiente solo con n >= 3 y varianza no nula. La correlación no prueba causalidad. |
+| PCA | Seis variables completas, n >= 7 y todas con variación. Estandarización con ddof=1. Descomposición de matriz de correlación; eigenvectores ortonormales y autovalores calculados. |
 
-El coeficiente de correlación se usa con Spearman fijo, sin selector Pearson/Spearman, y solo para explorar relaciones de orden entre campos numéricos del mismo registro.
+El PCA se ajusta a la carga completa elegible; los filtros no lo reentrenan. Los porcentajes, pesos y ejes se calculan de nuevo al cargar otra base. La proyección PC1–PC2 conserva solo su varianza sumada; el 78,28% corresponde a **tres componentes del conjunto adjunto**, no a cualquier archivo futuro ni al plano 2D.
 
 ## Gobierno mínimo con la empresa
 
-El equipo debe validar cada adaptador nuevo, qué significan las unidades de área y quintal, el corte temporal y cuándo una solicitud pasa a desembolso. Para cada formulario nuevo, conservar versión y aprobación del responsable fuera de la base analítica. Esta versión trabaja una carga a la vez: otra carga reemplaza el análisis activo, no acumula un histórico.
+El equipo debe acordar quién confirma el mapeo, qué significan las unidades de área y quintal, el corte temporal y cuándo una solicitud pasa a desembolso. Para cada formulario nuevo, conservar versión, mapeo y aprobación del responsable fuera de la base analítica. Los adaptadores implementados y su mapeo efectivo quedan en el JSON. Esta versión trabaja una carga a la vez: otra carga reemplaza el análisis activo, no acumula un histórico.

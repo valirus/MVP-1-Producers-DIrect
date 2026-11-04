@@ -1,6 +1,6 @@
 // Ejecutar desde la raíz: node tests/cross.test.cjs. Casos sintéticos, sin datos personales.
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),D=require('../js/data_core.js');
-const ctx={};vm.createContext(ctx);vm.runInContext(fs.readFileSync(__dirname+'/../js/coops.js','utf8')+';this.api={share,multiShare,groupRows,spearman,median,coopConfig,homeInternet,hasSewer,MIN_N};',ctx);
+const ctx={};vm.createContext(ctx);vm.runInContext(fs.readFileSync(__dirname+'/../js/coops.js','utf8')+';this.api={share,multiShare,groupRows,spearman,median,coopConfig,MIN_N};',ctx);
 const A=ctx.api;
 
 // Opción múltiple: un registro puede marcar varias opciones y los porcentajes no suman 100.
@@ -16,10 +16,8 @@ const enough=[...few,{x:0}];assert.equal(A.share(enough,r=>r.x).pct,60);assert.e
 // Spearman y mediana
 assert.ok(Math.abs(A.spearman([1,2,3,4],[1,4,9,16])-1)<1e-12);assert.ok(Math.abs(A.spearman([1,2,3,4],[4,3,2,1])+1)<1e-12);assert.equal(A.median([3,1,2]),2);
 
-// Cada cooperativa define su agrupación; una nueva usa la de respaldo.
-assert.equal(A.coopConfig('GLOBAL').groupBy,'coop');assert.equal(A.coopConfig('NORANDINO').groupBy,'territory');assert.equal(A.coopConfig('COOP NUEVA').label,'COOP NUEVA');
-assert.equal(A.homeInternet('En casa'),1);assert.equal(A.homeInternet('FUERA_DE_CASA'),0);assert.equal(A.homeInternet('No tiene internet en casa'),0);assert.equal(A.homeInternet(null),null);
-assert.equal(A.hasSewer('Solo desagüe'),1);assert.equal(A.hasSewer('Solo agua'),0);assert.equal(A.hasSewer(null),null);
+// Cada cooperativa tiene su configuración; una nueva usa la de respaldo.
+assert.notDeepEqual(A.coopConfig('NORANDINO').cross,A.coopConfig('BAGUA GRANDE').cross);assert.equal(A.coopConfig('COOP NUEVA').label,'COOP NUEVA');
 
 // Campos adicionales del formulario: ausentes quedan null y no se inventan valores.
 const prof=(h,r)=>D.sheetProfile('Carga',[h,...r]);

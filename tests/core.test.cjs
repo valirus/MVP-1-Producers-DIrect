@@ -8,14 +8,6 @@ assert.equal(D.phone('Celular de teclas'),'BASICO');assert.equal(D.phone('NINGUN
 assert.equal(D.literacy('SOLO_LECTURA'),'LECTURA');assert.equal(D.activity('Fertilización de café'),'FERTILIZACIÓN');
 let r=D.importProfiles([profile(['codigo_productora','cooperativa','ingreso_principal_pen_2025'],[['A','coop nueva',0],['B','COOP NUEVA',null]])]);
 assert.equal(r.records.length,2);assert.equal(r.records[0].income,0);assert.equal(r.records[1].income,null);assert.equal(r.records[1].age,null);assert.equal(r.records[1].phone,null);assert.equal(r.audit.imputed,0);
-const productoras=D.sheetProfile('Productoras',[['codigo_productora','cooperativa'],['A','X']]);
-assert.deepEqual(D.selectProfiles([profile(['codigo_productora','cooperativa'],[['B','Y']]),productoras]),[productoras]);
-const norandino=D.sheetProfile('Productoras Norandino',[['codigo_productora'],['A']]),bagua=D.sheetProfile('Productoras Bagua Grande',[['codigo_productora'],['B']]);
-assert.deepEqual(D.selectProfiles([norandino,bagua]),[norandino,bagua]);
-const autoProfile=D.sheetProfile('Carga simple',[['codigo_productora','cooperativa'],['C','Z']]);
-assert.deepEqual(D.selectProfiles([autoProfile]),[autoProfile]);
-assert.throws(()=>D.selectProfiles([autoProfile,profile(['codigo_productora','cooperativa'],[['D','W']])]),/varias hojas posibles/);
-assert.throws(()=>D.selectProfiles([D.sheetProfile('Resumen',[['total'],[3]])]),/código y cooperativa reconocibles/);
 r=D.importProfiles([profile(['codigo_productora','cooperativa'],[['A','X'],[' a ','X'],['A','Y'],[null,'Z']])]);assert.equal(r.records.length,1);assert.equal(r.records[0].coop,'Y');assert.equal(r.audit.quarantine.length,3);
 r=D.importProfiles([profile(['codigo_productora','cooperativa','edad_al_cierre_2025','n_familiares_convivientes'],[['A','X',-1,2.5]])]);assert.equal(r.records[0].age,null);assert.equal(r.records[0].family,null);assert.equal(r.audit.issues.length,2);
 assert.throws(()=>D.importProfiles([profile(['nombre'],[['No es un identificador homologado']])]),/Mapee/);

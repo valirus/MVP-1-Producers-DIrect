@@ -191,48 +191,51 @@ const CROSS = {
 
   gaps: {
     span: 6,
-    build: () => card('gaps', 'Principales brechas (% de productoras afectadas)', ''),
+    build: () => card('gaps', 'Principales brechas por cooperativa (% de productoras afectadas)', '', 6, 380),
     draw: (data) => {
-      const rows = GAPS.map(g => ({ label: g.label, s: share(data, g.f) })).filter(x => x.s.pct !== null).sort((a, b) => b.s.pct - a.s.pct);
+      // CO10: una barra por cooperativa en cada brecha, para no esconder diferencias en un promedio.
+      const coops = groupRows(data, 'coop');
+      const rows = GAPS.map(g => ({ label: g.label, by: coops.map(([c, rs]) => share(rs, g.f)) }))
+        .filter(x => x.by.some(s => s.pct !== null))
+        .sort((a, b) => Math.max(...b.by.map(s => s.pct ?? -1)) - Math.max(...a.by.map(s => s.pct ?? -1)));
       if (!rows.length) { $('note-gaps').textContent = `Menos de ${MIN_N} respuestas por indicador.`; return; }
       crossCharts.gaps = newChart($('cv-gaps'), {
         type: 'bar',
-        data: { labels: rows.map(r => r.label), datasets: [{ data: rows.map(r => +r.s.pct.toFixed(1)), backgroundColor: rows.map((_, i) => i < 2 ? BRAND : GREY), borderRadius: 4 }] },
+        data: { labels: rows.map(r => r.label), datasets: coops.map(([c], i) => ({ label: groupLabel(c), data: rows.map(r => r.by[i].pct === null ? null : +r.by[i].pct.toFixed(1)), backgroundColor: SERIES[i % SERIES.length], borderRadius: 4 })) },
         options: {
           indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.parsed.x}% (${rows[c.dataIndex].s.n} productoras)` } } },
+          plugins: { legend: { display: coops.length > 1, position: 'bottom' }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.x}% (de ${rows[c.dataIndex].by[c.datasetIndex].n} productoras)` } } },
           scales: { x: { max: 100, ticks: { callback: v => v + '%' }, grid: { display: false } }, y: { grid: { display: false } } }
         }
       });
-      $('note-gaps').textContent = `La brecha más amplia es «${rows[0].label.toLowerCase()}» (${rows[0].s.pct.toFixed(0)}%).`;
+      const tops = coops.map(([c], i) => {
+        const best = rows.filter(r => r.by[i].pct !== null).sort((a, b) => b.by[i].pct - a.by[i].pct)[0];
+        return best ? `${groupLabel(c)}: «${best.label}» (${best.by[i].pct.toFixed(0)}%)` : null;
+      }).filter(Boolean);
+      $('note-gaps').textContent = `Brecha más amplia en cada cooperativa — ${tops.join('; ')}. Una cooperativa sin barra en una brecha tiene menos de ${MIN_N} respuestas.`;
     }
   },
 
   bubble: {
     span: 6,
-    build: () => card('bubble', 'Área, acopio y tamaño del crédito', ''),
-    draw: (data, view) => {
-      const rows = data.filter(r => r.area > 0 && r.qq >= 0);
-      if (!rows.length) return;
-      const maxAmt = Math.max(...rows.map(r => r.amount || 0), 1);
-      const { kept } = groupsFor(rows, view);
-      const groups = kept.length ? kept : [['Todas', rows]];
+    build: () => card('bubble', '¿Cuántas pidieron el mismo monto?', ''),
+    draw: (data) => {
+      // CO9: el monto casi no varía (paquete de crédito), por eso no se usa como tamaño de burbuja.
+      const groups = PDData.commonAmounts(data, { minN: MIN_N, top: 3 });
+      if (!groups.length) { $('note-bubble').textContent = `Menos de ${MIN_N} montos por cooperativa.`; return; }
+      const bars = groups.flatMap((g, gi) => g.top.map(t => ({ label: `${groupLabel(g.coop)} · S/ ${t.amount.toLocaleString('es-PE')}`, pct: t.pct, count: t.count, n: g.n, color: SERIES[gi % SERIES.length] })));
       crossCharts.bubble = newChart($('cv-bubble'), {
-        type: 'bubble',
-        data: {
-          datasets: groups.slice(0, 4).map(([g, rs], i) => ({
-            label: groupLabel(g),
-            data: rs.map(r => ({ x: r.area, y: r.qq, r: 3 + 9 * Math.sqrt((r.amount || 0) / maxAmt), code: r.code, amount: r.amount })),
-            backgroundColor: SERIES[i] + '99', borderColor: SERIES[i], borderWidth: 1
-          }))
-        },
+        type: 'bar',
+        data: { labels: bars.map(b => b.label), datasets: [{ data: bars.map(b => +b.pct.toFixed(1)), backgroundColor: bars.map(b => b.color), borderRadius: 4 }] },
         options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: true, position: 'bottom' }, tooltip: { callbacks: { label: c => `${c.raw.code}: ${c.raw.x} ha, ${c.raw.y} qq, solicitó S/ ${(c.raw.amount || 0).toLocaleString('es-PE')}` } } },
-          scales: { x: { title: { display: true, text: 'Área de café (ha)' }, grid: { display: false } }, y: { title: { display: true, text: 'Quintales acopiados 2025' }, grid: { color: '#f0eee9' } } }
+          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${bars[c.dataIndex].count} de ${bars[c.dataIndex].n} productoras (${c.parsed.x}%)` } } },
+          scales: { x: { max: 100, ticks: { callback: v => v + '%' }, title: { display: true, text: '% de productoras de la cooperativa que pidió ese monto' }, grid: { display: false } }, y: { grid: { display: false } } }
         }
       });
-      $('note-bubble').textContent = 'El tamaño de la burbuja es el monto solicitado. Permite ver si quienes piden más crédito son también quienes tienen más área o acopio.';
+      const facts = groups.map(g => `${groupLabel(g.coop)}: ${g.top[0].pct.toFixed(0)}% pidió S/ ${g.top[0].amount.toLocaleString('es-PE')} (${g.top[0].count} de ${g.n})`);
+      const fixed = groups.some(g => g.top[0].pct >= 50);
+      $('note-bubble').textContent = `${facts.join('; ')}.` + (fixed ? ' Cuando la mayoría pide el mismo monto, este refleja un paquete de crédito y no una decisión según su área o acopio. Para ver área y acopio, revisa «Producción y acopio».' : '');
     }
   },
 
@@ -333,11 +336,11 @@ function renderTerritory(data, view) {
     rowsHtml += `<tr><td><b>${g}</b></td><td>${n}</td><td>${area.toFixed(1)}</td><td>${yld === null ? '—' : yld.toFixed(1)}</td><td>${fmtPct(net)}</td><td>${fmtPct(lit)}</td><td>${link === null ? '—' : fmtPct(link)}</td><td><span class="sem sem-${level}" title="${flags.join(' · ') || 'Dentro de los umbrales'}">${label}</span>${flags.length ? `<div class="flags">${flags.join(' · ')}</div>` : ''}</td></tr>`;
   });
   root.innerHTML = `<div class="kpis-grid kpis-3">
-      <div class="kpi-card"><div class="kpi-title">Zonas evaluadas</div><div class="kpi-val">${nOk + nAlert}</div><div class="kpi-sub">con ${MIN_N} o más productoras</div></div>
+      <div class="kpi-card"><div class="kpi-title">Zonas evaluadas</div><div class="kpi-val">${nOk + nAlert}</div><div class="kpi-sub">zonas con ${MIN_N} o más productoras</div></div>
       <div class="kpi-card"><div class="kpi-title">Zonas con alerta</div><div class="kpi-val">${nAlert}</div><div class="kpi-sub">según los umbrales elegidos en los controles de alerta</div></div>
       <div class="kpi-card"><div class="kpi-title">Zonas sin evaluar</div><div class="kpi-val">${nIns}</div><div class="kpi-sub">datos insuficientes</div></div>
     </div>
     <div class="card-panel col-12"><table class="terr"><thead><tr><th>Zona</th><th>Productoras</th><th>Área (ha)</th><th>Rend. (qq/ha)</th><th>Sin internet en casa</th><th>Dificultad lectura/escritura</th><th>Con ahorro o crédito en la cooperativa</th><th>Estado</th></tr></thead><tbody>${rowsHtml}</tbody></table>
-    <p class="cx-note">Reglas: alerta si ≥ ${th.net}% sin internet en casa, si ≥ ${th.lit}% con dificultad de lectoescritura, o si el rendimiento está más de ${th.yd} % por debajo del rendimiento típico (${refYield ? refYield.toFixed(1) : '—'} qq/ha).</p>
+    <p class="cx-note">Reglas: alerta si ≥ ${th.net}% sin internet en casa, si ≥ ${th.lit}% con dificultad de lectoescritura, o si el rendimiento está más de ${th.yd} % por debajo del rendimiento típico (${refYield ? refYield.toFixed(1) : '—'} qq/ha). Las zonas con menos de ${MIN_N} productoras no se evalúan porque ahí una sola persona cambia mucho el porcentaje. Rendimiento = quintales entregados entre hectáreas declaradas (unidad del área por confirmar por escrito).</p>
     <p class="cx-note"><span class="pill-pending">Pendiente</span> Pagos y mora por zona: se podrán medir cuando haya cuotas pagadas del primer ciclo de créditos. Tampoco hay datos de cuánto café se vende a otros compradores, que es lo que más afecta el acopio cuando el precio fluctúa. La columna de ahorro o crédito en la cooperativa es informativa: Producers Direct la considera más útil que el historial de Infocorp para anticipar el repago.</p></div>`;
 }

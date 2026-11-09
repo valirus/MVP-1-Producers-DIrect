@@ -58,7 +58,8 @@ const GAPS = [
   { label: 'Sin capacitación de la cooperativa', f: r => r.trainedCoop != null ? 1 - r.trainedCoop : null },
   { label: 'Sin ahorro en la cooperativa', f: r => r.savingsCoop != null ? 1 - r.savingsCoop : null },
   { label: 'Sin desagüe', f: r => r.water ? +!['AMBOS', 'SOLO_DESAGUE'].includes(r.water) : null },
-  { label: 'Sin Yape', f: r => r.yape != null ? 1 - r.yape : null }
+  { label: 'Sin Yape', f: r => r.yape != null ? 1 - r.yape : null },
+  { label: 'No usa ningún servicio financiero', f: r => Array.isArray(r.services) ? +r.services.includes('NINGUNO') : null }
 ];
 
 // ---------- utilidades ----------

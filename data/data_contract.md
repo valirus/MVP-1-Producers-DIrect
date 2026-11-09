@@ -27,7 +27,7 @@ Se reconocen estos perfiles adjuntos:
 | edad_al_cierre_2025 | entero nullable, 0–120 | Edad de la beneficiaria al 31/12/2025. Si se proporciona fecha Excel o ISO, puede derivarse. Una fecha de texto ambigua no se adivina. |
 | n_familiares_convivientes | entero nullable >= 0 | Familiares convivientes. No demuestra dependencia económica ni trabajo en finca. |
 | antiguedad_socio_titular_anios | número nullable >= 0 | Antigüedad del titular, que puede ser cónyuge/padre. No implica experiencia personal de la beneficiaria. |
-| area_cafe_reportada | número nullable >= 0 | Hectáreas (confirmado por Producers Direct). Si fuentes futuras usan otras unidades, normalizar con unidad explícita antes de unirlas. |
+| area_cafe_reportada | número nullable >= 0 | Hectáreas según Producers Direct; la confirmación por escrito con la cooperativa está pendiente (las hojas del Excel limpio aún dicen «por confirmar»). Si fuentes futuras usan otras unidades, normalizar con unidad explícita antes de unirlas. |
 | quintales_acopiados_2025 | número nullable >= 0 | Acopio reportado, no producción total. Admite decimales. No se mezclan proyecciones con valores observados. Peso del quintal por confirmar. |
 | ingreso_principal_pen_2025 | número nullable >= 0 | Ingreso principal anual declarado en PEN; no utilidad ni ingreso familiar total. |
 | monto_solicitado_pen | número nullable >= 0 | Solicitud, no desembolso, saldo ni deuda vigente. |

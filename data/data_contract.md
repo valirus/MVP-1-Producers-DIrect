@@ -51,6 +51,7 @@ Las pestañas **Análisis cruzado** y **Territorio y alertas** usan estos campos
 
 ## Calidad y resolución
 
+- Avisos al cargar: si una pregunta de análisis esperada no se reconoce (por ejemplo, porque cambió su texto en el formulario), el panel «Revisar la carga» y la página «Revisión de datos» lo indican por hoja, en lugar de mostrar el campo como «sin respuestas». Si el archivo trae columnas con datos personales (DNI, teléfono, nombre, correo, dirección), se avisa; esas columnas nunca se leen.
 - Llave: cooperativa normalizada + código normalizado, para el corte 2025. Si esa llave se duplica, **todas las filas de ese conflicto** quedan en cuarentena. No se elige la primera o la última sin evidencia.
 - Identidad faltante: fila en cuarentena. Las filas vacías se omiten y se cuentan por separado.
 - Números inválidos: null + incidencia con hoja/fila/campo. Negativos, edades >120 y conteos fraccionarios de familiares se rechazan como medición; la fila conserva otros campos válidos. Los extremos válidos permanecen.

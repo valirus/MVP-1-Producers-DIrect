@@ -46,11 +46,27 @@ function importProfiles(profiles,{numberMode='auto',fileName=''}={}){
  const counts=new Map(),key=r=>JSON.stringify([r.coop,norm(r.code)]);for(const r of candidates)counts.set(key(r),(counts.get(key(r))||0)+1);
  const records=candidates.filter(r=>{if(counts.get(key(r))>1){quarantine.push({...r,reason:'Código repetido en la misma cooperativa: resolver antes de incluir'});return false;}return true;});
  const missing=Object.fromEntries(fields.filter(f=>f[0]!=='birth').map(([k])=>[k,records.filter(r=>r[k]==null).length]));
- return {records,audit:{contract:'2.0',fileName,accepted:records.length,quarantine,issues,emptyRows,missing,period:2025,ageCutoff:'2025-12-31',imputed:0,areaUnit:'Hectáreas (confirmado por Producers Direct)',sheets:profiles.map(p=>({name:p.name,headerRow:p.header+1,fixedCoop:p.fixedCoop,mapping:Object.fromEntries(Object.entries(p.map).map(([k,v])=>[k,{column:v+1,header:String(p.matrix[p.header][v]??'')}]))}))}};
+ return {records,audit:{contract:'2.0',fileName,accepted:records.length,quarantine,issues,emptyRows,missing,unmapped:unmappedFields(profiles),sensitive:sensitiveHeaders(profiles),period:2025,ageCutoff:'2025-12-31',imputed:0,areaUnit:'Hectáreas (confirmado por Producers Direct)',sheets:profiles.map(p=>({name:p.name,headerRow:p.header+1,fixedCoop:p.fixedCoop,mapping:Object.fromEntries(Object.entries(p.map).map(([k,v])=>[k,{column:v+1,header:String(p.matrix[p.header][v]??'')}]))}))}};
+}
+// Columnas de análisis que se esperan en cada hoja. Si el formulario cambia el texto de una pregunta,
+// la columna deja de reconocerse: se avisa en vez de mostrar el campo como "sin respuestas".
+const expectedFields=['territory','age','family','years','area','qq','income','amount','activity','phone','literacy'];
+function unmappedFields(profiles){
+ return profiles.map(p=>({sheet:p.name,fields:expectedFields.filter(k=>p.map[k]===undefined&&!(k==='age'&&p.map.birth!==undefined)).map(k=>({key:k,label:label(k)}))})).filter(s=>s.fields.length);
+}
+// Encabezados con datos personales. El tablero nunca los lee (solo usa columnas mapeadas), pero se avisa.
+const sensitiveRules=[['DNI / documento',/\bDNI\b|DOCUMENTO DE IDENTIDAD|N(UMERO|RO)?\.? DE DOCUMENTO|\bRUC\b/],['Teléfono',/TELEFONO|NUMERO DE CELULAR|CELULAR DE CONTACTO|\bWHATSAPP\b.*NUMERO|NUMERO.*\bWHATSAPP\b/],['Nombre',/NOMBRE|APELLIDO/],['Correo',/CORREO|E-?MAIL/],['Dirección',/DIRECCION|DOMICILIO/]];
+const notPersonal=/COOPERATIVA|ORGANIZACION|BASE|SECTOR|DISTRITO|PROVINCIA|ACTIVIDAD|INTELIGENTE|SMARTPHONE/;
+function sensitiveHeaders(profiles){
+ const out=[];
+ for(const p of profiles){const used=new Set(Object.values(p.map));(p.matrix[p.header]||[]).forEach((h,i)=>{const s=norm(h);if(!s||used.has(i)||notPersonal.test(s))return;const rule=sensitiveRules.find(([,re])=>re.test(s));if(rule)out.push({sheet:p.name,column:i+1,header:String(h).trim(),kind:rule[0]});});}
+ return out;
 }
 const mean=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:null;
 function median(a){const b=a.filter(finite).sort((a,b)=>a-b);return b.length?(b[Math.floor((b.length-1)/2)]+b[Math.ceil((b.length-1)/2)])/2:null;}
 function ranks(a){const b=a.map((v,i)=>({v,i})).sort((a,b)=>a.v-b.v),r=[];for(let i=0;i<b.length;){let j=i+1;while(j<b.length&&b[j].v===b[i].v)j++;for(let k=i;k<j;k++)r[b[k].i]=(i+j+1)/2;i=j;}return r;}
+// Mediana de la cooperativa de la productora para la hoja "Mi finca". Solo con minN productoras con dato.
+function peerMedian(allRows,row,key,minN=5){const vals=allRows.filter(r=>r.coop===row.coop&&finite(r[key])).map(r=>r[key]);return vals.length>=minN?{median:median(vals),n:vals.length}:null;}
 function correlation(rows,x,y,method='pearson'){const pairs=rows.filter(r=>finite(r[x])&&finite(r[y]));let a=pairs.map(r=>r[x]),b=pairs.map(r=>r[y]);const n=a.length;if(n<3)return {n,value:null};if(method==='spearman'){a=ranks(a);b=ranks(b);}const ma=mean(a),mb=mean(b);let aa=0,bb=0,ab=0;a.forEach((v,i)=>{aa+=(v-ma)**2;bb+=(b[i]-mb)**2;ab+=(v-ma)*(b[i]-mb);});return {n,value:aa>0&&bb>0?Math.max(-1,Math.min(1,ab/Math.sqrt(aa*bb))):null};}
-const api={norm,fields,extraKinds,numeric,pcaVars,label,parseNumber,phone,literacy,activity,inferMap,sheetProfile,importProfiles,finite,mean,median,ranks,correlation};root.PDData=api;if(typeof module!=='undefined')module.exports=api;
+const api={norm,fields,extraKinds,numeric,pcaVars,label,parseNumber,phone,literacy,activity,inferMap,sheetProfile,importProfiles,unmappedFields,sensitiveHeaders,peerMedian,finite,mean,median,ranks,correlation};root.PDData=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

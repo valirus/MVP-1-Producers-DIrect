@@ -16,10 +16,10 @@ function renderParticipation(data) {
   if (!groups.length) return;
   fundCharts.part = newChart(cv, {
     type: 'bar',
-    data: { labels: groups.map(([g, s]) => `${groupLabel(g)}: ${s.pct.toFixed(0)}%`), datasets: [{ data: groups.map(([, s]) => +s.pct.toFixed(1)), backgroundColor: BRAND, borderRadius: 4 }] },
+    data: { labels: groups.map(([g, s]) => `${groupLabel(g)}: ${s.pct.toFixed(0)}% (${Math.round(s.pct * s.n / 100)} de ${s.n})`), datasets: [{ data: groups.map(([, s]) => +s.pct.toFixed(1)), backgroundColor: BRAND, borderRadius: 4 }] },
     options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { min: 0, max: 100, grid: { display: false }, title: { display: true, text: '% de productoras que recibieron capacitación en 2025' } }, y: { grid: { display: false } } } }
   });
-  note.textContent = 'Reto de Producers Direct: que las socias asistan ellas mismas, y no solo sus esposos. Este dato mide si recibieron capacitación, no quién asistió.';
+  note.textContent = 'Cada barra se calcula sobre las productoras de su propia cooperativa que respondieron (por eso no se comparan como partes de un total). Reto de Producers Direct: que las socias asistan ellas mismas, y no solo sus esposos. Este dato mide si recibieron capacitación, no quién asistió.';
 }
 
 // ---------- Datos que faltan ----------

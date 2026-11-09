@@ -263,3 +263,6 @@ tr.ins td { color: var(--muted); }
 .terr-controls label { min-height:2.6em; display:flex; align-items:flex-end; }
 .method-note { margin:0 0 8px; padding:6px 10px; border-radius:8px; background:var(--pale); color:var(--green); font-size:12.5px; }
 @media print { .back-btn, .filter-note { display:none !important; } }
+/* Comprensión de indicadores (CO1–CO10). */
+.period-line { margin:0 0 14px; padding:9px 14px; border-left:4px solid var(--tan); border-radius:6px; background:var(--white); color:var(--ink); font-size:13px; line-height:1.5; }
+@media print { .period-line { display:none !important; } }

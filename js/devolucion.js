@@ -3,7 +3,7 @@
  *  - Recuadro "Cómo cuidamos los datos" en el Panorama.
  *  - Avisos de carga: columnas no reconocidas y columnas con datos personales.
  *  - Nota de privacidad y fecha en la ficha de visita.
- *  - Hoja "Mi finca" para la productora, imprimible y en lenguaje sencillo.
+ *  - Hoja "Mi finca" para la productora: solo datos del Excel cargado, imprimible y en lenguaje sencillo.
  * Se carga antes de app.js; usa $, D, H, rawData y audit de app.js cuando se llama.
  */
 'use strict';
@@ -79,30 +79,6 @@ function renderDataCare() {
 
 let reportView = 'visit';
 
-/* BORRADOR PARA VALIDAR por Eunice / coordinación ROTA: consejos generales por actividad,
-   en lenguaje sencillo. Son orientación, no un diagnóstico de la productora. */
-const FARMER_TIPS = {
-  'FERTILIZACIÓN': [
-    'Anota cuánto gastas en abono y cuántos quintales cosechas. Así sabrás si te conviene repetir.',
-    'Pregunta a tu técnico qué abono y en qué meses conviene aplicarlo en tu parcela.',
-    'Compra el abono junto con otras socias: entre varias suele salir más barato.'
-  ],
-  'CRIANZA DE ANIMALES': [
-    'Lleva un cuaderno con los animales que nacen, los que vendes y lo que gastas en alimento.',
-    'Separa un poco de cada venta para las vacunas y el alimento del siguiente mes.',
-    'Pregunta en tu cooperativa por capacitaciones de crianza y sanidad animal.'
-  ],
-  'EMPRENDIMIENTO / OTROS': [
-    'Anota cada venta y cada gasto del negocio, aunque sean pequeños.',
-    'Guarda el dinero del negocio separado del dinero de la casa.',
-    'Calcula cuánto te cuesta hacer cada producto antes de ponerle precio.'
-  ]
-};
-const FARMER_TIPS_GENERAL = [
-  'Anota lo que entra y lo que sale cada mes. Te ayuda a planificar tus pagos.',
-  'Paga tus cuotas a tiempo: así construyes tu historial y puedes pedir más adelante.'
-];
-
 function todayText() {
   return new Date().toLocaleDateString('es-PE', { day: 'numeric', month: 'long', year: 'numeric' });
 }
@@ -134,7 +110,6 @@ function farmerSheet(row) {
   else if (amount) request = `Pediste <strong>${amount}</strong>.`;
   else if (activity) request = `Pediste un crédito para <strong>${H.esc(activity)}</strong>.`;
 
-  const tips = [...(FARMER_TIPS[row.activity] || []), ...FARMER_TIPS_GENERAL];
 
   return `<div class="farmer-sheet">
     <div class="farmer-head">
@@ -143,7 +118,6 @@ function farmerSheet(row) {
     </div>
     <section class="farmer-section"><h3>Mi finca</h3>${finca}</section>
     <section class="farmer-section"><h3>Mi solicitud</h3><p class="farmer-line">📝 ${request}</p></section>
-    <section class="farmer-section"><h3>Consejos para ti</h3><ul class="farmer-tips">${tips.map((tip) => `<li>${H.esc(tip)}</li>`).join('')}</ul></section>
     <section class="farmer-section farmer-history"><h3>Mi historial con el fondo</h3>
       <p>Aún no hay pagos registrados. Cuando pagues tus cuotas, aquí verás tu historial. Con él puedes demostrar que eres buena pagadora, también ante un banco o una caja.</p>
       <p class="farmer-own">Esta hoja es tuya: <strong>tú decides a quién mostrarla.</strong></p>

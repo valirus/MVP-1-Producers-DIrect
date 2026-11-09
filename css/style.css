@@ -206,8 +206,6 @@ tr.ins td { color: var(--muted); }
 .farmer-main strong { color:var(--green); font-size:19px; }
 .farmer-peer { margin:8px 0 0; color:var(--muted); font-size:13px; }
 .farmer-line, .farmer-empty { margin:0; }
-.farmer-tips { margin:0; padding-left:22px; }
-.farmer-tips li { margin-bottom:7px; }
 .farmer-history { padding:14px 16px; border:2px dashed var(--tan); border-radius:12px; background:#FFFCF6; }
 .farmer-history p { margin:0 0 6px; }
 .farmer-own { color:var(--green); }

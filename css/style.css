@@ -266,3 +266,8 @@ tr.ins td { color: var(--muted); }
 /* Comprensión de indicadores (CO1–CO10). */
 .period-line { margin:0 0 14px; padding:9px 14px; border-left:4px solid var(--tan); border-radius:6px; background:var(--white); color:var(--ink); font-size:13px; line-height:1.5; }
 @media print { .period-line { display:none !important; } }
+/* Mapa de perfiles y relaciones (MP1–MP3, RV1–RV5). */
+.map-warning { margin:0 0 12px; padding:10px 14px; border-left:4px solid var(--brown); border-radius:6px; background:#FFF8EE; color:#5C3818; font-size:13px; line-height:1.5; }
+.terr-warning { margin:0 0 14px; padding:10px 14px; border:1px solid #C3995D; border-radius:10px; background:#FFF4E1; color:#593912; font-size:13.5px; font-weight:600; }
+.terr th:nth-child(7), .terr td:nth-child(7) { background:#F2F7EE; font-weight:700; }
+.link-btn { margin-top:6px; padding:9px 14px; border:0; border-radius:8px; background:var(--green); color:#fff; font-size:13px; font-weight:700; }

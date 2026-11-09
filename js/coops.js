@@ -10,7 +10,7 @@ const COOP_CONFIG = {
     label: 'Producers Direct (global)',
     groupBy: 'coop',
     focus: 'Comparación entre cooperativas',
-    cross: ['radar', 'edu', 'services', 'heat', 'gaps', 'bubble', 'corr', 'age']
+    cross: ['radar', 'edu', 'services', 'heat', 'gaps', 'bubble', 'age', 'corr']
   },
   'NORANDINO': {
     label: 'Norandino',

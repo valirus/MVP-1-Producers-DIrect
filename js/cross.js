@@ -240,26 +240,10 @@ const CROSS = {
   },
 
   corr: {
-    span: 12,
-    build: () => tableCard('corr', 'Qué variables suben o bajan juntas', 8),
-    draw: (data) => {
-      const vars = [['area', 'Área (ha)'], ['qq', 'Quintales'], ['income', 'Ingreso principal'], ['amount', 'Monto solicitado'], ['age', 'Edad'], ['years', 'Antigüedad'], ['family', 'Familiares']];
-      const el = $('tb-corr');
-      const rows = data.filter(r => vars.every(([k]) => Number.isFinite(r[k])));
-      if (rows.length < 10) { el.innerHTML = '<p class="cx-empty">Se necesitan al menos 10 productoras con todos los datos numéricos.</p>'; return; }
-      const cols = vars.map(([k]) => rows.map(r => r[k]));
-      let h = '<table class="heat corr"><thead><tr><th></th>' + vars.map(v => `<th><div class="rot">${v[1]}</div></th>`).join('') + '</tr></thead><tbody>';
-      vars.forEach((v, i) => {
-        h += `<tr><th>${v[1]}</th>` + vars.map((w, j) => {
-          const r = i === j ? 1 : spearman(cols[i], cols[j]);
-          const a = Math.min(1, Math.abs(r));
-          const bg = r >= 0 ? `rgba(18,63,36,${(0.06 + 0.85 * a).toFixed(2)})` : `rgba(138,84,36,${(0.06 + 0.85 * a).toFixed(2)})`;
-          return `<td style="background:${bg};color:${a > 0.5 ? '#fff' : '#172019'}">${r.toFixed(2)}</td>`;
-        }).join('') + '</tr>';
-      });
-      el.innerHTML = h + '</tbody></table>';
-      $('note-corr').textContent = `Verde: suben juntas. Marrón: una sube y la otra baja. Que vayan juntas no significa que una cause la otra. Productoras: ${rows.length}.`;
-    }
+    span: 4,
+    // RV5 / N2: la tabla de relaciones vive solo en «Qué se relaciona con qué», para no mostrar dos tablas con métodos distintos.
+    build: () => `<div class="card-panel col-4" id="cx-corr"><h3>Relaciones entre variables</h3><p class="cx-note">Para ver qué datos suben o bajan juntos (por ejemplo, acopio e ingreso), usa la pantalla dedicada: ahí se elige el par, el método de medida y se ve por cooperativa.</p><button type="button" class="link-btn" data-nav="relations">Ir a «Qué se relaciona con qué» →</button></div>`,
+    draw: () => {}
   },
 
   age: {
@@ -313,6 +297,10 @@ function renderTerritory(data, view) {
   if (!groups.length) { root.innerHTML = '<p class="cx-empty">No hay datos de este nivel territorial en la base cargada.</p>'; return; }
   const withYield = data.filter(r => r.area > 0).map(r => r.qq / r.area);
   const refYield = median(withYield);
+  // MP3: avisar si una zona concentra más de la mitad de las productoras.
+  const biggest = groups.reduce((m, g) => (g[1].length > (m ? m[1].length : 0) ? g : m), null);
+  const concentration = biggest && groups.length > 1 && biggest[1].length / data.length > 0.5
+    ? `<p class="terr-warning">⚠️ ${groupLabel(biggest[0])} concentra ${biggest[1].length} de ${data.length} productoras (${Math.round(100 * biggest[1].length / data.length)} %). Comparar zonas aquí es comparar ${groupLabel(biggest[0])} con grupos pequeños; prueba agrupar por base o sector.</p>` : '';
   let rowsHtml = '', nAlert = 0, nOk = 0, nIns = 0;
   groups.forEach(([g, rows]) => {
     const n = rows.length;
@@ -335,7 +323,7 @@ function renderTerritory(data, view) {
     const label = { ok: 'Sin alertas', warn: '1 alerta', bad: flags.length + ' alertas' }[level];
     rowsHtml += `<tr><td><b>${g}</b></td><td>${n}</td><td>${area.toFixed(1)}</td><td>${yld === null ? '—' : yld.toFixed(1)}</td><td>${fmtPct(net)}</td><td>${fmtPct(lit)}</td><td>${link === null ? '—' : fmtPct(link)}</td><td><span class="sem sem-${level}" title="${flags.join(' · ') || 'Dentro de los umbrales'}">${label}</span>${flags.length ? `<div class="flags">${flags.join(' · ')}</div>` : ''}</td></tr>`;
   });
-  root.innerHTML = `<div class="kpis-grid kpis-3">
+  root.innerHTML = `${concentration}<div class="kpis-grid kpis-3">
       <div class="kpi-card"><div class="kpi-title">Zonas evaluadas</div><div class="kpi-val">${nOk + nAlert}</div><div class="kpi-sub">zonas con ${MIN_N} o más productoras</div></div>
       <div class="kpi-card"><div class="kpi-title">Zonas con alerta</div><div class="kpi-val">${nAlert}</div><div class="kpi-sub">según los umbrales elegidos en los controles de alerta</div></div>
       <div class="kpi-card"><div class="kpi-title">Zonas sin evaluar</div><div class="kpi-val">${nIns}</div><div class="kpi-sub">datos insuficientes</div></div>

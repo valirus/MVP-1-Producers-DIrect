@@ -125,6 +125,17 @@ function applyMapping(profile,saved){
  profile.map=map;if(sheet.cooperativaFija&&!profile.fixedCoop)profile.fixedCoop=sheet.cooperativaFija;
  return {applied:Object.keys(map).length,missing,formVersion:saved.formulario||''};
 }
+/* ---------- Ficha de visita: datos que faltan y registro descargable ---------- */
+// Datos clave de la ficha; los que estén vacíos se piden en la visita de la etapa de solicitud.
+const visitKeyFields=['activity','amount','area','qq','income','phone','literacy','age','family','years','territory'];
+function missingVisitFields(r){return visitKeyFields.filter(k=>r[k]==null||r[k]==='').map(k=>({key:k,label:label(k)}));}
+// CSV de visitas: una fila por paso. Protege contra fórmulas al abrir en Excel.
+const visitCsvHeaders=['codigo_productora','cooperativa','etapa','quien_visita','fecha_visita','paso','cumplido','fecha_paso','evidencia_u_observacion','version_formulario','registrado'];
+function visitsCsv(visits){
+ const cell=v=>'"'+String(v??'').replace(/^[=+@\-\t\r]/,"'$&").replace(/"/g,'""')+'"';
+ const rows=visits.flatMap(v=>v.steps.map(s=>[v.code,v.coop,v.stage,v.who,v.date,s.text,s.done?'SI':'NO',s.date,s.evidence,v.formVersion,v.savedAt]));
+ return '﻿'+[visitCsvHeaders,...rows].map(r=>r.map(cell).join(',')).join('\r\n');
+}
 const mean=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:null;
 function median(a){const b=a.filter(finite).sort((a,b)=>a-b);return b.length?(b[Math.floor((b.length-1)/2)]+b[Math.ceil((b.length-1)/2)])/2:null;}
 function ranks(a){const b=a.map((v,i)=>({v,i})).sort((a,b)=>a.v-b.v),r=[];for(let i=0;i<b.length;){let j=i+1;while(j<b.length&&b[j].v===b[i].v)j++;for(let k=i;k<j;k++)r[b[k].i]=(i+j+1)/2;i=j;}return r;}
@@ -134,5 +145,5 @@ function peerMedian(allRows,row,key,minN=5){const vals=allRows.filter(r=>r.coop=
 function commonAmounts(rows,{minN=5,top=3}={}){const by=new Map();for(const r of rows){if(!r.coop||!finite(r.amount))continue;if(!by.has(r.coop))by.set(r.coop,[]);by.get(r.coop).push(r.amount);}
  return [...by].filter(([,a])=>a.length>=minN).map(([group,a])=>{const c=new Map();a.forEach(v=>c.set(v,(c.get(v)||0)+1));return {coop:group,n:a.length,top:[...c].sort((x,y)=>y[1]-x[1]||x[0]-y[0]).slice(0,top).map(([amount,count])=>({amount,count,pct:100*count/a.length}))};}).sort((x,y)=>y.n-x.n);}
 function correlation(rows,x,y,method='pearson'){const pairs=rows.filter(r=>finite(r[x])&&finite(r[y]));let a=pairs.map(r=>r[x]),b=pairs.map(r=>r[y]);const n=a.length;if(n<3)return {n,value:null};if(method==='spearman'){a=ranks(a);b=ranks(b);}const ma=mean(a),mb=mean(b);let aa=0,bb=0,ab=0;a.forEach((v,i)=>{aa+=(v-ma)**2;bb+=(b[i]-mb)**2;ab+=(v-ma)*(b[i]-mb);});return {n,value:aa>0&&bb>0?Math.max(-1,Math.min(1,ab/Math.sqrt(aa*bb))):null};}
-const api={norm,fields,extraKinds,numeric,pcaVars,label,parseNumber,phone,literacy,activity,inferMap,sheetProfile,importProfiles,commonAmounts,cleanPlace,unifyPlaces,unmappedFields,fieldKind,columnProfiles,columnCompat,nameScore,suggestedColumns,scopePreview,exportMapping,applyMapping,sensitiveHeaders,peerMedian,finite,mean,median,ranks,correlation};root.PDData=api;if(typeof module!=='undefined')module.exports=api;
+const api={norm,fields,extraKinds,numeric,pcaVars,label,parseNumber,phone,literacy,activity,inferMap,sheetProfile,importProfiles,commonAmounts,missingVisitFields,visitsCsv,cleanPlace,unifyPlaces,unmappedFields,fieldKind,columnProfiles,columnCompat,nameScore,suggestedColumns,scopePreview,exportMapping,applyMapping,sensitiveHeaders,peerMedian,finite,mean,median,ranks,correlation};root.PDData=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

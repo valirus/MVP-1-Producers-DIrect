@@ -130,7 +130,9 @@ function applyReportView(row) {
   const farmer = reportView === 'farmer' && !!row;
   document.querySelectorAll('.report-toggle [data-view]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === reportView)));
   $('report-printable').hidden = farmer;
-  document.querySelector('#producer-page .verify').hidden = farmer;
+  // La guía y los botones del registro son de la ficha de visita, no de la hoja para la productora.
+  document.getElementById('visit-guide').hidden = farmer;
+  document.getElementById('visit-actions').hidden = farmer || !row;
   $('farmer-sheet').hidden = !farmer;
   $('farmer-sheet').innerHTML = farmer ? farmerSheet(row) : '';
 }

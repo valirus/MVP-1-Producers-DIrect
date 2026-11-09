@@ -74,6 +74,32 @@
   <div id="territory-body"></div>
 </section>
 <section class="page" id="coverage-page"><div id="coverage-body"></div></section>
-<section class="page" id="producer-page"><button type="button" class="back-btn" id="back-from-producer" hidden>← Volver</button><div class="report-toggle" role="group" aria-label="Tipo de hoja"><button type="button" data-view="visit" aria-pressed="true">Ficha de visita (técnico)</button><button type="button" data-view="farmer" aria-pressed="false">Hoja para la productora</button></div><div class="report-shell" id="report-printable"><div class="report-header"><div><h2>Ficha de acompañamiento</h2><p id="rep-code-coop">Selecciona una productora de los filtros.</p></div></div><div id="producer-fields" class="report-grid"></div><div class="advice-box"><strong>Puntos para la visita</strong><p id="rep-advice-text">Confirma con la productora el destino solicitado, las unidades y los datos pendientes. Esta ficha no evalúa solvencia ni aprueba un crédito.</p></div><p class="report-privacy" id="rep-privacy" hidden></p></div><div class="card-panel verify"><h3>Verificación del uso del crédito</h3><p class="cx-note" style="margin-top:0">Se revisa en este orden. Marca cada paso a medida que se cumple; las marcas salen al imprimir y se limpian al cambiar de productora.</p><ul class="check-list"><li><label><input type="checkbox"> Comprobantes de la compra de insumos</label></li><li><label><input type="checkbox"> Visita personalizada: el insumo está en la finca o el emprendimiento</label></li><li><label><input type="checkbox"> Crecimiento del emprendimiento o mejora de la producción</label></li></ul></div><div class="report-shell farmer-shell" id="farmer-sheet" hidden></div></section>
+<section class="page" id="producer-page"><button type="button" class="back-btn" id="back-from-producer" hidden>← Volver</button>
+<details class="card-panel visit-guide" id="visit-guide"><summary>Cómo usar esta ficha</summary>
+<ul>
+<li><strong>Antes de la visita:</strong> elige la productora en «Abrir ficha de productora» e imprime su ficha.</li>
+<li><strong>Elige la etapa del crédito.</strong> En «Solicitud» se confirma el destino, el monto y se completan los datos que faltan. En «Desembolsado» se verifica el uso del crédito.</li>
+<li><strong>Durante la visita:</strong> marca cada paso y anota la evidencia (por ejemplo, el número de boleta).</li>
+<li><strong>Después:</strong> pulsa «Guardar visita» y, al terminar el día, «Descargar visitas (CSV)» para llevarlas a la base de Producers Direct.</li>
+<li>Esta ficha <strong>no evalúa solvencia ni aprueba un crédito</strong>. El registro es de apoyo: solo cuenta cuando se guarda en la base de Producers Direct.</li>
+</ul></details>
+<div class="report-toggle" role="group" aria-label="Tipo de hoja"><button type="button" data-view="visit" aria-pressed="true">Ficha de visita (técnico)</button><button type="button" data-view="farmer" aria-pressed="false">Hoja para la productora</button></div>
+<div class="report-shell" id="report-printable">
+<div class="report-header"><div><h2>Ficha de visita</h2><p id="rep-code-coop">Selecciona una productora en «Abrir ficha de productora».</p></div></div>
+<div id="producer-fields" class="report-grid"></div>
+<section class="visit-record" id="visit-record" hidden aria-labelledby="visit-title">
+<h3 id="visit-title">Registro de la visita</h3>
+<div class="visit-controls">
+<div class="field"><label for="visit-stage">Etapa del crédito</label><select id="visit-stage"><option value="solicitud">Solicitud (antes del desembolso)</option><option value="desembolsado">Desembolsado (verificar el uso)</option></select></div>
+<div class="field"><label for="visit-who">Quién visita</label><input id="visit-who" placeholder="Nombre del técnico o técnica" autocomplete="name"></div>
+<div class="field"><label for="visit-date">Fecha de la visita</label><input id="visit-date" type="date"></div>
+</div>
+<table class="visit-steps"><thead><tr><th scope="col">Paso</th><th scope="col">Hecho</th><th scope="col">Fecha</th><th scope="col">Evidencia u observación</th></tr></thead><tbody id="visit-steps"></tbody></table>
+<p class="visit-disclaimer">Registro de apoyo. No es una verificación documentada ni aprueba un crédito. Para que cuente, descárgalo y guárdalo en la base de Producers Direct.</p>
+</section>
+<p class="report-privacy" id="rep-privacy" hidden></p>
+</div>
+<div class="visit-actions" id="visit-actions" hidden><button type="button" class="btn-upload" id="visit-save">Guardar visita</button><button type="button" class="btn-print" id="visit-download" disabled>Descargar visitas (CSV)</button><span class="visit-status" id="visit-status" role="status"></span></div>
+<div class="report-shell farmer-shell" id="farmer-sheet" hidden></div></section>
 <section class="page" id="quality-page"><div class="card-panel"><h2>Revisión de los datos cargados</h2><p id="quality-summary">Aún no hay una base cargada.</p><div id="quality-alerts" class="notice-shell"></div><div class="actions"><button class="btn-print" id="download-audit" disabled>Descargar informe de revisión (JSON)</button><button class="btn-print" id="download-data" disabled>Descargar datos ordenados (CSV)</button></div><p class="chart-note">El informe corresponde a toda la carga. Los gráficos responden a los filtros.</p><div id="quality-table" class="table-scroll"></div><details><summary>Filas apartadas y observaciones (primeras 100; el detalle completo está en el informe)</summary><div id="quality-issues" class="table-scroll"></div></details></div></section>
-</main></div><script src="js/data_core.js"></script><script src="js/coops.js"></script><script src="js/pca_engine.js"></script><script src="js/charts.js"></script><script src="js/cross.js"></script><script src="js/fund.js"></script><script src="js/devolucion.js"></script><script src="js/roles.js"></script><script src="js/carga.js"></script><script src="js/filtros.js"></script><script src="js/app.js"></script></body></html>
+</main></div><script src="js/data_core.js"></script><script src="js/coops.js"></script><script src="js/pca_engine.js"></script><script src="js/charts.js"></script><script src="js/cross.js"></script><script src="js/fund.js"></script><script src="js/devolucion.js"></script><script src="js/roles.js"></script><script src="js/carga.js"></script><script src="js/filtros.js"></script><script src="js/ficha.js"></script><script src="js/app.js"></script></body></html>

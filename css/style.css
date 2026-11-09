@@ -271,3 +271,48 @@ tr.ins td { color: var(--muted); }
 .terr-warning { margin:0 0 14px; padding:10px 14px; border:1px solid #C3995D; border-radius:10px; background:#FFF4E1; color:#593912; font-size:13.5px; font-weight:600; }
 .terr th:nth-child(7), .terr td:nth-child(7) { background:#F2F7EE; font-weight:700; }
 .link-btn { margin-top:6px; padding:9px 14px; border:0; border-radius:8px; background:var(--green); color:#fff; font-size:13px; font-weight:700; }
+/* Ficha de visita (FA1, IE1, CP1, L2, N1). */
+.visit-guide { margin-bottom:14px; }
+.visit-guide summary { cursor:pointer; color:var(--green); font-weight:700; }
+.visit-guide ul { margin:10px 0 0; padding-left:20px; color:var(--ink); font-size:13.5px; line-height:1.55; }
+#producer-fields.report-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+#producer-fields .report-card { padding:10px 12px; }
+#producer-fields .report-card h4 { margin-bottom:4px; font-size:11px; }
+#producer-fields .report-card .big { font-size:18px; margin:0; }
+.visit-record { margin-top:20px; }
+.visit-record h3 { margin:0 0 10px; color:var(--green); font-size:16px; }
+.visit-controls { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-bottom:12px; }
+.visit-controls input, .visit-controls select { width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:6px; background:#FAF9F6; font-size:13px; }
+.visit-steps { width:100%; border-collapse:collapse; font-size:13px; }
+.visit-steps th { padding:6px 8px; border-bottom:2px solid var(--line); color:var(--muted); font-size:11px; text-align:left; text-transform:uppercase; }
+.visit-steps td { padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:middle; }
+.visit-steps .step-text { width:46%; line-height:1.4; }
+.visit-steps .step-done { width:7%; text-align:center; }
+.visit-steps .step-done input { width:18px; height:18px; accent-color:var(--green); }
+.visit-steps .step-date { width:17%; }
+.visit-steps input[type="date"], .visit-steps input[type="text"] { width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-size:12.5px; }
+.visit-disclaimer { margin:10px 0 0; padding:8px 12px; border-left:4px solid var(--brown); background:#FFF8EE; color:#5C3818; font-size:12px; line-height:1.45; }
+.visit-actions { display:flex; flex-wrap:wrap; align-items:center; gap:10px; max-width:800px; margin:14px auto 0; }
+.visit-status { flex:1 1 240px; color:var(--muted); font-size:13px; }
+@media(max-width:760px) { #producer-fields.report-grid, .visit-controls { grid-template-columns:1fr; } .visit-steps thead { display:none; } .visit-steps tr { display:grid; grid-template-columns:1fr auto; gap:6px; padding:8px 0; border-bottom:1px solid var(--line); } .visit-steps td { border:0; padding:2px 0; width:auto !important; } .visit-steps .step-text { grid-column:1 / -1; } }
+@media print {
+  @page { size:A4; margin:12mm; }
+  .visit-guide, .visit-actions, .back-btn { display:none !important; }
+  .report-shell { padding:0 !important; }
+  .report-header { margin-bottom:10px; padding-bottom:8px; }
+  .report-header h2 { font-size:20px; }
+  #producer-fields.report-grid { gap:6px; }
+  #producer-fields .report-card { padding:6px 8px; background:#fff; }
+  #producer-fields .report-card .big { font-size:14px; }
+  .visit-record { margin-top:12px; break-inside:avoid; }
+  .visit-controls { gap:8px; margin-bottom:8px; }
+  .visit-controls input, .visit-controls select, .visit-steps input[type="date"], .visit-steps input[type="text"] { border:0; border-bottom:1px solid #777; border-radius:0; background:transparent; padding:4px 2px; appearance:none; }
+  .visit-steps td { padding:7px 6px; }
+  .visit-disclaimer { background:#fff; }
+}
+@media print {
+  html, body, .main { background:#fff !important; }
+  .print-empty { color:transparent !important; }
+  .print-empty::placeholder { color:transparent !important; }
+  #visit-record input::-webkit-calendar-picker-indicator { display:none; }
+}

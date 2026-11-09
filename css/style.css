@@ -221,3 +221,14 @@ tr.ins td { color: var(--muted); }
   .farmer-card, .farmer-history { background:#fff; border-color:#999; }
   .farmer-peer, .report-privacy, .farmer-footer { color:#333; }
 }
+/* Perfiles de usuario (R1) y público de cada pantalla (R2). */
+.role-box select { border:2px solid var(--tan); }
+.nav-group--mine { color:var(--tan); }
+.nav-group--others { margin-top:18px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.15); }
+.page-for { display:inline-flex; gap:6px; align-items:center; margin:8px 0 0 !important; padding:3px 10px; border-radius:99px; background:var(--pale); color:var(--green) !important; font-size:12.5px !important; font-weight:700 !important; }
+.page-for span { color:var(--muted); font-weight:600; }
+.role-banner { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:14px; padding:12px 16px; border:1px solid var(--green3); border-radius:12px; background:var(--pale); font-size:14px; line-height:1.5; }
+.role-banner p { margin:0; color:var(--ink); }
+.role-go { flex:none; padding:8px 14px; border:0; border-radius:8px; background:var(--green); color:#fff; font-size:13px; font-weight:700; }
+@media(max-width:760px) { .role-banner { flex-direction:column; align-items:flex-start; } }
+@media print { .role-banner, .page-for { display:none !important; } }

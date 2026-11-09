@@ -69,8 +69,11 @@ function prettyLabel(s) {
 }
 
 // Nombres de grupos (cooperativas, distritos): cada palabra con mayúscula inicial
+// Conectores en minúscula y guiones con espacios: "BOSQUES DEL SANTUARIO -GUAYABAL" -> "Bosques del Santuario - Guayabal".
+const LABEL_CONNECTORS = new Set(['de', 'del', 'la', 'las', 'los', 'el', 'y', 'en']);
 function groupLabel(s) {
-  return String(s).toLowerCase().replace(/_/g, ' ').replace(/(^|\s)(\S)/g, (m, a, c) => a + c.toUpperCase());
+  return String(s).toLowerCase().replace(/_/g, ' ').replace(/\s+/g, ' ').replace(/\s*-\s*/g, ' - ').trim()
+    .split(' ').map((w, i, all) => (i > 0 && all[i - 1] !== '-' && LABEL_CONNECTORS.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1))).join(' ');
 }
 
 // Porcentaje de 1 entre valores no nulos. Devuelve {pct, n} o null si n < MIN_N.

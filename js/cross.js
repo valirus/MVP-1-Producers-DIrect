@@ -334,7 +334,7 @@ function renderTerritory(data, view) {
   });
   root.innerHTML = `<div class="kpis-grid kpis-3">
       <div class="kpi-card"><div class="kpi-title">Zonas evaluadas</div><div class="kpi-val">${nOk + nAlert}</div><div class="kpi-sub">con ${MIN_N} o más productoras</div></div>
-      <div class="kpi-card"><div class="kpi-title">Zonas con alerta</div><div class="kpi-val">${nAlert}</div><div class="kpi-sub">según los umbrales de arriba</div></div>
+      <div class="kpi-card"><div class="kpi-title">Zonas con alerta</div><div class="kpi-val">${nAlert}</div><div class="kpi-sub">según los umbrales elegidos en los controles de alerta</div></div>
       <div class="kpi-card"><div class="kpi-title">Zonas sin evaluar</div><div class="kpi-val">${nIns}</div><div class="kpi-sub">datos insuficientes</div></div>
     </div>
     <div class="card-panel col-12"><table class="terr"><thead><tr><th>Zona</th><th>Productoras</th><th>Área (ha)</th><th>Rend. (qq/ha)</th><th>Sin internet en casa</th><th>Dificultad lectura/escritura</th><th>Con ahorro o crédito en la cooperativa</th><th>Estado</th></tr></thead><tbody>${rowsHtml}</tbody></table>

@@ -252,3 +252,14 @@ tr.ins td { color: var(--muted); }
 .import-details--inner { margin-left:12px; }
 .preview-title { margin:12px 0 4px; color:var(--green); font-size:13px; }
 @media(max-width:760px) { .mapping-fields { grid-template-columns:1fr; } }
+/* Búsqueda y filtros (B4–B12). */
+.filters-bar .field-help { font-size:11.5px; }
+.filter-search { width:100%; margin-bottom:6px; padding:7px 10px; border:1px solid var(--line); border-radius:6px; background:#fff; font-size:13px; }
+.filter-search.no-results { border-color:#C3995D; background:#FFF8EE; }
+.filter-note { margin:0 0 12px; padding:10px 14px; border:1px solid #C3995D; border-radius:10px; background:#FFF4E1; color:#593912; font-size:13.5px; font-weight:600; }
+.back-btn { margin:0 0 14px; padding:8px 14px; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--green); font-size:13px; font-weight:700; }
+.back-btn:hover { background:var(--pale); }
+.terr-controls { align-items:start; }
+.terr-controls label { min-height:2.6em; display:flex; align-items:flex-end; }
+.method-note { margin:0 0 8px; padding:6px 10px; border-radius:8px; background:var(--pale); color:var(--green); font-size:12.5px; }
+@media print { .back-btn, .filter-note { display:none !important; } }

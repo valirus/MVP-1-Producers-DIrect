@@ -132,3 +132,9 @@ function renderMethodNote() {
 }
 byIdF('corr-method')?.addEventListener('change', renderMethodNote);
 renderMethodNote();
+
+/* ---------- Enlaces entre pantallas (por ejemplo, de Cruces a Relaciones) ---------- */
+document.addEventListener('click', (event) => {
+  const link = event.target.closest('[data-nav]');
+  if (link) nav(link.dataset.nav);
+});

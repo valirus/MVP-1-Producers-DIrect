@@ -62,11 +62,68 @@ function sensitiveHeaders(profiles){
  for(const p of profiles){const used=new Set(Object.values(p.map));(p.matrix[p.header]||[]).forEach((h,i)=>{const s=norm(h);if(!s||used.has(i)||notPersonal.test(s))return;const rule=sensitiveRules.find(([,re])=>re.test(s));if(rule)out.push({sheet:p.name,column:i+1,header:String(h).trim(),kind:rule[0]});});}
  return out;
 }
+/* ---------- Carga guiada: qué contiene cada columna y si encaja con el dato esperado ---------- */
+// Tipo de dato que espera cada campo del tablero.
+const fieldKinds={code:'id',coop:'coop',birth:'date',age:'num',family:'num',years:'num',area:'num',qq:'num',income:'num',amount:'num',services:'multi',channels:'multi',yape:'bin',savingsCoop:'bin',coopCredit:'bin',sysCredit:'bin',trainedCoop:'bin'};
+const fieldKind=k=>fieldKinds[k]||'cat';
+const isBlankCell=v=>v==null||String(v).trim()==='';
+const looksNumber=v=>typeof v==='number'?finite(v):parseNumber(v).value!==null;
+const cellText=v=>v instanceof Date?v.toISOString().slice(0,10):String(v).trim();
+// Resumen de cada columna con las primeras maxRows filas de datos.
+function columnProfiles(matrix,header,maxRows=300){
+ const heads=matrix[header]||[],rows=matrix.slice(header+1,header+1+maxRows),width=Math.max(heads.length,...rows.map(r=>(r||[]).length),0),out=[];
+ for(let i=0;i<width;i++){const vals=rows.map(r=>(r||[])[i]).filter(v=>!isBlankCell(v));const texts=vals.map(cellText);
+  out.push({index:i,header:isBlankCell(heads[i])?'':String(heads[i]).trim(),filled:vals.length,numeric:vals.filter(looksNumber).length,dates:vals.filter(v=>v instanceof Date).length,bin:vals.filter(v=>{const b=bin(v);return b===0||b===1;}).length,distinct:new Set(texts.map(norm)).size,samples:[...new Set(texts)].slice(0,3)});}
+ return out;
+}
+const share=(a,b)=>b?a/b:0;
+// ¿La columna encaja con el campo? Devuelve {ok:true} o {ok:false, reason} en lenguaje sencillo.
+function columnCompat(key,col){
+ if(!col)return {ok:true};
+ if(!col.filled)return {ok:false,reason:'La columna está vacía en las filas revisadas.'};
+ const kind=fieldKind(key),n=col.filled;
+ if(kind==='num'&&share(col.numeric,n)<0.6)return {ok:false,reason:`Se esperan números, pero solo ${col.numeric} de ${n} valores lo son.`};
+ if(kind==='date'&&share(col.dates+col.numeric,n)<0.6)return {ok:false,reason:`Se esperan fechas, pero solo ${col.dates+col.numeric} de ${n} valores lo son.`};
+ if(kind==='id'&&n>=5&&share(col.distinct,n)<0.8)return {ok:false,reason:`Los códigos deberían ser distintos, pero hay solo ${col.distinct} valores distintos en ${n} filas.`};
+ if(kind==='coop'&&col.distinct>10)return {ok:false,reason:`Se esperan pocas cooperativas, pero hay ${col.distinct} valores distintos.`};
+ if((kind==='cat'||kind==='multi'||kind==='coop')&&share(col.numeric,n)>=0.8)return {ok:false,reason:'Se espera texto, pero la columna tiene casi solo números.'};
+ if(kind==='bin'&&share(col.bin,n)<0.8)return {ok:false,reason:`Se espera Sí/No (o 1/0), pero solo ${col.bin} de ${n} valores lo son.`};
+ return {ok:true};
+}
+const stopWords=new Set(['DE','LA','EL','EN','DEL','LOS','LAS','POR','QUE','CON','UNA','SUS','PARA','TIENE','BENEFICIARIA','PRODUCTORA']);
+const tokens=s=>norm(s).split(/[^A-Z0-9Ñ]+/).filter(t=>t.length>=3&&!stopWords.has(t));
+// Parecido entre el título de la columna y el campo: palabras en común (o con la misma raíz).
+function nameScore(key,header){const f=fields.find(x=>x[0]===key);if(!f||!header)return 0;const a=[...new Set([...tokens(f[1].replace(/_/g,' ')),...tokens(f[2])])];return tokens(header).filter(t=>a.includes(t)||a.some(x=>x.length>=5&&t.length>=5&&t.slice(0,5)===x.slice(0,5))).length;}
+// Columnas sugeridas para un campo: compatibles y con nombre parecido (o la ya asignada).
+function suggestedColumns(key,cols,current){
+ return cols.filter(c=>c.header&&(c.index===current||(columnCompat(key,c).ok&&nameScore(key,c.header)>0))).sort((a,b)=>(b.index===current)-(a.index===current)||nameScore(key,b.header)-nameScore(key,a.header)||a.index-b.index).slice(0,8).map(c=>c.index);
+}
+// Cooperativas y filas que entrarían, antes de importar.
+function scopePreview(profiles){
+ const counts=new Map();
+ for(const p of profiles){if(p.map.code===undefined)continue;for(let i=p.header+1;i<p.matrix.length;i++){const r=p.matrix[i]||[];if(isBlankCell(r[p.map.code]))continue;const c=coop(p.map.coop===undefined?p.fixedCoop:(r[p.map.coop]||p.fixedCoop))||'SIN COOPERATIVA';counts.set(c,(counts.get(c)||0)+1);}}
+ return [...counts].map(([name,rows])=>({coop:name,rows})).sort((a,b)=>b.rows-a.rows);
+}
+// Mapeo guardado: cada campo se identifica por el TEXTO del encabezado, no por su posición.
+function exportMapping(profiles,{formVersion='',fileName=''}={}){
+ return {tipo:'pd-mapeo-productoras',version:1,formulario:formVersion||null,archivoOrigen:fileName||null,creado:new Date().toISOString().slice(0,10),
+  hojas:profiles.map(p=>({hoja:p.name,filaTitulos:p.header+1,cooperativaFija:p.fixedCoop||null,campos:Object.fromEntries(Object.entries(p.map).map(([k,i])=>[k,String((p.matrix[p.header]||[])[i]??'').trim()]))}))};
+}
+function applyMapping(profile,saved){
+ if(!saved||saved.tipo!=='pd-mapeo-productoras'||!Array.isArray(saved.hojas)||!saved.hojas.length)throw Error('El archivo no es un mapeo guardado desde este tablero.');
+ const sheet=saved.hojas.find(h=>h.hoja===profile.name)||saved.hojas[0],wanted=Object.values(sheet.campos||{}).map(norm);
+ const hits=r=>{const heads=(profile.matrix[r]||[]).map(norm);return wanted.filter(h=>heads.includes(h)).length;};
+ const savedRow=Number(sheet.filaTitulos)-1;if(Number.isInteger(savedRow)&&savedRow>=0&&hits(savedRow)>hits(profile.header))profile.header=savedRow;
+ const heads=(profile.matrix[profile.header]||[]).map(norm),map={},missing=[];
+ for(const [k,h] of Object.entries(sheet.campos||{})){const i=heads.indexOf(norm(h));if(i>=0)map[k]=i;else missing.push({key:k,label:label(k),header:h});}
+ profile.map=map;if(sheet.cooperativaFija&&!profile.fixedCoop)profile.fixedCoop=sheet.cooperativaFija;
+ return {applied:Object.keys(map).length,missing,formVersion:saved.formulario||''};
+}
 const mean=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:null;
 function median(a){const b=a.filter(finite).sort((a,b)=>a-b);return b.length?(b[Math.floor((b.length-1)/2)]+b[Math.ceil((b.length-1)/2)])/2:null;}
 function ranks(a){const b=a.map((v,i)=>({v,i})).sort((a,b)=>a.v-b.v),r=[];for(let i=0;i<b.length;){let j=i+1;while(j<b.length&&b[j].v===b[i].v)j++;for(let k=i;k<j;k++)r[b[k].i]=(i+j+1)/2;i=j;}return r;}
 // Mediana de la cooperativa de la productora para la hoja "Mi finca". Solo con minN productoras con dato.
 function peerMedian(allRows,row,key,minN=5){const vals=allRows.filter(r=>r.coop===row.coop&&finite(r[key])).map(r=>r[key]);return vals.length>=minN?{median:median(vals),n:vals.length}:null;}
 function correlation(rows,x,y,method='pearson'){const pairs=rows.filter(r=>finite(r[x])&&finite(r[y]));let a=pairs.map(r=>r[x]),b=pairs.map(r=>r[y]);const n=a.length;if(n<3)return {n,value:null};if(method==='spearman'){a=ranks(a);b=ranks(b);}const ma=mean(a),mb=mean(b);let aa=0,bb=0,ab=0;a.forEach((v,i)=>{aa+=(v-ma)**2;bb+=(b[i]-mb)**2;ab+=(v-ma)*(b[i]-mb);});return {n,value:aa>0&&bb>0?Math.max(-1,Math.min(1,ab/Math.sqrt(aa*bb))):null};}
-const api={norm,fields,extraKinds,numeric,pcaVars,label,parseNumber,phone,literacy,activity,inferMap,sheetProfile,importProfiles,unmappedFields,sensitiveHeaders,peerMedian,finite,mean,median,ranks,correlation};root.PDData=api;if(typeof module!=='undefined')module.exports=api;
+const api={norm,fields,extraKinds,numeric,pcaVars,label,parseNumber,phone,literacy,activity,inferMap,sheetProfile,importProfiles,unmappedFields,fieldKind,columnProfiles,columnCompat,nameScore,suggestedColumns,scopePreview,exportMapping,applyMapping,sensitiveHeaders,peerMedian,finite,mean,median,ranks,correlation};root.PDData=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

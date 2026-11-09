@@ -51,6 +51,7 @@ Las pestañas **Análisis cruzado** y **Territorio y alertas** usan estos campos
 
 ## Calidad y resolución
 
+- Carga guiada: antes de importar se muestra qué cooperativas y cuántas filas entrarán, cómo se leerán los números y, para cada dato, las columnas compatibles primero; una columna incompatible o asignada dos veces se marca con su motivo. El mapeo se puede guardar y reutilizar en el siguiente ciclo: se aplica por el texto del encabezado, no por la posición. Ver `docs/COMO_ACTUALIZAR_MAPEO.md`.
 - Avisos al cargar: si una pregunta de análisis esperada no se reconoce (por ejemplo, porque cambió su texto en el formulario), el panel «Revisar la carga» y la página «Revisión de datos» lo indican por hoja, en lugar de mostrar el campo como «sin respuestas». Si el archivo trae columnas con datos personales (DNI, teléfono, nombre, correo, dirección), se avisa; esas columnas nunca se leen.
 - Llave: cooperativa normalizada + código normalizado, para el corte 2025. Si esa llave se duplica, **todas las filas de ese conflicto** quedan en cuarentena. No se elige la primera o la última sin evidencia.
 - Identidad faltante: fila en cuarentena. Las filas vacías se omiten y se cuentan por separado.

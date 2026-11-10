@@ -20,7 +20,7 @@ python scripts/preparar_sitio.py
 python -m http.server 8000 --bind 127.0.0.1 --directory _site
 ```
 
-En Windows, puedes usar `py` en lugar de `python`. Abre [localhost:8000](http://localhost:8000). Pulsa **Abrir Excel** y elige una copia autorizada que cumpla el contrato. Para practicar, ejecuta antes `node scripts/crear_demo.cjs` y abre `data/processed/demo_ficticia.xlsx` desde el selector. No se copia ese archivo a `_site`.
+En Windows, puedes usar `py` en lugar de `python`. Abre [localhost:8000](http://localhost:8000). Pulsa **Abrir Excel** y elige una copia autorizada que cumpla el contrato. Para practicar, ejecuta antes `node scripts/crear_demo.cjs` y abre `data/processed/demo_ficticia.xlsx` desde el selector. El archivo contiene datos enteramente ficticios y un faltante deliberado en Área de café para DEMO-030, útil para practicar **Cobertura por campo**. No se copia ese archivo a `_site`.
 
 **Consulta del fondo** incluye indicadores, café entregado, participación, solicitudes, seguimiento del crédito y fichas. **Equipo de datos** tiene **Base cargada** (búsqueda, filtro de faltantes y CSV) y **Cobertura por campo** (registros con y sin dato, con acceso a las filas faltantes). Volver a cargar la página borra el Excel y las visitas de la sesión; exporta las visitas antes de cerrar.
 

@@ -9,7 +9,7 @@ El tablero lo usa Producers Direct y las cooperativas, no personas de analítica
 | Pesos, cargas, autovectores | Qué variables definen cada eje | Cuánto influye cada dato en un eje. |
 | Variables estandarizadas | (no se muestra) | Se pasan a una escala común para que los soles no pesen más que los años. |
 | Correlación, Pearson, Spearman | Qué variables suben o bajan juntas; relación débil, moderada o fuerte | Si dos datos tienden a moverse juntos. Se muestra con palabras; los coeficientes quedan en la tabla de colores. |
-| Mediana | Productora típica, valor central | La mitad está por encima y la otra mitad por debajo. |
+| Mediana | Mediana por productora (la del medio) | La mitad está por encima y la otra mitad por debajo. |
 | n, tamaño de muestra | Número de productoras | Cuántas productoras respondieron. |
 | Mapa de calor | Comparación por grupo; tabla de colores | Cuanto más oscuro, mayor el porcentaje. |
 | Opción múltiple | Podían marcar varios | Los porcentajes no suman 100 %. |
@@ -18,3 +18,5 @@ El tablero lo usa Producers Direct y las cooperativas, no personas de analítica
 | Mapeo | Qué columna corresponde a cada pregunta | Se confirma al cargar el Excel. |
 | Auditoría JSON | Informe de revisión | Archivo con el detalle de la carga. |
 | Datos insuficientes (n<5) | Menos de 5 productoras | Con menos de 5 casos no se muestran porcentajes para no sacar conclusiones débiles ni identificar a alguien. |
+| Acopio (qq) | Café entregado a la cooperativa, en quintales (qq) | Lo que la productora entregó a la cooperativa, no su producción total. 1 quintal (qq) = 55,2 kg según Producers Direct (por confirmar con la cooperativa). |
+| Valores atípicos (regla de Tukey, IQR) | Valores extremos para revisar | Valores muy alejados de la mayoría. Se listan en Revisión de datos con la misma regla para todos los campos; no se quitan ni se corrigen. |

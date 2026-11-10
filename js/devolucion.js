@@ -46,7 +46,18 @@ function renderMappingAlerts(profiles) {
 
 function renderQualityAlerts() {
   const wrap = $('quality-alerts');
-  if (wrap) wrap.innerHTML = audit ? alertsHtml(audit.unmapped, audit.sensitive, false) : '';
+  if (!wrap) return;
+  wrap.innerHTML = audit ? alertsHtml(audit.unmapped, audit.sensitive, false) + extremesHtml(audit.extremes || []) : '';
+}
+
+// D1: valores muy alejados del resto, en todos los campos numéricos por igual. Se revisan, no se quitan.
+function extremesHtml(list) {
+  if (!list.length) return noticeHtml('private', '✔️', 'No hay valores extremos en los campos numéricos (regla de Tukey, la misma para todos los campos).');
+  const fmt = (v) => H.fmt(v, Number.isInteger(v) ? 0 : 1);
+  const byField = [...new Set(list.map((x) => x.label))].map((l) => `${H.esc(l)} (${list.filter((x) => x.label === l).length})`).join(', ');
+  const rows = list.slice(0, 50).map((x) => `<tr><td>${H.esc(x.code)}</td><td>${H.esc(groupLabel(x.coop))}</td><td>${H.esc(x.label)}</td><td><strong>${fmt(x.value)}</strong></td><td>${fmt(x.median)}</td><td>${fmt(Math.max(0, x.low))} a ${fmt(x.high)}</td><td>${H.esc(x.sheet)} · fila ${x.row}</td></tr>`).join('');
+  return noticeHtml('warn', '🔎', `<strong>${list.length} ${list.length === 1 ? "valor extremo" : "valores extremos"} para revisar</strong>: ${byField}. Se marcan con la misma regla en todos los campos numéricos (muy lejos de la mayoría). <strong>No se quitan ni se corrigen</strong>: pueden ser reales (por ejemplo, una productora de 89 años) o errores de digitación; conviene confirmarlos con la cooperativa.`)
+    + `<details class="mini-details"><summary>Ver valores extremos${list.length > 50 ? ' (primeros 50)' : ''}</summary><div class="table-scroll"><table class="mini-table"><tr><th>Código</th><th>Cooperativa</th><th>Dato</th><th>Valor</th><th>Mediana</th><th>Rango habitual</th><th>Origen</th></tr>${rows}</table></div></details>`;
 }
 
 /* ---------- Cómo cuidamos los datos ---------- */

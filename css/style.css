@@ -327,3 +327,12 @@ tr.ins td { color: var(--muted); }
 .mini-table { margin-top:6px; border-collapse:collapse; font-size:12.5px; }
 .mini-table th, .mini-table td { padding:4px 10px; border-bottom:1px solid var(--line); text-align:left; }
 .heat .gap-mark { display:block; color:#eb6834; font-size:12px; text-align:center; }
+/* Seguimiento del crédito. */
+.seg-head { display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:14px; margin-bottom:16px; }
+.seg-head h3 { margin:0 0 4px; }
+.seg-head > div:first-child { flex:1 1 420px; }
+.seg-message { flex:1 1 100%; margin:0; padding:8px 12px; border-radius:8px; background:#FFF4E1; color:#593912; font-weight:600; }
+.seg-loaded { flex:1 1 100%; margin:0; color:var(--green); font-weight:700; }
+.seg-sub { margin:14px 0 4px; color:var(--green); font-size:13px; }
+.chart-box--short { height:150px; }
+.seg-hint { margin:0 0 8px; padding:8px 12px; border-left:4px solid var(--green3); border-radius:6px; background:var(--pale); color:var(--green); font-size:13px; font-weight:600; }

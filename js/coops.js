@@ -37,6 +37,44 @@ function coopConfig(view) {
 }
 
 // Indicadores binarios (1 / 0 / null). "good" indica si 1 es el sentido positivo.
+// ---------- Paleta accesible (AC2) ----------
+// Validada con el validador de daltonismo (deutan, protan, tritan) sobre fondo blanco:
+// los 3 primeros colores pasan comparando todos los pares (ΔE >= 9,2) y los 4 pasan como vecinos en barras apiladas (ΔE >= 9,1).
+// Aqua y amarillo tienen poco contraste sobre blanco: los gráficos que los usan muestran sus valores escritos o una tabla.
+const VIZ = {
+  cat: ['#2a78d6', '#eb6834', '#1baf7a', '#eda100'], // orden fijo: nunca se reasigna por posición
+  gray: '#9b9a94',                                    // «Sin dato», «Otro» y series de más
+  seq: ['#cde2fb', '#86b6ef', '#3987e5', '#1c5cab', '#0d366b'], // un solo tono, de claro a oscuro
+  divPos: [42, 120, 214], divNeg: [227, 73, 72], divMid: [240, 239, 236] // azul ↔ rojo con gris al centro
+};
+// El color sigue a la cooperativa en todas las pantallas, aunque un filtro cambie cuántas se ven.
+const COOP_ORDER = ['NORANDINO', 'BAGUA GRANDE'];
+function coopColor(coop) {
+  if (!COOP_ORDER.includes(coop)) COOP_ORDER.push(coop);
+  const i = COOP_ORDER.indexOf(coop);
+  return i < 3 ? VIZ.cat[i] : VIZ.gray;
+}
+// Series que no son cooperativas (por ejemplo, zonas): orden fijo y gris desde la quinta.
+const seriesColor = (key, group, i) => (key === 'coop' ? coopColor(group) : i < VIZ.cat.length ? VIZ.cat[i] : VIZ.gray);
+
+// Temas para agrupar indicadores (CC1, CC2) y opciones múltiples que pueden sumar más de 100 %.
+const INDICATOR_THEMES = { smart: 'Acceso digital', net: 'Acceso digital', yape: 'Acceso digital', lit: 'Lectoescritura', sewer: 'Hogar', wa: 'Comunicación', call: 'Comunicación', train: 'Vínculo con la cooperativa', save: 'Vínculo con la cooperativa', coopcred: 'Vínculo con la cooperativa' };
+const THEME_ORDER = ['Acceso digital', 'Lectoescritura', 'Hogar', 'Vínculo con la cooperativa', 'Comunicación'];
+const MULTI_INDICATORS = ['wa', 'call'];
+
+// Nivel educativo en 5 grupos (AC1): ocho niveles en tonos casi iguales no se podían distinguir.
+const EDU_GROUPS = ['Sin estudios', 'Primaria incompleta', 'Primaria completa', 'Secundaria (completa o no)', 'Técnico o superior'];
+function educationGroup(v) {
+  if (!v) return null;
+  const s = String(v).toUpperCase();
+  if (s === 'NINGUNO' || s === 'SIN_ESTUDIOS') return EDU_GROUPS[0];
+  if (s === 'PRIMARIA_INCOMPLETA') return EDU_GROUPS[1];
+  if (s === 'PRIMARIA_COMPLETA') return EDU_GROUPS[2];
+  if (s.startsWith('SECUNDARIA')) return EDU_GROUPS[3];
+  if (s.startsWith('TECNICO') || s.startsWith('SUPERIOR') || s.startsWith('UNIVERSIT')) return EDU_GROUPS[4];
+  return 'Otro';
+}
+
 const INDICATORS = [
   { id: 'smart', label: 'Smartphone propio', good: true, f: r => r.phone ? +(r.phone === 'SMARTPHONE') : null },
   { id: 'net', label: 'Internet en casa', good: true, f: r => r.internet ? +(r.internet === 'EN_CASA') : null },

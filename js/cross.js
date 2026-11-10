@@ -1,7 +1,7 @@
 // Páginas "Análisis cruzado" y "Territorio y alertas".
 // Dependen de coops.js (configuración y utilidades) y Chart.js.
 
-const SERIES = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#6250d6'];
+// Colores: ver VIZ, coopColor y seriesColor en coops.js (paleta accesible validada).
 const BRAND = '#123F24';
 const GREY = '#E5E2DC';
 
@@ -56,32 +56,36 @@ function radarAxes(data, view) {
 const CROSS = {
   radar: {
     span: 6,
-    build: (data, view) => radarAxes(data, view).length >= 3
-      ? card('radar', 'Perfil de inclusión y acceso', '')
-      : emptyCard('radar', 'Perfil de inclusión y acceso', `La carga no trae suficientes preguntas de acceso con ${MIN_N} o más respuestas por grupo.`),
+    build: (data, view) => radarAxes(data, view).length >= 2
+      ? card('radar', 'Rasgos de inclusión por grupo (% de productoras)', '', 6, 360)
+      : emptyCard('radar', 'Rasgos de inclusión por grupo', `La carga no trae suficientes preguntas de acceso con ${MIN_N} o más respuestas por grupo.`),
     draw: (data, view) => {
-      const axes = radarAxes(data, view);
-      const { kept } = groupsFor(data, view);
-      if (axes.length < 3) return;
-      const sets = kept.slice(0, 4).map(([g, rows], i) => ({
-        label: `${groupLabel(g)} (${rows.length} productoras)`,
-        data: axes.map(a => { const s = share(rows, a.f); return s.pct === null ? null : +s.pct.toFixed(1); }),
-        borderColor: SERIES[i], backgroundColor: SERIES[i] + '26', pointBackgroundColor: SERIES[i], borderWidth: 2, pointRadius: 3, spanGaps: true
-      }));
+      // CC1: barras agrupadas en lugar de radar. El área de un radar depende del orden de los ejes, no solo de los valores.
+      const axes = radarAxes(data, view).sort((a, b) => THEME_ORDER.indexOf(INDICATOR_THEMES[a.id]) - THEME_ORDER.indexOf(INDICATOR_THEMES[b.id]));
+      const { key, kept } = groupsFor(data, view);
+      if (axes.length < 2) return;
+      const groups = kept.slice(0, 4);
       crossCharts.radar = newChart($('cv-radar'), {
-        type: 'radar',
-        data: { labels: axes.map(a => a.label), datasets: sets },
+        type: 'bar',
+        data: {
+          labels: axes.map(a => [a.label, INDICATOR_THEMES[a.id] || '']),
+          datasets: groups.map(([g, rows], i) => ({
+            label: `${groupLabel(g)} (${rows.length})`,
+            data: axes.map(a => { const sh = share(rows, a.f); return sh.pct === null ? null : +sh.pct.toFixed(1); }),
+            backgroundColor: seriesColor(key, g, i), borderColor: '#fff', borderWidth: 2, borderRadius: 4
+          }))
+        },
         options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: true, position: 'bottom' }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.r}%` } } },
-          scales: { r: { min: 0, max: 100, ticks: { stepSize: 25, callback: v => v + '%', backdropColor: 'transparent' }, pointLabels: { font: { size: 11 } } } }
+          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: groups.length > 1, position: 'bottom' }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.x}%` } } },
+          scales: { x: { min: 0, max: 100, ticks: { callback: v => v + '%' }, grid: { display: false } }, y: { grid: { display: false }, ticks: { font: { size: 11 } } } }
         }
       });
-      let note = 'Cada eje es el % de productoras con ese rasgo. Más área cubierta = mayor acceso.';
-      if (kept.length > 1) {
-        const first = kept[0], last = kept[kept.length - 1];
-        const best = axes.map(a => ({ a, d: (share(first[1], a.f).pct ?? 0) - (share(last[1], a.f).pct ?? 0) })).sort((x, y) => Math.abs(y.d) - Math.abs(x.d))[0];
-        note = `La mayor diferencia entre ${groupLabel(first[0])} y ${groupLabel(last[0])} está en «${best.a.label}» (${Math.abs(best.d).toFixed(0)} puntos). ` + note;
+      let note = 'Cada barra es el % de productoras del grupo con ese rasgo. Los rasgos se agrupan por tipo: el acceso digital no es lo mismo que el vínculo con la cooperativa o la forma preferida de comunicarse.';
+      if (groups.length === 2) {
+        const [first, second] = groups;
+        const higher = axes.filter(a => (share(second[1], a.f).pct ?? -1) > (share(first[1], a.f).pct ?? 101)).length;
+        note = `${groupLabel(second[0])} tiene un porcentaje más alto que ${groupLabel(first[0])} en ${higher} de ${axes.length} rasgos. ` + note;
       }
       $('note-radar').textContent = note;
     }
@@ -97,30 +101,25 @@ const CROSS = {
     draw: (data, view) => {
       const { kept } = groupsFor(data, view);
       if (!kept.length || !data.some(r => r.education)) return;
-      const levels = ['NINGUNO', 'SIN_ESTUDIOS', 'PRIMARIA_INCOMPLETA', 'PRIMARIA_COMPLETA', 'SECUNDARIA_INCOMPLETA', 'SECUNDARIA_COMPLETA', 'TECNICO_INCOMPLETO', 'TECNICO_COMPLETO', 'SUPERIOR'];
-      const present = levels.filter(l => data.some(r => r.education === l));
-      const extra = [...new Set(data.map(r => r.education).filter(Boolean))].filter(l => !levels.includes(l));
-      const cats = [...present, ...extra];
-      const ramp = ['#e4efe7', '#cfe3d4', '#a9cdb3', '#7db08c', '#4f9163', '#2a6b40', '#123F24', '#0a2916'];
+      const cats = [...EDU_GROUPS, 'Otro'].filter(c => data.some(r => educationGroup(r.education) === c));
+      const colorOf = c => (c === 'Otro' ? VIZ.gray : VIZ.seq[EDU_GROUPS.indexOf(c)]);
+      const pctOf = (rows, c) => { const ans = rows.filter(r => r.education); return ans.length ? 100 * ans.filter(r => educationGroup(r.education) === c).length / ans.length : 0; };
       crossCharts.edu = newChart($('cv-edu'), {
         type: 'bar',
         data: {
-          labels: kept.map(([g, r]) => `${groupLabel(g)} (${r.length} productoras)`),
-          datasets: cats.map((c, i) => ({
-            label: prettyLabel(c),
-            data: kept.map(([, rows]) => +(100 * rows.filter(r => r.education === c).length / rows.filter(r => r.education).length || 0).toFixed(1)),
-            backgroundColor: ramp[Math.min(i, ramp.length - 1)], borderColor: '#fff', borderWidth: 2
-          }))
+          labels: kept.map(([g, r]) => `${groupLabel(g)} (${r.filter(x => x.education).length})`),
+          datasets: cats.map(c => ({ label: c, data: kept.map(([, rows]) => +pctOf(rows, c).toFixed(1)), backgroundColor: colorOf(c), borderColor: '#fff', borderWidth: 2 }))
         },
         options: {
-          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          indexAxis: 'y', responsive: true, maintainAspectRatio: false, pdPercent: true,
           plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 12 } }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.x}%` } } },
           scales: { x: { stacked: true, max: 100, ticks: { callback: v => v + '%' }, grid: { display: false } }, y: { stacked: true, grid: { display: false } } }
         }
       });
-      const all = data.filter(r => r.education);
-      const top = cats.map(c => [c, all.filter(r => r.education === c).length]).sort((a, b) => b[1] - a[1])[0];
-      $('note-edu').textContent = top ? `El nivel más frecuente es «${prettyLabel(top[0])}» (${(100 * top[1] / all.length).toFixed(0)}% de las respuestas).` : '';
+      const tops = kept.map(([g, rows]) => { const t = cats.map(c => [c, pctOf(rows, c)]).sort((x, y) => y[1] - x[1])[0]; return `${groupLabel(g)}: «${t[0]}» (${t[1].toFixed(0)}%)`; });
+      const head = `<tr><th>Nivel</th>${kept.map(([g]) => `<th>${groupLabel(g)}</th>`).join('')}</tr>`;
+      const body = cats.map(c => `<tr><td>${c}</td>${kept.map(([, rows]) => `<td>${pctOf(rows, c).toFixed(0)}%</td>`).join('')}</tr>`).join('');
+      $('note-edu').innerHTML = `Nivel más frecuente en cada grupo — ${tops.join('; ')}.<details class="mini-details"><summary>Ver tabla</summary><table class="mini-table">${head}${body}</table></details>`;
     }
   },
 
@@ -173,19 +172,34 @@ const CROSS = {
       const { kept, hidden } = groupsFor(data, view);
       const el = $('tb-heat');
       if (!kept.length) { el.innerHTML = `<p class="cx-empty">Ningún grupo alcanza ${MIN_N} productoras.</p>`; return; }
-      const cols = INDICATORS;
-      let h = '<table class="heat"><thead><tr><th>Grupo</th><th>Productoras</th>' + cols.map(c => `<th><div class="rot">${c.label}</div></th>`).join('') + '</tr></thead><tbody>';
-      kept.forEach(([g, rows]) => {
-        h += `<tr><th>${groupLabel(g)}</th><td>${rows.length}</td>` + cols.map(c => {
-          const s = share(rows, c.f);
+      // CC2: columnas agrupadas por tema, de mayor a menor peso para el fondo.
+      const cols = [...INDICATORS].sort((a, b) => THEME_ORDER.indexOf(INDICATOR_THEMES[a.id]) - THEME_ORDER.indexOf(INDICATOR_THEMES[b.id]));
+      const stats = cols.map(c => kept.map(([, rows]) => share(rows, c.f)));
+      const gapOf = i => { const v = stats[i].map(s => s.pct).filter(p => p !== null); return v.length > 1 ? Math.max(...v) - Math.min(...v) : 0; };
+      const themes = [];
+      cols.forEach(c => { const t = INDICATOR_THEMES[c.id] || 'Otros'; const last = themes[themes.length - 1]; if (last && last.t === t) last.n++; else themes.push({ t, n: 1 }); });
+      const mix = a => `rgb(${[255, 255, 255].map((w, k) => Math.round(w + ([28, 92, 171][k] - w) * a)).join(',')})`;
+      let h = '<table class="heat"><thead><tr><th rowspan="2">Grupo</th><th rowspan="2">Productoras</th>' + themes.map(x => `<th colspan="${x.n}" class="theme-head">${x.t}</th>`).join('') + '</tr><tr>'
+        + cols.map((c, i) => `<th>${gapOf(i) >= 20 ? '<span class="gap-mark" title="Brecha de 20 puntos o más">▲</span>' : ''}<div class="rot">${c.label}${MULTI_INDICATORS.includes(c.id) ? ' *' : ''}</div></th>`).join('') + '</tr></thead><tbody>';
+      kept.forEach(([g, rows], gi) => {
+        h += `<tr><th>${groupLabel(g)}</th><td>${rows.length}</td>` + cols.map((c, i) => {
+          const s = stats[i][gi];
           if (s.pct === null) return `<td class="na" title="Menos de ${MIN_N} respuestas">&lt;${MIN_N}</td>`;
-          const a = (s.pct / 100).toFixed(2);
-          const dark = s.pct > 55;
-          return `<td style="background:rgba(18,63,36,${(0.08 + 0.85 * a).toFixed(2)});color:${dark ? '#fff' : '#172019'}" title="${c.label}: ${s.pct.toFixed(1)}% (${s.n} productoras)">${s.pct.toFixed(0)}%</td>`;
+          if (s.pct === 0) return `<td class="zero" title="${c.label}: ninguna de ${s.n} productoras">0%<small>ninguna</small></td>`;
+          const a = s.pct / 100;
+          return `<td class="${gapOf(i) >= 20 ? 'gap' : ''}" style="background:${mix(0.08 + 0.8 * a)};color:${s.pct > 55 ? '#fff' : '#172019'}" title="${c.label}: ${s.pct.toFixed(1)}% (${s.n} productoras)">${s.pct.toFixed(0)}%</td>`;
         }).join('') + '</tr>';
       });
       el.innerHTML = h + '</tbody></table>';
-      $('note-heat').textContent = `Cuanto más oscuro, mayor el porcentaje. Se omiten las casillas con menos de ${MIN_N} respuestas${hidden ? ` y ${hidden} grupo(s) con menos de ${MIN_N} productoras` : ''}.`;
+      const gaps = cols.map((c, i) => ({ c, d: gapOf(i), vals: stats[i] })).filter(x => x.d >= 20).sort((x, y) => y.d - x.d)
+        .map(x => `${x.c.label}: ${kept.map(([g], gi) => `${groupLabel(g)} ${x.vals[gi].pct === null ? '—' : x.vals[gi].pct.toFixed(0) + '%'}`).join(' frente a ')} (${x.d.toFixed(0)} puntos)`);
+      const zeros = cols.flatMap((c, i) => kept.map(([g], gi) => (stats[i][gi].pct === 0 ? `${c.label}: ninguna de las ${stats[i][gi].n} productoras de ${groupLabel(g)}` : null))).filter(Boolean);
+      $('note-heat').innerHTML = [
+        gaps.length ? `<strong>▲ Brechas de 20 puntos o más entre grupos:</strong> ${gaps.join('; ')}.` : '',
+        zeros.length ? `<strong>Ceros que importan:</strong> ${zeros.join('; ')}.` : '',
+        `* Podían marcar varias opciones, por eso esas columnas pueden sumar más de 100 % entre sí.`,
+        `Cuanto más oscuro, mayor el porcentaje. Se omiten las casillas con menos de ${MIN_N} respuestas${hidden ? ` y ${hidden} grupo(s) con menos de ${MIN_N} productoras` : ''}.`
+      ].filter(Boolean).map(t => `<span class="heat-line">${t}</span>`).join('');
     }
   },
 
@@ -201,7 +215,7 @@ const CROSS = {
       if (!rows.length) { $('note-gaps').textContent = `Menos de ${MIN_N} respuestas por indicador.`; return; }
       crossCharts.gaps = newChart($('cv-gaps'), {
         type: 'bar',
-        data: { labels: rows.map(r => r.label), datasets: coops.map(([c], i) => ({ label: groupLabel(c), data: rows.map(r => r.by[i].pct === null ? null : +r.by[i].pct.toFixed(1)), backgroundColor: SERIES[i % SERIES.length], borderRadius: 4 })) },
+        data: { labels: rows.map(r => r.label), datasets: coops.map(([c], i) => ({ label: groupLabel(c), data: rows.map(r => r.by[i].pct === null ? null : +r.by[i].pct.toFixed(1)), backgroundColor: coopColor(c), borderRadius: 4 })) },
         options: {
           indexAxis: 'y', responsive: true, maintainAspectRatio: false,
           plugins: { legend: { display: coops.length > 1, position: 'bottom' }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.x}% (de ${rows[c.dataIndex].by[c.datasetIndex].n} productoras)` } } },
@@ -223,7 +237,7 @@ const CROSS = {
       // CO9: el monto casi no varía (paquete de crédito), por eso no se usa como tamaño de burbuja.
       const groups = PDData.commonAmounts(data, { minN: MIN_N, top: 3 });
       if (!groups.length) { $('note-bubble').textContent = `Menos de ${MIN_N} montos por cooperativa.`; return; }
-      const bars = groups.flatMap((g, gi) => g.top.map(t => ({ label: `${groupLabel(g.coop)} · S/ ${t.amount.toLocaleString('es-PE')}`, pct: t.pct, count: t.count, n: g.n, color: SERIES[gi % SERIES.length] })));
+      const bars = groups.flatMap((g, gi) => g.top.map(t => ({ label: `${groupLabel(g.coop)} · S/ ${t.amount.toLocaleString('es-PE')}`, pct: t.pct, count: t.count, n: g.n, color: coopColor(g.coop) })));
       crossCharts.bubble = newChart($('cv-bubble'), {
         type: 'bar',
         data: { labels: bars.map(b => b.label), datasets: [{ data: bars.map(b => +b.pct.toFixed(1)), backgroundColor: bars.map(b => b.color), borderRadius: 4 }] },

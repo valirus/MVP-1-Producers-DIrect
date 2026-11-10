@@ -316,3 +316,14 @@ tr.ins td { color: var(--muted); }
   .print-empty::placeholder { color:transparent !important; }
   #visit-record input::-webkit-calendar-picker-indicator { display:none; }
 }
+/* Gráficos accesibles y comparación por grupo (CC1, CC2, AC1, AC2). */
+.heat .theme-head { padding:6px 4px; border-bottom:2px solid var(--line); color:var(--green); font-size:11px; letter-spacing:.04em; text-align:center; text-transform:uppercase; }
+.heat td.zero { background:#FFF4E1 !important; color:#593912 !important; font-weight:800; outline:2px solid #C3995D; outline-offset:-2px; }
+.heat td.zero small { display:block; font-size:10px; font-weight:600; }
+.heat td.gap { box-shadow:inset 0 -3px 0 #eb6834; }
+.heat-line { display:block; margin-top:4px; }
+.mini-details { margin-top:8px; }
+.mini-details summary { cursor:pointer; color:var(--green); font-weight:700; }
+.mini-table { margin-top:6px; border-collapse:collapse; font-size:12.5px; }
+.mini-table th, .mini-table td { padding:4px 10px; border-bottom:1px solid var(--line); text-align:left; }
+.heat .gap-mark { display:block; color:#eb6834; font-size:12px; text-align:center; }

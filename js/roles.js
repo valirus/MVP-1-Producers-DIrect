@@ -12,13 +12,13 @@ const ROLES = {
     label: 'Gerencia de Producers Direct',
     short: 'Gerencia',
     decides: 'dónde enfocar el fondo y cómo caracterizar a las productoras',
-    pages: ['summary', 'credit', 'production', 'territory']
+    pages: ['summary', 'credit', 'seguimiento', 'production', 'territory']
   },
   campo: {
     label: 'Equipo de campo',
     short: 'Equipo de campo',
     decides: 'a quién visitar y cómo comunicarse con cada productora',
-    pages: ['producer', 'territory', 'inclusion']
+    pages: ['producer', 'seguimiento', 'territory', 'inclusion']
   },
   cooperativa: {
     label: 'Cooperativa',

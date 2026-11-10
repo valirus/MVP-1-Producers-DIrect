@@ -45,8 +45,22 @@ function renderVisit(row) {
   updateVisitStatus();
 }
 
+function renderSegHint() {
+  const el = byIdV('visit-seg');
+  if (!el) return;
+  const f = byIdV('visit-stage').value === 'desembolsado' && typeof segFactsFor === 'function' ? segFactsFor(visitRow) : null;
+  el.hidden = !f;
+  if (!f) return;
+  const parts = [];
+  if (f.fert !== null) parts.push(f.fert ? 'ya aplicó el fertilizante' : 'todavía no aplicó el fertilizante');
+  if (f.book !== null) parts.push(f.book ? 'usa el cuaderno de registros' : 'no usa el cuaderno de registros');
+  if (f.answeredMonths) parts.push(`vendió en ${f.soldMonths} de ${f.answeredMonths} meses`);
+  el.textContent = parts.length ? `Según el seguimiento: ${parts.join(' · ')}.` : 'Tiene seguimiento cargado, pero sin respuestas sobre uso, cuaderno o ventas.';
+}
+
 function renderSteps() {
   if (!visitRow) return;
+  renderSegHint();
   const steps = stepsFor(visitRow, byIdV('visit-stage').value);
   byIdV('visit-steps').innerHTML = steps.map((text, i) => `<tr>
     <td class="step-text">${H.esc(text)}</td>

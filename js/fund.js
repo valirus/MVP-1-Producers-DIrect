@@ -33,7 +33,7 @@ const WISHLIST = [
   ['Venta del café a otros compradores y precio', 'Cuánto del café sale de la cooperativa cuando el precio fluctúa', () => null],
   ['Pagos del crédito', 'Cumplimiento por cuota; permitirá medir mora cuando se entregue el primer ciclo. Criterio de éxito según Eunice: repago a tiempo', () => null],
   ['Asistencia de la socia a capacitaciones', 'Si asiste ella misma, no solo si la cooperativa capacitó. Criterio de éxito según Eunice', () => null],
-  ['Uso del cuaderno de registros', 'Si anota ingresos y gastos. Criterio de éxito según Eunice; viene en el seguimiento 2026, que aún no se carga', () => null],
+  ['Uso del cuaderno de registros', 'Si anota ingresos y gastos. Criterio de éxito según Eunice; se carga en «Seguimiento del crédito»', d => segCoverage(d, 'bookUse')],
   ['Compromiso y apropiación de la cooperativa', 'Cómo acompaña la cooperativa a sus socias. Criterio de éxito según Eunice', () => null]
 ];
 

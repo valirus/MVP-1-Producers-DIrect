@@ -104,6 +104,13 @@ function peerText(row, key, format) {
   return peer ? `Una productora típica de tu cooperativa: <strong>${format(peer.median)}</strong> (según ${H.fmt(peer.n, 0)} productoras).` : '';
 }
 
+function farmerSales(row) {
+  const f = typeof segFactsFor === 'function' ? segFactsFor(row) : null;
+  if (!f || f.salesTotal === null) return '';
+  const range = f.firstMonth && f.lastMonth ? `de ${f.firstMonth.toLowerCase()} a ${f.lastMonth.toLowerCase()} de 2026` : 'en 2026';
+  return `<p>💵 Lo que vendiste ${range}: <strong>S/ ${H.fmt(f.salesTotal, 0)}</strong>${f.salesMonths ? ` (en ${f.salesMonths} ${f.salesMonths === 1 ? 'mes' : 'meses'} con ventas)` : ''}, según el seguimiento.</p>`;
+}
+
 function farmerSheet(row) {
   const cards = [];
   if (D.finite(row.area)) {
@@ -130,7 +137,8 @@ function farmerSheet(row) {
     <section class="farmer-section"><h3>Mi finca</h3>${finca}</section>
     <section class="farmer-section"><h3>Mi solicitud</h3><p class="farmer-line">📝 ${request}</p></section>
     <section class="farmer-section farmer-history"><h3>Mi historial con el fondo</h3>
-      <p>Aún no hay pagos registrados. Cuando pagues tus cuotas, aquí verás tu historial. Con él puedes demostrar que eres buena pagadora, también ante un banco o una caja.</p>
+      ${farmerSales(row)}
+      <p>Aún no hay pagos de cuotas registrados. Cuando pagues tus cuotas, aquí verás tu historial. Con él puedes demostrar que eres buena pagadora, también ante un banco o una caja.</p>
       <p class="farmer-own">Esta hoja es tuya: <strong>tú decides a quién mostrarla.</strong></p>
     </section>
     <div class="farmer-footer"><p>Son los datos que diste en la encuesta 2025. Si algo no es correcto, avisa a tu técnico.</p><p>Impreso el ${H.esc(todayText())}.</p></div>

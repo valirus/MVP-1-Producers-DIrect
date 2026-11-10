@@ -27,3 +27,14 @@ assert.equal(s.n, 5);
 assert.equal(s.pct, 60);
 
 console.log('OK: montos más frecuentes por cooperativa y brecha de servicios financieros.');
+
+// D1: valores extremos con la misma regla para todos los campos; no se quitan.
+const ages = [30, 32, 35, 36, 38, 40, 41, 42, 44, 45, 89].map((age, i) => ({ code: 'E' + i, coop: 'X', age, family: 4 }));
+const ext = D.extremeValues(ages, ['age', 'family']);
+assert.deepEqual(ext.map((e) => [e.code, e.field, e.value]), [['E10', 'age', 89]]);
+assert.equal(ext[0].median, 40);
+assert.deepEqual(D.extremeValues(ages.slice(0, 5), ['age']), [], 'con pocos datos no se marca nada');
+const r2 = D.importProfiles([D.sheetProfile('C', [['codigo_productora', 'cooperativa', 'edad_al_cierre_2025'], ...ages.map((a) => [a.code, 'X', a.age])])]);
+assert.equal(r2.records.length, 11, 'el valor extremo sigue en la base');
+assert.equal(r2.audit.extremes.length, 1);
+console.log('OK: valores extremos marcados sin quitarlos.');

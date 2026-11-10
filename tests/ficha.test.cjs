@@ -7,7 +7,7 @@ const full = { activity: 'FERTILIZACIÓN', amount: 1375, area: 2, qq: 40, income
 assert.deepEqual(D.missingVisitFields(full), []);
 const partial = { ...full, qq: null, phone: null, area: 0 };
 assert.deepEqual(D.missingVisitFields(partial).map((m) => m.key), ['qq', 'phone'], 'un cero es un dato, no un faltante');
-assert.equal(D.missingVisitFields(partial)[0].label, 'Acopio 2025 (quintales)');
+assert.equal(D.missingVisitFields(partial)[0].label, 'Café entregado 2025 (quintales, qq)');
 
 const csv = D.visitsCsv([{
   code: 'PD-001', coop: 'NORANDINO', stage: 'Solicitud', who: 'Técnico A', date: '2026-11-10', formVersion: 'ROTA 2026-1', savedAt: '2026-11-10T10:00',

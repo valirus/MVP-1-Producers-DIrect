@@ -6,8 +6,8 @@ const sheet = (name, headers, rows) => D.sheetProfile(name, [headers, ...rows]);
 
 // Columnas no reconocidas: una pregunta renombrada en el formulario.
 const renamed = sheet('Productoras Norandino',
-  ['1. CODIGO/PRODUCTORA', '3. FECHA DE NACIMIENTO DE LA BENEFICIARIA', '9. AREA DE CULTIVO DE CAFE', '10. QUINTALES ENTREGADOS EN 2025'],
-  [['A1', 30000, 2, 40]]);
+  ['1. CODIGO/PRODUCTORA', '3. FECHA DE NACIMIENTO DE LA BENEFICIARIA', '9. AREA DE CULTIVO DE CAFE', 'Volumen de café', 'periodo'],
+  [['A1', 30000, 2, 40, 2025]]);
 let r = D.importProfiles([renamed]);
 const missingKeys = r.audit.unmapped[0].fields.map((f) => f.key);
 assert.ok(missingKeys.includes('qq'), 'debe avisar que no se encontró acopio');

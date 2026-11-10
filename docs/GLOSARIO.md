@@ -1,3 +1,5 @@
+> Referencia del MVP anterior. Para las pantallas actuales consulta la [guía](manual.html) y el [informe técnico](INFORME_TECNICO.md).
+
 # Glosario: del lenguaje técnico al lenguaje de la empresa
 
 El tablero lo usa Producers Direct y las cooperativas, no personas de analítica. Los textos visibles evitan los términos de clase y usan estas equivalencias. En el código y las pruebas se conservan los nombres técnicos.
@@ -15,8 +17,8 @@ El tablero lo usa Producers Direct y las cooperativas, no personas de analítica
 | Opción múltiple | Podían marcar varios | Los porcentajes no suman 100 %. |
 | Cuarentena | Filas apartadas | Filas que no se incluyeron porque falta el código o la cooperativa, o el código está repetido. |
 | Incidencias | Observaciones | Avisos sobre datos dudosos. No se corrige ni inventa nada. |
-| Mapeo | Qué columna corresponde a cada pregunta | Se confirma al cargar el Excel. |
+| Mapeo | Qué columna corresponde a cada pregunta | Se define en el contrato y se revisa al preparar un formulario nuevo. |
 | Auditoría JSON | Informe de revisión | Archivo con el detalle de la carga. |
 | Datos insuficientes (n<5) | Menos de 5 productoras | Con menos de 5 casos no se muestran porcentajes para no sacar conclusiones débiles ni identificar a alguien. |
-| Acopio (qq) | Café entregado a la cooperativa, en quintales (qq) | Lo que la productora entregó a la cooperativa, no su producción total. 1 quintal (qq) = 55,2 kg según Producers Direct (por confirmar con la cooperativa). |
-| Valores atípicos (regla de Tukey, IQR) | Valores extremos para revisar | Valores muy alejados de la mayoría. Se listan en Revisión de datos con la misma regla para todos los campos; no se quitan ni se corrigen. |
+| Acopio (qq) | Café entregado a la cooperativa, en quintales (qq) | Lo que la productora entregó a la cooperativa, no su producción total. Su peso requiere confirmación; el tablero no convierte a kg. |
+| Valores atípicos (regla de Tukey, IQR) | Valores extremos para revisar | Valores muy alejados de la mayoría. Solo se revisan en la auditoría local; no se quitan ni se corrigen. |

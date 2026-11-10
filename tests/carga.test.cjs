@@ -63,7 +63,7 @@ assert.equal(r.formVersion, 'ROTA 2026-1');
 // Si una pregunta cambió de nombre, se informa cuál falta
 const renamed = D.sheetProfile('Carga', [['codigo_productora', 'cooperativa', 'Hectáreas de café', 'Monto pedido S/'], ['C1', 'NORANDINO', 2, 1375]]);
 r = D.applyMapping(renamed, saved);
-assert.deepEqual(r.missing.map((m) => m.header), ['Área de café (ha)']);
+assert.deepEqual(r.missing.map((m) => m.header), ['¿Usa Yape?', 'Área de café (ha)']);
 assert.equal(renamed.map.area, undefined);
 
 // Fila de títulos guardada: se usa si encaja mejor

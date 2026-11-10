@@ -38,7 +38,10 @@ function stepsFor(row, stage) {
 }
 
 function renderVisit(row) {
+  if (visitRow === row) return;
   visitRow = row;
+  byIdV('visit-stage').value='solicitud';
+  byIdV('visit-record').open=false;
   byIdV('visit-record').hidden = false;
   if (!byIdV('visit-date').value) byIdV('visit-date').value = localStamp().slice(0, 10);
   renderSteps();
@@ -71,21 +74,22 @@ function renderSteps() {
 }
 
 // Al cambiar de productora se limpian los pasos; quién visita y la fecha se mantienen.
-function resetVisit() {
-  if (byIdV('visit-steps')) renderSteps();
-}
 
 function clearVisit() {
   visitRow = null;
   if (byIdV('visit-record')) byIdV('visit-record').hidden = true;
   if (byIdV('visit-steps')) byIdV('visit-steps').innerHTML = '';
+  updateVisitStatus();
 }
 
 function updateVisitStatus(message) {
-  const n = new Set(sessionVisits.map((v) => v.key)).size;
-  byIdV('visit-download').disabled = !sessionVisits.length;
-  const base = n ? `${n} ${n === 1 ? 'visita registrada' : 'visitas registradas'} en esta sesión${pendingDownload ? ' (sin descargar)' : ' (descargadas)'}.` : 'Aún no hay visitas guardadas en esta sesión.';
-  byIdV('visit-status').textContent = message ? `${message} ${base}` : base;
+  const n=sessionVisits.length;
+  byIdV('visit-actions').hidden=!n;
+  byIdV('visit-save').disabled=!visitRow;
+  byIdV('visit-status').textContent=message||'';
+  byIdV('visit-export-status').textContent=n
+    ? `${n} ${n===1?'visita':'visitas'} en esta sesión${pendingDownload?' · por descargar':' · descargadas'}` : '';
+
 }
 
 byIdV('visit-stage')?.addEventListener('change', renderSteps);
@@ -106,10 +110,14 @@ byIdV('visit-save')?.addEventListener('click', () => {
     date: byIdV(`step-date-${i}`).value,
     evidence: byIdV(`step-ev-${i}`).value.trim()
   }));
-  const key = [visitRow.coop, visitRow.code, stageKey, date].join('|');
+  if (steps.some(s => s.done && (!s.date || !s.evidence))) {
+    updateVisitStatus('Para marcar un paso como hecho, agrega su fecha y referencia de evidencia.');
+    return;
+  }
+  const key = JSON.stringify([datasetVersion,visitRow.coop,PDData.norm(visitRow.code),stageKey,date]);
   // Guardar de nuevo la misma visita (productora, etapa y fecha) la reemplaza.
   sessionVisits = sessionVisits.filter((v) => v.key !== key);
-  sessionVisits.push({ key, code: visitRow.code, coop: groupLabel(visitRow.coop), stage: STAGES[stageKey], who, date, steps, formVersion: audit?.formVersion || '', savedAt: localStamp().slice(0, 16).replace('T', ' ') });
+  sessionVisits.push({ key, code: visitRow.code, coop: groupLabel(visitRow.coop), stage: STAGES[stageKey], who, date, steps, sourceFile:audit.fileName,sourceSheet:audit.sheets[0].name,period:audit.period, savedAt: localStamp().slice(0, 16).replace('T', ' ') });
   pendingDownload = true;
   updateVisitStatus(`Visita de ${visitRow.code} guardada.`);
 });
@@ -118,7 +126,7 @@ byIdV('visit-download')?.addEventListener('click', () => {
   if (!sessionVisits.length) return;
   download(`visitas_pd_${localStamp().slice(0, 10)}.csv`, D.visitsCsv(sessionVisits), 'text/csv;charset=utf-8');
   pendingDownload = false;
-  updateVisitStatus('Archivo descargado: súbelo a la base de Producers Direct.');
+  updateVisitStatus();
 });
 
 // Aviso al cerrar la pestaña si hay visitas guardadas que no se descargaron.

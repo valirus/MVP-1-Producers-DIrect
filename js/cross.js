@@ -1,348 +1,81 @@
-// Páginas "Análisis cruzado" y "Territorio y alertas".
-// Dependen de coops.js (configuración y utilidades) y Chart.js.
+/* Indicadores de campo: porcentajes sobre respuestas válidas, por cooperativa. */
+let accessCharts = [];
+function renderCross(data) {
+  accessCharts.forEach(chart=>chart.destroy());
+  accessCharts=[];
+  const root=$('cross-grid'), groups=groupRows(data,'coop');
+  root.replaceChildren();
+  if (!groups.length) return false;
 
-// Colores: ver VIZ, coopColor y seriesColor en coops.js (paleta accesible validada).
-const BRAND = '#123F24';
-const GREY = '#E5E2DC';
-
-let crossCharts = {};
-
-function newChart(el, cfg) {
-  cfg.options = { animation: false, ...(cfg.options || {}) };
-  return new Chart(el, cfg);
-}
-let currentView = 'GLOBAL';
-
-function destroyCross() {
-  Object.values(crossCharts).forEach(c => c.destroy());
-  crossCharts = {};
-}
-
-const fmtPct = v => v === null || v === undefined ? '<' + MIN_N : v.toFixed(0) + '%';
-
-function groupsFor(data, view) {
-  // Vista global: se compara por cooperativa. Vista de cooperativa: por territorio (n >= MIN_N)
-  const key = view === 'GLOBAL' ? 'coop' : coopConfig(view).groupBy;
-  const all = groupRows(data, key);
-  const kept = all.filter(([, rows]) => rows.length >= MIN_N);
-  return { key, kept, hidden: all.length - kept.length };
-}
-
-function card(id, title, note, span = 6, height = 300) {
-  return `<div class="card-panel col-${span}" id="cx-${id}">
-    <h3>${title}</h3>
-    <div class="cx-body" style="height:${height}px"><canvas id="cv-${id}"></canvas></div>
-    <p class="cx-note" id="note-${id}">${note || ''}</p>
-  </div>`;
-}
-
-function tableCard(id, title, span = 12) {
-  return `<div class="card-panel col-${span}" id="cx-${id}"><h3>${title}</h3><div class="cx-table" id="tb-${id}"></div><p class="cx-note" id="note-${id}"></p></div>`;
-}
-
-function emptyCard(id, title, why, span = 6) {
-  return `<div class="card-panel col-${span}"><h3>${title}</h3><p class="cx-empty">${why}</p></div>`;
-}
-
-// Ejes del radar con respuestas suficientes en al menos un grupo
-function radarAxes(data, view) {
-  const { kept } = groupsFor(data, view);
-  return INDICATORS.filter(i => ['smart', 'net', 'lit', 'train', 'save', 'wa'].includes(i.id))
-    .filter(a => kept.some(([, rows]) => share(rows, a.f).pct !== null));
-}
-
-// ---------- registro de gráficos ----------
-
-const CROSS = {
-  radar: {
-    span: 6,
-    build: (data, view) => radarAxes(data, view).length >= 2
-      ? card('radar', 'Rasgos de inclusión por grupo (% de productoras)', '', 6, 360)
-      : emptyCard('radar', 'Rasgos de inclusión por grupo', `La carga no trae suficientes preguntas de acceso con ${MIN_N} o más respuestas por grupo.`),
-    draw: (data, view) => {
-      // CC1: barras agrupadas en lugar de radar. El área de un radar depende del orden de los ejes, no solo de los valores.
-      const axes = radarAxes(data, view).sort((a, b) => THEME_ORDER.indexOf(INDICATOR_THEMES[a.id]) - THEME_ORDER.indexOf(INDICATOR_THEMES[b.id]));
-      const { key, kept } = groupsFor(data, view);
-      if (axes.length < 2) return;
-      const groups = kept.slice(0, 4);
-      crossCharts.radar = newChart($('cv-radar'), {
-        type: 'bar',
-        data: {
-          labels: axes.map(a => [a.label, INDICATOR_THEMES[a.id] || '']),
-          datasets: groups.map(([g, rows], i) => ({
-            label: `${groupLabel(g)} (${rows.length})`,
-            data: axes.map(a => { const sh = share(rows, a.f); return sh.pct === null ? null : +sh.pct.toFixed(1); }),
-            backgroundColor: seriesColor(key, g, i), borderColor: '#fff', borderWidth: 2, borderRadius: 4
-          }))
-        },
-        options: {
-          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: groups.length > 1, position: 'bottom' }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.x}%` } } },
-          scales: { x: { min: 0, max: 100, ticks: { callback: v => v + '%' }, grid: { display: false } }, y: { grid: { display: false }, ticks: { font: { size: 11 } } } }
-        }
-      });
-      let note = 'Cada barra es el % de productoras del grupo con ese rasgo. Los rasgos se agrupan por tipo: el acceso digital no es lo mismo que el vínculo con la cooperativa o la forma preferida de comunicarse.';
-      if (groups.length === 2) {
-        const [first, second] = groups;
-        const higher = axes.filter(a => (share(second[1], a.f).pct ?? -1) > (share(first[1], a.f).pct ?? 101)).length;
-        note = `${groupLabel(second[0])} tiene un porcentaje más alto que ${groupLabel(first[0])} en ${higher} de ${axes.length} rasgos. ` + note;
-      }
-      $('note-radar').textContent = note;
-    }
-  },
-
-  edu: {
-    span: 6,
-    build: (data, view) => {
-      const { kept } = groupsFor(data, view);
-      if (!kept.length || !data.some(r => r.education)) return emptyCard('edu', 'Nivel educativo por grupo', 'No hay datos de nivel educativo para esta selección.');
-      return card('edu', 'Nivel educativo por grupo (% de cada grupo)', '');
-    },
-    draw: (data, view) => {
-      const { kept } = groupsFor(data, view);
-      if (!kept.length || !data.some(r => r.education)) return;
-      const cats = [...EDU_GROUPS, 'Otro'].filter(c => data.some(r => educationGroup(r.education) === c));
-      const colorOf = c => (c === 'Otro' ? VIZ.gray : VIZ.seq[EDU_GROUPS.indexOf(c)]);
-      const pctOf = (rows, c) => { const ans = rows.filter(r => r.education); return ans.length ? 100 * ans.filter(r => educationGroup(r.education) === c).length / ans.length : 0; };
-      crossCharts.edu = newChart($('cv-edu'), {
-        type: 'bar',
-        data: {
-          labels: kept.map(([g, r]) => `${groupLabel(g)} (${r.filter(x => x.education).length})`),
-          datasets: cats.map(c => ({ label: c, data: kept.map(([, rows]) => +pctOf(rows, c).toFixed(1)), backgroundColor: colorOf(c), borderColor: '#fff', borderWidth: 2 }))
-        },
-        options: {
-          indexAxis: 'y', responsive: true, maintainAspectRatio: false, pdPercent: true,
-          plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 12 } }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.x}%` } } },
-          scales: { x: { stacked: true, max: 100, ticks: { callback: v => v + '%' }, grid: { display: false } }, y: { stacked: true, grid: { display: false } } }
-        }
-      });
-      const tops = kept.map(([g, rows]) => { const t = cats.map(c => [c, pctOf(rows, c)]).sort((x, y) => y[1] - x[1])[0]; return `${groupLabel(g)}: «${t[0]}» (${t[1].toFixed(0)}%)`; });
-      const head = `<tr><th>Nivel</th>${kept.map(([g]) => `<th>${groupLabel(g)}</th>`).join('')}</tr>`;
-      const body = cats.map(c => `<tr><td>${c}</td>${kept.map(([, rows]) => `<td>${pctOf(rows, c).toFixed(0)}%</td>`).join('')}</tr>`).join('');
-      $('note-edu').innerHTML = `Nivel más frecuente en cada grupo — ${tops.join('; ')}.<details class="mini-details"><summary>Ver tabla</summary><table class="mini-table">${head}${body}</table></details>`;
-    }
-  },
-
-  services: {
-    span: 6,
-    build: (data) => data.some(r => Array.isArray(r.services))
-      ? card('services', 'Servicios financieros que usan (podían marcar varios)', '')
-      : emptyCard('services', 'Servicios financieros que usan', 'Esta base no trae la pregunta de servicios financieros.'),
-    draw: (data) => {
-      const { items, n } = multiShare(data, 'services');
-      if (!n) return;
-      crossCharts.services = newChart($('cv-services'), {
-        type: 'bar',
-        data: { labels: items.map(i => prettyLabel(i.option)), datasets: [{ data: items.map(i => +i.pct.toFixed(1)), backgroundColor: items.map((_, i) => i === 0 ? BRAND : GREY), borderRadius: 4 }] },
-        options: {
-          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.parsed.x}% de las productoras (${items[c.dataIndex].count} de ${n})` } } },
-          scales: { x: { max: 100, ticks: { callback: v => v + '%' }, grid: { display: false } }, y: { grid: { display: false } } }
-        }
-      });
-      $('note-services').textContent = `Cada productora pudo marcar varias opciones, por eso los porcentajes no suman 100 %. Respondieron ${n} productoras.`;
-    }
-  },
-
-  channels: {
-    span: 6,
-    build: (data) => data.some(r => Array.isArray(r.channels))
-      ? card('channels', 'Canales de contacto preferidos (podían marcar varios)', '')
-      : emptyCard('channels', 'Canales de contacto preferidos', 'Esta base no trae la pregunta de canales.'),
-    draw: (data) => {
-      const { items, n } = multiShare(data, 'channels');
-      if (!n) return;
-      crossCharts.channels = newChart($('cv-channels'), {
-        type: 'bar',
-        data: { labels: items.map(i => prettyLabel(i.option)), datasets: [{ data: items.map(i => +i.pct.toFixed(1)), backgroundColor: items.map((_, i) => i === 0 ? BRAND : GREY), borderRadius: 4 }] },
-        options: {
-          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.parsed.x}% (${items[c.dataIndex].count} de ${n})` } } },
-          scales: { x: { max: 100, ticks: { callback: v => v + '%' }, grid: { display: false } }, y: { grid: { display: false } } }
-        }
-      });
-      $('note-channels').textContent = items.length ? `«${prettyLabel(items[0].option)}» es el canal más elegido (${items[0].pct.toFixed(0)}%). Se podía marcar más de una, por eso no suma 100 %.` : '';
-    }
-  },
-
-  heat: {
-    span: 12,
-    build: () => tableCard('heat', 'Comparación por grupo: % de productoras con cada característica'),
-    draw: (data, view) => {
-      const { kept, hidden } = groupsFor(data, view);
-      const el = $('tb-heat');
-      if (!kept.length) { el.innerHTML = `<p class="cx-empty">Ningún grupo alcanza ${MIN_N} productoras.</p>`; return; }
-      // CC2: columnas agrupadas por tema, de mayor a menor peso para el fondo.
-      const cols = [...INDICATORS].sort((a, b) => THEME_ORDER.indexOf(INDICATOR_THEMES[a.id]) - THEME_ORDER.indexOf(INDICATOR_THEMES[b.id]));
-      const stats = cols.map(c => kept.map(([, rows]) => share(rows, c.f)));
-      const gapOf = i => { const v = stats[i].map(s => s.pct).filter(p => p !== null); return v.length > 1 ? Math.max(...v) - Math.min(...v) : 0; };
-      const themes = [];
-      cols.forEach(c => { const t = INDICATOR_THEMES[c.id] || 'Otros'; const last = themes[themes.length - 1]; if (last && last.t === t) last.n++; else themes.push({ t, n: 1 }); });
-      const mix = a => `rgb(${[255, 255, 255].map((w, k) => Math.round(w + ([28, 92, 171][k] - w) * a)).join(',')})`;
-      let h = '<table class="heat"><thead><tr><th rowspan="2">Grupo</th><th rowspan="2">Productoras</th>' + themes.map(x => `<th colspan="${x.n}" class="theme-head">${x.t}</th>`).join('') + '</tr><tr>'
-        + cols.map((c, i) => `<th>${gapOf(i) >= 20 ? '<span class="gap-mark" title="Brecha de 20 puntos o más">▲</span>' : ''}<div class="rot">${c.label}${MULTI_INDICATORS.includes(c.id) ? ' *' : ''}</div></th>`).join('') + '</tr></thead><tbody>';
-      kept.forEach(([g, rows], gi) => {
-        h += `<tr><th>${groupLabel(g)}</th><td>${rows.length}</td>` + cols.map((c, i) => {
-          const s = stats[i][gi];
-          if (s.pct === null) return `<td class="na" title="Menos de ${MIN_N} respuestas">&lt;${MIN_N}</td>`;
-          if (s.pct === 0) return `<td class="zero" title="${c.label}: ninguna de ${s.n} productoras">0%<small>ninguna</small></td>`;
-          const a = s.pct / 100;
-          return `<td class="${gapOf(i) >= 20 ? 'gap' : ''}" style="background:${mix(0.08 + 0.8 * a)};color:${s.pct > 55 ? '#fff' : '#172019'}" title="${c.label}: ${s.pct.toFixed(1)}% (${s.n} productoras)">${s.pct.toFixed(0)}%</td>`;
-        }).join('') + '</tr>';
-      });
-      el.innerHTML = h + '</tbody></table>';
-      const gaps = cols.map((c, i) => ({ c, d: gapOf(i), vals: stats[i] })).filter(x => x.d >= 20).sort((x, y) => y.d - x.d)
-        .map(x => `${x.c.label}: ${kept.map(([g], gi) => `${groupLabel(g)} ${x.vals[gi].pct === null ? '—' : x.vals[gi].pct.toFixed(0) + '%'}`).join(' frente a ')} (${x.d.toFixed(0)} puntos)`);
-      const zeros = cols.flatMap((c, i) => kept.map(([g], gi) => (stats[i][gi].pct === 0 ? `${c.label}: ninguna de las ${stats[i][gi].n} productoras de ${groupLabel(g)}` : null))).filter(Boolean);
-      $('note-heat').innerHTML = [
-        gaps.length ? `<strong>▲ Brechas de 20 puntos o más entre grupos:</strong> ${gaps.join('; ')}.` : '',
-        zeros.length ? `<strong>Ceros que importan:</strong> ${zeros.join('; ')}.` : '',
-        `* Podían marcar varias opciones, por eso esas columnas pueden sumar más de 100 % entre sí.`,
-        `Cuanto más oscuro, mayor el porcentaje. Se omiten las casillas con menos de ${MIN_N} respuestas${hidden ? ` y ${hidden} grupo(s) con menos de ${MIN_N} productoras` : ''}.`
-      ].filter(Boolean).map(t => `<span class="heat-line">${t}</span>`).join('');
-    }
-  },
-
-  gaps: {
-    span: 6,
-    build: () => card('gaps', 'Principales brechas por cooperativa (% de productoras afectadas)', '', 6, 380),
-    draw: (data) => {
-      // CO10: una barra por cooperativa en cada brecha, para no esconder diferencias en un promedio.
-      const coops = groupRows(data, 'coop');
-      const rows = GAPS.map(g => ({ label: g.label, by: coops.map(([c, rs]) => share(rs, g.f)) }))
-        .filter(x => x.by.some(s => s.pct !== null))
-        .sort((a, b) => Math.max(...b.by.map(s => s.pct ?? -1)) - Math.max(...a.by.map(s => s.pct ?? -1)));
-      if (!rows.length) { $('note-gaps').textContent = `Menos de ${MIN_N} respuestas por indicador.`; return; }
-      crossCharts.gaps = newChart($('cv-gaps'), {
-        type: 'bar',
-        data: { labels: rows.map(r => r.label), datasets: coops.map(([c], i) => ({ label: groupLabel(c), data: rows.map(r => r.by[i].pct === null ? null : +r.by[i].pct.toFixed(1)), backgroundColor: coopColor(c), borderRadius: 4 })) },
-        options: {
-          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: coops.length > 1, position: 'bottom' }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.x}% (de ${rows[c.dataIndex].by[c.datasetIndex].n} productoras)` } } },
-          scales: { x: { max: 100, ticks: { callback: v => v + '%' }, grid: { display: false } }, y: { grid: { display: false } } }
-        }
-      });
-      const tops = coops.map(([c], i) => {
-        const best = rows.filter(r => r.by[i].pct !== null).sort((a, b) => b.by[i].pct - a.by[i].pct)[0];
-        return best ? `${groupLabel(c)}: «${best.label}» (${best.by[i].pct.toFixed(0)}%)` : null;
-      }).filter(Boolean);
-      $('note-gaps').textContent = `Brecha más amplia en cada cooperativa — ${tops.join('; ')}. Una cooperativa sin barra en una brecha tiene menos de ${MIN_N} respuestas.`;
-    }
-  },
-
-  bubble: {
-    span: 6,
-    build: () => card('bubble', '¿Cuántas pidieron el mismo monto?', ''),
-    draw: (data) => {
-      // CO9: el monto casi no varía (paquete de crédito), por eso no se usa como tamaño de burbuja.
-      const groups = PDData.commonAmounts(data, { minN: MIN_N, top: 3 });
-      if (!groups.length) { $('note-bubble').textContent = `Menos de ${MIN_N} montos por cooperativa.`; return; }
-      const bars = groups.flatMap((g, gi) => g.top.map(t => ({ label: `${groupLabel(g.coop)} · S/ ${t.amount.toLocaleString('es-PE')}`, pct: t.pct, count: t.count, n: g.n, color: coopColor(g.coop) })));
-      crossCharts.bubble = newChart($('cv-bubble'), {
-        type: 'bar',
-        data: { labels: bars.map(b => b.label), datasets: [{ data: bars.map(b => +b.pct.toFixed(1)), backgroundColor: bars.map(b => b.color), borderRadius: 4 }] },
-        options: {
-          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${bars[c.dataIndex].count} de ${bars[c.dataIndex].n} productoras (${c.parsed.x}%)` } } },
-          scales: { x: { max: 100, ticks: { callback: v => v + '%' }, title: { display: true, text: '% de productoras de la cooperativa que pidió ese monto' }, grid: { display: false } }, y: { grid: { display: false } } }
-        }
-      });
-      const facts = groups.map(g => `${groupLabel(g.coop)}: ${g.top[0].pct.toFixed(0)}% pidió S/ ${g.top[0].amount.toLocaleString('es-PE')} (${g.top[0].count} de ${g.n})`);
-      const fixed = groups.some(g => g.top[0].pct >= 50);
-      $('note-bubble').textContent = `${facts.join('; ')}.` + (fixed ? ' Cuando la mayoría pide el mismo monto, este refleja un paquete de crédito y no una decisión según su área o acopio. Para ver área y acopio, revisa «Producción y acopio».' : '');
-    }
-  },
-
-  corr: {
-    span: 4,
-    // RV5 / N2: la tabla de relaciones vive solo en «Qué se relaciona con qué», para no mostrar dos tablas con métodos distintos.
-    build: () => `<div class="card-panel col-4" id="cx-corr"><h3>Relaciones entre variables</h3><p class="cx-note">Para ver qué datos suben o bajan juntos (por ejemplo, acopio e ingreso), usa la pantalla dedicada: ahí se elige el par, el método de medida y se ve por cooperativa.</p><button type="button" class="link-btn" data-nav="relations">Ir a «Qué se relaciona con qué» →</button></div>`,
-    draw: () => {}
-  },
-
-  age: {
-    span: 6,
-    build: () => card('age', '¿Cómo son las entrevistadas? Edad', ''),
-    draw: (data) => {
-      const ages = data.map(r => r.age).filter(a => Number.isFinite(a) && a > 0);
-      if (ages.length < MIN_N) return;
-      const bins = [['< 30', a => a < 30], ['30–39', a => a >= 30 && a < 40], ['40–49', a => a >= 40 && a < 50], ['50–59', a => a >= 50 && a < 60], ['60+', a => a >= 60]];
-      const counts = bins.map(([, f]) => ages.filter(f).length);
-      const max = counts.indexOf(Math.max(...counts));
-      crossCharts.age = newChart($('cv-age'), {
-        type: 'bar',
-        data: { labels: bins.map(b => b[0]), datasets: [{ data: counts, backgroundColor: counts.map((_, i) => i === max ? BRAND : GREY), borderRadius: 4 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, title: { display: true, text: 'Edad al cierre 2025 (años)' } }, y: { grid: { display: false }, title: { display: true, text: 'Productoras' } } } }
-      });
-      $('note-age').textContent = `Edad central: ${median(ages)} años (la mitad es menor y la mitad mayor). El grupo más numeroso es el de ${bins[max][0]} años.`;
-    }
+  function stats(items) {
+    return items.map(item=>({
+      label:item.label, values:groups.map(([,rows])=>share(rows,item.f))
+    })).filter(row=>row.values.some(s=>s.pct!=null));
   }
-};
+  function text(s) {
+    return s.pct==null?'—':`${H.fmt(s.pct,1)} % · ${Math.round(s.pct*s.n/100)} de ${s.n}`;
+  }
+  function table(rows) {
+    return H.table(['Indicador',...groups.map(([g])=>groupLabel(g))],rows.map(r=>[r.label,...r.values.map(text)]));
+  }
+  function card(title, html) {
+    const node=document.createElement('article');
+    node.className='card-panel col-6';
+    node.innerHTML=`<h3>${H.esc(title)}</h3>${html}`;
+    root.append(node);
+    return node;
+  }
 
-// ---------- página Análisis cruzado ----------
-
-function renderCross(data, view) {
-  currentView = view;
-  destroyCross();
-  const cfg = coopConfig(view);
-  const root = $('cross-grid');
-  if (!root) return;
-  $('cross-focus').textContent = `${cfg.label}: ${cfg.focus}.`;
-  if (!data.length) { root.innerHTML = '<p class="cx-empty">No hay productoras con los filtros actuales.</p>'; return; }
-  const ids = cfg.cross.filter(id => CROSS[id]);
-  root.innerHTML = ids.map(id => CROSS[id].build(data, view)).join('');
-  ids.forEach(id => { try { CROSS[id].draw(data, view); } catch (e) { console.error('Gráfico ' + id, e); } });
-}
-
-// ---------- página Territorio y alertas ----------
-
-const ALERT_DEFAULTS = { net: 30, lit: 25, yieldDrop: 25 };
-
-function renderTerritory(data, view) {
-  const root = $('territory-body');
-  if (!root) return;
-  const by = $('terr-group') ? $('terr-group').value : 'territory';
-  const th = {
-    net: +($('th-net')?.value || ALERT_DEFAULTS.net),
-    lit: +($('th-lit')?.value || ALERT_DEFAULTS.lit),
-    yd: +($('th-yield')?.value || ALERT_DEFAULTS.yieldDrop)
-  };
-  const groups = groupRows(data, by);
-  if (!groups.length) { root.innerHTML = '<p class="cx-empty">No hay datos de este nivel territorial en la base cargada.</p>'; return; }
-  const withYield = data.filter(r => r.area > 0).map(r => r.qq / r.area);
-  const refYield = median(withYield);
-  // MP3: avisar si una zona concentra más de la mitad de las productoras.
-  const biggest = groups.reduce((m, g) => (g[1].length > (m ? m[1].length : 0) ? g : m), null);
-  const concentration = biggest && groups.length > 1 && biggest[1].length / data.length > 0.5
-    ? `<p class="terr-warning">⚠️ ${groupLabel(biggest[0])} concentra ${biggest[1].length} de ${data.length} productoras (${Math.round(100 * biggest[1].length / data.length)} %). Comparar zonas aquí es comparar ${groupLabel(biggest[0])} con grupos pequeños; prueba agrupar por base o sector.</p>` : '';
-  let rowsHtml = '', nAlert = 0, nOk = 0, nIns = 0;
-  groups.forEach(([g, rows]) => {
-    const n = rows.length;
-    const area = rows.reduce((t, r) => t + (r.area || 0), 0);
-    const qq = rows.reduce((t, r) => t + (r.qq || 0), 0);
-    const yld = area > 0 ? qq / area : null;
-    if (n < MIN_N) {
-      nIns++;
-      rowsHtml += `<tr class="ins"><td>${g}</td><td>${n}</td><td colspan="5">Datos insuficientes (menos de ${MIN_N} productoras)</td><td><span class="sem sem-na">Sin evaluar</span></td></tr>`;
+  function compare(title,rows,note='') {
+    if (!rows.length) return;
+    const colors=groups.map(([g])=>coopColor(g));
+    if(groups.length>5 || new Set(colors).size<groups.length) {
+      card(title,'<div class="table-scroll">'+table(rows)+'</div>');
       return;
     }
-    const net = share(rows, GAPS[0].f).pct, lit = share(rows, GAPS[2].f).pct;
-    const link = share(rows, r => r.savingsCoop == null && r.coopCredit == null ? null : +!!(r.savingsCoop || r.coopCredit)).pct;
-    const flags = [];
-    if (net !== null && net >= th.net) flags.push(`Sin internet en casa ${net.toFixed(0)}%`);
-    if (lit !== null && lit >= th.lit) flags.push(`Dificultad lectura/escritura ${lit.toFixed(0)}%`);
-    if (yld !== null && refYield && yld < refYield * (1 - th.yd / 100)) flags.push(`Rendimiento ${yld.toFixed(1)} qq/ha`);
-    const level = flags.length === 0 ? 'ok' : flags.length === 1 ? 'warn' : 'bad';
-    if (level === 'ok') nOk++; else nAlert++;
-    const label = { ok: 'Sin alertas', warn: '1 alerta', bad: flags.length + ' alertas' }[level];
-    rowsHtml += `<tr><td><b>${g}</b></td><td>${n}</td><td>${area.toFixed(1)}</td><td>${yld === null ? '—' : yld.toFixed(1)}</td><td>${fmtPct(net)}</td><td>${fmtPct(lit)}</td><td>${link === null ? '—' : fmtPct(link)}</td><td><span class="sem sem-${level}" title="${flags.join(' · ') || 'Dentro de los umbrales'}">${label}</span>${flags.length ? `<div class="flags">${flags.join(' · ')}</div>` : ''}</td></tr>`;
-  });
-  root.innerHTML = `${concentration}<div class="kpis-grid kpis-3">
-      <div class="kpi-card"><div class="kpi-title">Zonas evaluadas</div><div class="kpi-val">${nOk + nAlert}</div><div class="kpi-sub">zonas con ${MIN_N} o más productoras</div></div>
-      <div class="kpi-card"><div class="kpi-title">Zonas con alerta</div><div class="kpi-val">${nAlert}</div><div class="kpi-sub">según los umbrales elegidos en los controles de alerta</div></div>
-      <div class="kpi-card"><div class="kpi-title">Zonas sin evaluar</div><div class="kpi-val">${nIns}</div><div class="kpi-sub">datos insuficientes</div></div>
-    </div>
-    <div class="card-panel col-12"><table class="terr"><thead><tr><th>Zona</th><th>Productoras</th><th>Área (ha)</th><th>Rendimiento (quintales por ha, qq/ha)</th><th>Sin internet en casa</th><th>Dificultad lectura/escritura</th><th>Con ahorro o crédito en la cooperativa</th><th>Estado</th></tr></thead><tbody>${rowsHtml}</tbody></table>
-    <p class="cx-note">Reglas: alerta si ≥ ${th.net}% sin internet en casa, si ≥ ${th.lit}% con dificultad de lectoescritura, o si el rendimiento está más de ${th.yd} % por debajo del rendimiento típico (${refYield ? refYield.toFixed(1) : '—'} qq/ha). Las zonas con menos de ${MIN_N} productoras no se evalúan porque ahí una sola persona cambia mucho el porcentaje. Rendimiento = quintales entregados entre hectáreas declaradas (unidad del área por confirmar por escrito).</p>
-    <p class="cx-note"><span class="pill-pending">Pendiente</span> Pagos y mora por zona: se podrán medir cuando haya cuotas pagadas del primer ciclo de créditos. Tampoco hay datos de cuánto café se vende a otros compradores, que es lo que más afecta el acopio cuando el precio fluctúa. La columna de ahorro o crédito en la cooperativa es informativa: Producers Direct la considera más útil que el historial de Infocorp para anticipar el repago.</p></div>`;
+    const node=card(title,
+      `<div class="compact-chart" style="height:${Math.max(170,rows.length*58+42)}px"><canvas role="img" aria-label="${H.esc(title)} por cooperativa"></canvas></div>`+
+      '<details><summary>Ver cifras</summary>'+note+'<div class="table-scroll">'+table(rows)+'</div></details>');
+    accessCharts.push(new Chart(node.querySelector('canvas'),{
+      type:'bar',
+      data:{labels:rows.map(r=>r.label),datasets:groups.map(([g],i)=>({
+        label:groupLabel(g),groupIndex:i,data:rows.map(r=>r.values[i].pct),backgroundColor:coopColor(g),maxBarThickness:22,borderRadius:4
+      })).filter(d=>d.data.some(v=>v!=null))},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:false,
+        plugins:{legend:{display:true,position:'bottom',onClick:()=>{},labels:{boxWidth:12}},
+          tooltip:{callbacks:{label:c=>c.dataset.label+': '+text(rows[c.dataIndex].values[c.dataset.groupIndex])}}},
+        scales:{x:{min:0,max:100,ticks:{callback:v=>v+'%',stepSize:25}},y:{grid:{display:false}}}}
+    }));
+  }
+  compare('Canales preferidos de contacto',stats([
+    {label:'WhatsApp',f:INDICATORS.find(x=>x.id==='wa').f},
+    {label:'Llamadas',f:INDICATORS.find(x=>x.id==='call').f}
+  ]),'<p class="chart-note">Podían elegir más de un canal.</p>');
+  const training=stats([{label:'Reportó capacitación',f:r=>r.trainedCoop}])[0];
+  if (training) {
+    const rows=groups.flatMap(([g],i)=>{
+      const s=training.values[i];
+      return s.pct==null?[]:[`<div class="meter-row"><div><strong>${H.esc(groupLabel(g))}</strong><span>${H.esc(text(s))}</span></div><div class="meter-track" aria-hidden="true"><span style="width:${s.pct}%;background:${coopColor(g)}"></span></div></div>`];
+    });
+    card('Capacitación reportada',`<div class="meter-list">${rows.join('')}</div>`);
+  }
+
+  const edu={label:'Cursó secundaria o superior',f:r=>{
+    const level=educationGroup(r.education);
+    return !level||level==='Otro'?null:+EDU_GROUPS.slice(3).includes(level);
+  }};
+  const home=INDICATORS.filter(x=>['net','sewer'].includes(x.id));
+  const household=stats([edu,...home]);
+  compare('Educación y servicios del hogar',household);
+
+  const finance=stats([
+    {label:'Sin servicios financieros',f:GAPS.find(x=>x.label==='No usa ningún servicio financiero').f},
+    {label:'Sin Yape',f:GAPS.find(x=>x.label==='Sin Yape').f},
+    {label:'Sin ahorros ni aportes de capital en su cooperativa',f:r=>r.savingsCoop==null?null:1-r.savingsCoop}
+  ]);
+  if (finance.length) {
+    const node=card('Acceso a servicios financieros',`<div class="table-scroll">${table(finance)}</div>`);
+    if(!household.length) node.classList.replace('col-6','col-12');
+  }
+  return !!root.childElementCount;
 }

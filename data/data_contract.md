@@ -1,79 +1,19 @@
-# Contrato de datos v2.0 — MVP Producers Direct
+# Contrato de datos 2.2
 
-Corte admitido: 2025. Grano: una observación de productora por cooperativa en ese corte; no una transacción, desembolso ni pago. La información fuente no permite demostrar impacto o recuperación del crédito.
+**Fuente para consulta:** archivo autorizado `Base_Nor_BG_limpia`, hoja `Productoras`. Las otras hojas son documentación, revisión o copias de origen. **Fuente para reproducir:** exportación anónima con hojas `Productoras Norandino` y `Productoras Bagua Grande`, encabezados en fila 3. El [diccionario operativo](../docs/diccionario.html) contiene las definiciones, unidades y columnas de origen de los 25 campos del producto. La fecha de nacimiento es auxiliar; Infocorp no se usa para análisis ni sale en el CSV.
 
-## Entrada variable, salida estable
+- Grano: una productora por cooperativa por carga. La llave es cooperativa normalizada más código normalizado. No representa una cuota, un pago o un desembolso.
+- Identidad: código y cooperativa obligatorios. Sin identidad o con clave duplicada se apartan las filas afectadas. No se elige un duplicado automáticamente.
+- Cooperativa: columna obligatoria en el Excel que abre el tablero. En la conciliación local, los formularios de origen reconocidos pueden tomar la cooperativa del nombre de la hoja.
+- Números: valor numérico de Excel respetado; texto requiere formato no ambiguo o separador confirmado. Cero explícito se conserva. Importes, área, quintales y antigüedad no negativos; edad 0–120 y convivientes enteros. La antigüedad **no se recalcula**: procede de la columna J de ambas hojas. Si hay edad declarada se conserva. Si hay fecha de nacimiento y un año identificado, se calcula al 31 de diciembre de ese año. Sin año no se calcula.
+- Categorías: reglas explícitas para celular, lectoescritura, destinos y opciones múltiples de los formularios conocidos. «Ninguno» junto a otro servicio se conserva como contradicción y queda fuera del porcentaje «sin servicios financieros». El detalle original se conserva en el Excel.
+- Ausentes: no se imputan. Una columna sin correspondencia no permite concluir que la cooperativa no haya hecho la pregunta. El importador diferencia incompatibilidad, dato vacío y resultado válido.
+- Extremos (solo auditoría local): cercas Q1 − 1.5×IQR y Q3 + 1.5×IQR por variable numérica en toda la carga, con mínimo de cinco valores. Cuantiles por interpolación lineal. Es una bandera, no una corrección ni prueba de error. En variables muy concentradas, IQR puede ser cero.
+- Trazabilidad: archivo, hoja y fila importada; la base limpia trae hoja y fila del original. La auditoría indica mapeo, formato, registros apartados, nulos e incidencias. El script genera hash SHA-256 de ambos archivos y compara llave y procedencia.
+- Unidades: el tablero rotula el área como hectáreas (ha), según la convención de la entrega. La fuente Nor-BG no documenta la unidad y la confirmación de la cooperativa sigue pendiente. No se convierten valores ni se calculan quintales por hectárea. Para otras cargas, verificar que el área se entregue en ha antes de mapearla; si no se puede verificar, omitir la columna de área en la copia para el tablero. El quintal se muestra tal como fue reportado, sin convertirlo a kg.
+- Datos personales: el importador reconoce algunos encabezados y bloquea asignarlos. Es una regla preventiva, no anonimización automática. Proveer copias minimizadas y autorizadas. Los modos no son permisos.
+- Periodo: se obtiene de los encabezados fechados asignados o de una columna Año/Periodo con años de cuatro dígitos. Nunca se deduce del nombre del archivo ni del reloj. Una carga admite un solo periodo; si las fuentes del año discrepan, se conserva la carga anterior. Si no hay año, se deja nulo. Los campos normalizados se exportan sin sufijo de año y se añade periodo cuando existe.
 
-1. Se conserva el archivo fuente fuera del repositorio. El dashboard lee una copia en memoria.
-2. Se elige hoja y fila de encabezados, se revisa el mapeo y se confirma.
-3. Dos campos de identidad permiten incluir la fila. Los campos analíticos son opcionales.
-4. Cada visual usa las observaciones válidas de sus campos y publica su denominador. Un dato faltante no bloquea gráficos independientes.
-5. La salida CSV y el JSON de auditoría permiten revisar transformaciones, filas omitidas y cobertura.
+Los agregados requieren cinco datos válidos según la medida; la ficha y la base son vistas de registros autorizados. La web admite archivos de hasta 15 MiB y hojas visibles con hasta 50,001 filas, 250 columnas y 2,000,000 de posiciones desde A1.
 
-Se reconocen estos perfiles adjuntos:
-
-- Base limpia: hoja `Productoras` (77 campos). No se cargan sus hojas Diccionario, Revision ni Origen_* como observaciones adicionales.
-- Base optimizada: `Sheet1` con 14 campos. No se reconstruye información perdida aguas arriba.
-- Formulario original: `Productoras Norandino` y `Productoras Bagua Grande`, encabezados en fila 3. Se combinan solo esas hojas reconocidas; los nombres de hoja aportan la cooperativa y la edad se deriva de la fecha de nacimiento al 31/12/2025.
-- Otra estructura: el usuario selecciona hoja, fila y columnas, e indica cooperativa si no hay columna. El mapeo es una decisión semántica: dos preguntas parecidas pueden medir cosas distintas. No existe limpieza universal por similitud del texto.
-
-## Esquema canónico
-
-| Campo | Tipo lógico | Obligación / significado |
-|---|---|---|
-| codigo_productora | texto no vacío | Necesario. Se recortan espacios; no se inventa un REG-X. |
-| cooperativa | texto no vacío | Necesario. Mayúsculas y espacios; BAGUA_GRANDE equivale a BAGUA GRANDE. Se admiten cooperativas nuevas, sin asignar NORANDINO por defecto. |
-| distrito, provincia, base_sector | texto nullable | Dimensiones separadas. No se afirma que una provincia sea un distrito. En los formularios combinados, el texto «distrito - provincia» se conserva completo en territorio; no se divide por un guion sin revisión. |
-| edad_al_cierre_2025 | entero nullable, 0–120 | Edad de la beneficiaria al 31/12/2025. Si se proporciona fecha Excel o ISO, puede derivarse. Una fecha de texto ambigua no se adivina. |
-| n_familiares_convivientes | entero nullable >= 0 | Familiares convivientes. No demuestra dependencia económica ni trabajo en finca. |
-| antiguedad_socio_titular_anios | número nullable >= 0 | Antigüedad del titular, que puede ser cónyuge/padre. No implica experiencia personal de la beneficiaria. |
-| area_cafe_reportada | número nullable >= 0 | Hectáreas según Producers Direct; la confirmación por escrito con la cooperativa está pendiente (las hojas del Excel limpio aún dicen «por confirmar»). Si fuentes futuras usan otras unidades, normalizar con unidad explícita antes de unirlas. |
-| quintales_acopiados_2025 | número nullable >= 0 | Acopio reportado, no producción total. Admite decimales. No se mezclan proyecciones con valores observados. Peso del quintal por confirmar. |
-| ingreso_principal_pen_2025 | número nullable >= 0 | Ingreso principal anual declarado en PEN; no utilidad ni ingreso familiar total. |
-| monto_solicitado_pen | número nullable >= 0 | Solicitud, no desembolso, saldo ni deuda vigente. |
-| actividad_a_financiar | texto nullable | Se conserva original y se agrupa para gráficos. Fertilización tiene prioridad; crianza agrupa cuyes/gallinas/cerdos; bodega/apicultura/tostado se agrupan como emprendimiento. Otras descripciones se conservan. |
-| tipo_celular_beneficiaria | categoría nullable | SMARTPHONE, BASICO, NINGUNO, OTRO / REVISAR. TECLAS es BASICO. No representa celular del hogar, acceso a internet ni uso de WhatsApp. |
-| dificultad_lectoescritura | categoría nullable | NINGUNA, LECTURA, ESCRITURA, AMBAS, OTRO / REVISAR. Ausente no equivale a NINGUNA. |
-
-### Campos propios de cada formulario (opcionales)
-
-Cada cooperativa tiene su propio formulario y puede cambiarlo entre iteraciones. Estos campos se reconocen por su nombre en la base limpia; si no existen, quedan en null y los gráficos que los usan lo avisan, sin afectar al resto.
-
-| Campo | Tipo lógico | Uso |
-|---|---|---|
-| nivel_educativo, acceso_internet, agua_desague, infocorp_categoria | categoría nullable | Perfil, brechas de acceso, historial crediticio (solo formularios que lo incluyen). Infocorp no es mora y Producers Direct indicó que no es determinante para el repago: el tablero no lo usa como señal de riesgo. |
-| servicios_financieros, canales_preferidos | **opción múltiple** (valores separados por `;` o `,`) | Lista de opciones por registro. Se muestra como % de productoras que marcaron cada opción, con su denominador. No suma 100 %. |
-| usa_yape, ahorro_capitalizacion_cooperativa, credito_vigente_socio_cooperativa, credito_vigente_beneficiaria_sistema, capacitacion_cooperativa_2025 | 0 / 1 (también SI / NO) | Indicadores de inclusión. Otro valor se trata como ausente con incidencia. |
-
-Las pestañas **Análisis cruzado** y **Territorio y alertas** usan estos campos. La configuración de cada cooperativa (qué gráficos, qué nivel territorial) está en `js/coops.js`. Los datos de mora, pagos, saldo y PAR30/PAR60 no forman parte de la base actual.
-
-`fecha_nacimiento_beneficiaria` es una entrada auxiliar; el CSV exporta edad, no la fecha. La trazabilidad incluye hoja/fila y categorías originales. Variables adicionales del archivo no se usan sin definir su significado.
-
-## Calidad y resolución
-
-- Carga guiada: antes de importar se muestra qué cooperativas y cuántas filas entrarán, cómo se leerán los números y, para cada dato, las columnas compatibles primero; una columna incompatible o asignada dos veces se marca con su motivo. El mapeo se puede guardar y reutilizar en el siguiente ciclo: se aplica por el texto del encabezado, no por la posición. Ver `docs/COMO_ACTUALIZAR_MAPEO.md`.
-- Avisos al cargar: si una pregunta de análisis esperada no se reconoce (por ejemplo, porque cambió su texto en el formulario), el panel «Revisar la carga» y la página «Revisión de datos» lo indican por hoja, en lugar de mostrar el campo como «sin respuestas». Si el archivo trae columnas con datos personales (DNI, teléfono, nombre, correo, dirección), se avisa; esas columnas nunca se leen.
-- Llave: cooperativa normalizada + código normalizado, para el corte 2025. Si esa llave se duplica, **todas las filas de ese conflicto** quedan en cuarentena. No se elige la primera o la última sin evidencia.
-- Identidad faltante: fila en cuarentena. Las filas vacías se omiten y se cuentan por separado.
-- Números inválidos: null + incidencia con hoja/fila/campo. Negativos, edades >120 y conteos fraccionarios de familiares se rechazan como medición; la fila conserva otros campos válidos. Los extremos válidos permanecen y se listan en «Revisión de datos» para revisarlos, con la misma regla en todos los campos numéricos (Tukey: fuera de Q1 − 1,5·IQR o Q3 + 1,5·IQR, con al menos 8 valores).
-- Cero explícito se conserva. Ausente es null; no hay imputación ni mediana/moda automática.
-- Formato numérico: las celdas Excel numéricas se respetan. Para texto se elige coma/punto decimal; el modo automático rechaza `1,234` o `1.234` por ambiguos, en lugar de multiplicar un valor por mil accidentalmente.
-- Categorías desconocidas de celular/lectoescritura: OTRO / REVISAR + incidencia; el original queda disponible. SIN DATO se muestra separado.
-- La auditoría describe la base completa. CSV y visuales describen la selección filtrada. La carga fallida no sustituye la base activa.
-- La versión es explícita en la auditoría. No se mezclan cortes distintos en la actual implementación. Antes de incorporar 2026 hay que añadir periodo, tipo de observación y unidades al contrato y actualizar los campos fechados.
-
-## Requisitos por visual
-
-| Visual | Campos / reglas |
-|---|---|
-| Cobertura y filtros | Identidad válida. |
-| Totales de solicitud, área, acopio | Solo mediciones válidas; se informa n con dato / n seleccionado. No sumar áreas de unidades distintas. |
-| Destino, celular, lectoescritura | Identidad + categoría; SIN DATO incluido en el denominador del grupo. |
-| Correlación y dispersión | Dos campos numéricos válidos del mismo registro. Coeficiente solo con n >= 3 y varianza no nula. La correlación no prueba causalidad. |
-| PCA | Seis variables completas, n >= 7 y todas con variación. Estandarización con ddof=1. Descomposición de matriz de correlación; eigenvectores ortonormales y autovalores calculados. |
-
-El PCA se ajusta a la carga completa elegible; los filtros no lo reentrenan. Los porcentajes, pesos y ejes se calculan de nuevo al cargar otra base. La proyección PC1–PC2 conserva solo su varianza sumada; el 78,28% corresponde a **tres componentes del conjunto adjunto**, no a cualquier archivo futuro ni al plano 2D.
-
-## Gobierno mínimo con la empresa
-
-El equipo debe acordar quién confirma el mapeo, qué significan las unidades de área y quintal, el corte temporal y cuándo una solicitud pasa a desembolso. Para cada formulario nuevo, conservar versión, mapeo y aprobación del responsable fuera de la base analítica. Los adaptadores implementados y su mapeo efectivo quedan en el JSON. Esta versión trabaja una carga a la vez: otra carga reemplaza el análisis activo, no acumula un histórico.
+Regenerar el Excel operativo con `node scripts/preparar.cjs --raw <original.xlsx> --out data/processed`. Añade `--clean <limpia.xlsx>` para comparar con la referencia. Comparar valores normalizados desde el original con la base limpia no certifica la exactitud de lo que se declaró en el formulario. La rutina no pretende reconstruir las otras 52 columnas del libro histórico, que se conservan en la copia autorizada.

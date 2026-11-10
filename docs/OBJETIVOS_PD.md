@@ -1,3 +1,5 @@
+> Referencia del MVP anterior. Para las pantallas actuales consulta la [guía](manual.html) y el [informe técnico](INFORME_TECNICO.md).
+
 # Qué respondió Producers Direct y dónde se ve en el tablero
 
 | Respuesta de Producers Direct | Dónde se ve |

@@ -1,3 +1,5 @@
+> Documento histórico del MVP v2. Para reglas actuales consulta el [contrato 2.1](../data/data_contract.md) y el [informe técnico](INFORME_TECNICO.md).
+
 # Auditoría del MVP y de las bases
 
 Fecha: 28 de octubre de 2026. Código revisado: `valirus/MVP-1-Producers-DIrect`, commit `05e328db3ce798fe25367153480c4b8feba5848e`. El ZIP adjunto coincide byte a byte con los blobs de ese commit. No se ha modificado el repositorio remoto.

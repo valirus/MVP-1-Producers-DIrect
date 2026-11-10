@@ -1,15 +1,15 @@
 # Página «Seguimiento del crédito»
 
-Responde, para Producers Direct, cómo avanza el crédito después de la entrega del insumo. Está en el grupo **Seguimiento** del menú y usa los mismos filtros del tablero (cooperativa, distrito, base o sector).
+Responde, para Producers Direct, cómo avanza el crédito después de la entrega del insumo. Está en el grupo **Consulta del fondo** del menú y usa los mismos filtros del tablero (cooperativa, distrito, base o sector).
 
 ## Cómo usarla
 
-1. Carga la base de productoras con **Cargar Excel**, como siempre.
-2. Entra a **Seguimiento del crédito** y pulsa **Cargar seguimiento**. Elige los cuatro Excel de ingresos y egresos a la vez.
-3. Revisa el resumen por archivo: meses, productoras, cuántas están en la base, qué preguntas se usan y cuáles no, y las observaciones. Pulsa **Confirmar carga** o **Cancelar**.
+1. Carga la base de productoras con **Abrir Excel**, como siempre.
+2. Entra a **Seguimiento del crédito** y pulsa **Cargar seguimiento**. Elige los Excel de ingresos y egresos de un mismo ciclo.
+3. Revisa los meses y cuántas filas de cada archivo se vinculan con la base. Pulsa **Confirmar carga** o **Cancelar**.
 4. Filtra por cooperativa o por zona con los filtros de arriba.
 
-El seguimiento queda en la memoria del navegador, igual que la base: no se envía ni se guarda. Si vuelves a cargar la base, el seguimiento se vuelve a unir por código.
+El seguimiento queda en la memoria del navegador, igual que la base: no se envía ni se guarda. Al cambiar la base se limpia el seguimiento. Vuelve a abrir los archivos del ciclo que corresponda.
 
 ## Qué muestra
 
@@ -20,7 +20,6 @@ El seguimiento queda en la memoria del navegador, igual que la base: no se enví
 | Avance de ventas | ¿Cuántas venden cada mes? | % que vendió en cada mes, con «X de Y productoras respondieron». Quintales vendidos solo para café. |
 | Venta de café (Norandino) | ¿Llevan su café a la cooperativa? ¿Por qué no? | Sí/No, si lo llevará pronto y los motivos: precio bajo, transporte, venta a otro comprador. Orienta a quién acompañar para que no venda fuera de la cooperativa cuando baja el precio. |
 | Ingresos y gastos | ¿Cuánto venden y gastan por mes? | Ventas (S/), gasto de la finca o del emprendimiento y gasto de la familia, por mes y cooperativa, con su cobertura. |
-| Revisión de datos | ¿Qué datos hay que revisar? | Observaciones con la productora, el archivo, la fila, el mes y lo que se hizo. |
 
 Reglas que siguen todos los bloques:
 
@@ -43,7 +42,7 @@ Detalle de campos y decisiones: [`data/contrato_seguimiento.md`](../data/contrat
 Enganches con el tablero existente (únicos cambios fuera de estos archivos):
 
 - `index.html`: botón del menú, `<section id="seguimiento-page">` y dos `<script>`.
-- `js/app.js`: entrada `seguimiento` en `PAGES` y una línea en `renderChartsForPage` que llama a `renderSeguimiento`. Esa función se ejecuta al abrir la página y con cada cambio de filtro.
+- `js/app.js`: entrada `seguimiento` en `pageNames` y navegación que llama a `renderSeguimiento`. Esa función se ejecuta al abrir la página y con cada cambio de filtro.
 
 ## Cuando llegue un formulario nuevo
 
@@ -57,6 +56,6 @@ Pruebas:
 ```
 node tests/core.test.cjs
 node tests/cross.test.cjs
-node tests/filters.test.cjs
+node tests/filtros.test.cjs
 node tests/seguimiento.test.cjs
 ```

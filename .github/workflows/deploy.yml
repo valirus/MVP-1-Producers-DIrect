@@ -22,12 +22,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Probar el contrato y preparar solo el sitio público
+        run: |
+          node --test tests/core.test.cjs tests/carga.test.cjs tests/cross.test.cjs tests/feedback.test.cjs tests/filtros.test.cjs tests/indicadores.test.cjs tests/ficha.test.cjs tests/graficos.test.cjs tests/periodo.test.cjs tests/seguimiento.test.cjs
+          python3 scripts/preparar_sitio.py
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_site'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

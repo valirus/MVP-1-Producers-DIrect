@@ -1,45 +1,20 @@
-# Añadir preguntas y gráficos con utilidad
+# Mantenimiento
 
-Primero escribir **qué decisión permitirá tomar el resultado**. Evitar añadir un gráfico solo porque dos columnas son numéricas o porque Pearson da alto.
+El sitio es estático, con cálculo local: HTML/CSS para la interfaz; SheetJS para Excel; JavaScript para importación, filtros y métricas; Chart.js para visuales. No hay API, base compartida ni cuentas. El histórico vive en el sistema de Producers Direct, fuera del tablero.
 
-## Preguntas iniciales propuestas
+| Cambio | Archivos que revisar |
+|---|---|
+| Texto, navegación y modos | `index.html`, `js/roles.js`, `js/app.js` |
+| Contrato, columna nueva o formato | `js/data_core.js`, `js/app.js`, diccionario y pruebas |
+| Comparación descriptiva | `js/charts.js`, `js/cross.js`, `js/coops.js` |
+| Vista de la base cargada | `js/base_cargada.js` |
+| Ficha y guía | `js/devolucion.js`, `js/ficha.js`, `index.html`, estilos de impresión, `docs/manual.html` |
+| Publicación | `.github/workflows/deploy.yml` y su lista de archivos públicos |
 
-| Pregunta | Visual actual | Acción posible | Qué confirmar |
-|---|---|---|---|
-| ¿Qué destinos solicitan las productoras de cada cooperativa? | Barras 100% + n | Preparar contenidos de acompañamiento diferentes. | Que la actividad describa la misma etapa de solicitud. |
-| ¿Cómo se relacionan acopio e ingreso? | Dispersión + coeficientes por grupo | Revisar perfiles y casos inusuales con el técnico. | Mismo periodo, alcance del ingreso y peso del quintal. No usar como score de aprobación. |
-| ¿Qué mezcla de canales requiere el acompañamiento? | Celular propio y lectoescritura | Combinar materiales escritos, llamadas y visitas. | Internet, canal preferido y disponibilidad efectiva; smartphone no garantiza conexión. |
-| ¿Qué resume cada eje de diversidad? | PCA y tabla de pesos | Describir perfiles en una conversación con campo. | No interpretar como pobreza, mérito, causalidad o riesgo. |
+Para un nuevo visual, documenta pregunta, fórmula, unidad, denominador, filtros y limitación. Compara categorías con etiquetas, cifras o forma además del color. Revisa al menos contraste de texto normal de 4.5:1 sobre su fondo; no uses arenas claras para texto. Prueba móvil, teclado y las tablas alternativas. No se declara certificación de accesibilidad.
 
-## Cómo modificar el código
+Valida con `python scripts/ejecutar_notebooks.py` usando copias autorizadas. Para pruebas sin datos reales, ejecuta `node --test tests/core.test.cjs tests/carga.test.cjs tests/cross.test.cjs tests/feedback.test.cjs tests/filtros.test.cjs tests/indicadores.test.cjs tests/ficha.test.cjs tests/graficos.test.cjs`. Para comprobar la conciliación de esta entrega, ejecuta `node tests/sources.test.cjs "ruta-al-original.xlsx" "ruta-a-la-base-limpia.xlsx"`. Sus expectativas son específicas de los Excel 2025 de la entrega.
 
-La página existente usa Chart.js, sin framework ni compilación. Se conserva esa arquitectura para poder copiar el parche a tu repo.
+La lista pública se define en `scripts/preparar_sitio.py`; se usa tanto para la prueba local como en Pages. Revisa antes de publicar las versiones y avisos de las librerías vendorizadas. Mantén el sitio sin Excel, CSV de personas ni auditorías. La publicación copia solo archivos explícitos, pero **eso no vuelve privado un archivo que se haya subido al repositorio**.
 
-1. **Entrada:** `js/data_core.js` contiene `fields`, tipos, adaptadores, normalización y métricas. Un campo nuevo requiere nombre canónico, unidad, periodo, referente y regla de ausentes. No asignar valores por defecto que parezcan observados.
-2. **Contrato:** documenta el campo en `data/data_contract.md` y qué visual puede usarlo. Si cambia el significado de una pregunta, usa otro campo; no lo unas por similitud de palabras.
-3. **Vista:** añade su panel/canvas en `index.html`. Usa el mismo `chart-box` y una nota con cobertura.
-4. **Cálculo/gráfico:** en `js/charts.js`, `render(rows, allRows, model)` recibe la selección y la base completa. Usa `rows` para estadísticas filtradas. El único ajuste del PCA vive en `js/pca_engine.js` y se ejecuta al confirmar una carga en app.js.
-5. **Comentario:** debe describir los datos seleccionados y actualizarse con ellos. No escribir “a mayor edad, más ingreso” como texto fijo. Publica n, periodo y si la medida es solicitud o realización.
-6. **Verificación:** revisa con ambas cooperativas, una sola, una selección vacía, datos incompletos y móvil. Si un campo falta, deja disponible lo que sí puede calcularse.
-
-Las categorías en una barra 100% deben ser mutuamente excluyentes y sumar el denominador. Si una pregunta admite múltiples respuestas, no sumar porcentajes como si fueran partes de un todo. Usar un porcentaje independiente por opción y declarar el denominador.
-
-## Elegir el gráfico
-
-- Dos medidas del mismo registro: dispersión; añadir Pearson para relación lineal o Spearman para orden. Mirar grupos y extremos antes de interpretar el coeficiente.
-- Mezcla de categorías por cooperativa: barras 100%, con recuentos; no comparar solo el número bruto cuando n=113 frente a n=25.
-- Distribución de montos: intervalos sin solapamiento y eje de conteos desde cero.
-- Totales operativos: barras de total con n; para comparar la observación típica, mediana por productora.
-- Evolución de ingreso o recuperación: requiere fechas y mediciones posteriores; no se inventa una serie temporal desde esta encuesta.
-- No calcular “eficiencia” correlacionando un cociente con su propio denominador sin revisar la relación matemática inducida.
-
-## Cuando llegue un formulario nuevo
-
-Selecciona su hoja/fila y mapea solo equivalencias comprobadas. Guarda la auditoría JSON para conservar el mapeo efectivo. Si el formato va a repetirse, añade un adaptador **explícito** a `inferMap` con pruebas, conservando el valor original y su versión. No unir automáticamente todas las hojas de un archivo: puede contener diccionarios, totales o copias del mismo registro.
-
-Un archivo por carga. Para acumular años/cooperativas y versionar correcciones haría falta una capa de almacenamiento, periodo explícito y reconciliación de identidad; eso no lo resuelve una página estática por sí sola.
-
-## Gráficos por cooperativa
-
-Cada cooperativa declara en `COOP_CONFIG` (`js/coops.js`) su nivel territorial y la lista de gráficos de la página Análisis cruzado. Para un gráfico nuevo: agrega su entrada en `CROSS` (`js/cross.js`) con `build` (el panel) y `draw` (el cálculo), y su id en la lista de las cooperativas que lo necesiten. Una pregunta nueva del formulario se añade a `fields` y `extraKinds` en `data_core.js` como texto, opción múltiple o 0/1.
-
+La adopción institucional requiere que Producers Direct confirme la titularidad y el mantenimiento del repositorio, un canal de soporte y los permisos de distribución de la base. Cualquier integración con IDENTI, base central, acceso por cooperativa o historial de pagos se diseña con sus responsables y queda fuera de este MVP.

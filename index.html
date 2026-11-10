@@ -1,109 +1,101 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Producers Direct | Fondo Rotatorio</title><link rel="stylesheet" href="css/style.css"><script src="vendor/xlsx.full.min.js"></script><script src="vendor/chart.umd.min.js"></script></head><body><div class="app">  <aside class="side">
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Producers Direct | Fondo Rotatorio</title><link rel="stylesheet" href="css/style.css"><script src="vendor/xlsx.full.min.js"></script><script src="vendor/chart.umd.min.js"></script></head><body><a class="skip-link" href="#page-title">Ir al contenido</a><div class="app">  <aside class="side">
     <div class="brand">
-      <div class="logo">☘</div>
+      <div class="logo" aria-hidden="true"><svg width="25" height="25" viewBox="0 0 24 24" fill="none"><path d="M5 19c2.5-5 7-8 13-11M10 13C6 13 4 11 4 7c4 0 7 1 7 5m2-1c0-5 2-7 7-7 0 5-2 8-7 8m-3 4c3 1 6 0 8-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <div>
-        <div class="brand-title">Producers<br>Direct</div>
+        <div class="brand-title">Producers <br>Direct</div>
         <div class="brand-subtitle">Panel del Fondo Rotatorio</div>
       </div>
     </div>
     
     <div class="view-box role-box">
-      <label for="role-select">¿Quién usa el tablero?</label>
-      <select id="role-select"><option value="">Sin perfil (todas en orden)</option></select>
+      <label for="role-select">Modo de trabajo</label>
+      <select id="role-select"><option value="">Consulta del fondo</option></select>
     </div>
 
-    <div class="view-box">
-      <label for="view-select">Cooperativa a mostrar</label>
-      <select id="view-select"><option value="GLOBAL">Producers Direct (global)</option></select>
-    </div>
-
-    <nav class="nav">
-      <div class="nav-group">Panorama</div>
-      <button class="active" data-page="summary"><span>⌂</span> Panorama del Fondo</button>
-      <div class="nav-group">Quiénes son las productoras</div>
-      <button data-page="production"><span>♧</span> Producción y acopio</button>
-      <button data-page="inclusion"><span>◎</span> Participación y acceso digital</button>
-      <div class="nav-group">Solicitudes de crédito</div>
-      <button data-page="credit"><span>S/</span> Demanda de crédito</button>
-      <div class="nav-group">Seguimiento y alertas</div>
-      <button data-page="producer"><span>▤</span> Ficha y verificación</button>
-      <button data-page="territory"><span>◉</span> Territorio y alertas</button>
-      <button data-page="seguimiento"><span>◷</span> Seguimiento del crédito</button>
-      <div class="nav-group">Análisis y datos</div>
-      <button data-page="cross"><span>▦</span> Cruces de datos</button>
-      <button data-page="map"><span>✦</span> Mapa de perfiles</button>
-      <button data-page="relations"><span>↗</span> Qué se relaciona con qué</button>
-      <button data-page="coverage"><span>?</span> Datos que faltan</button>
-      <button data-page="quality"><span>✓</span> Revisión de datos</button>
+    <nav class="nav" aria-label="Secciones del tablero">
+      <button type="button" data-page="summary">Panorama del fondo</button>
+      <button type="button" data-page="production">Área y café entregado</button>
+      <button type="button" data-page="inclusion">Participación y acceso</button>
+      <button type="button" data-page="credit">Solicitudes de crédito</button>
+      <button type="button" data-page="seguimiento">Seguimiento del crédito</button>
+      <button type="button" data-page="producer">Ficha de productora</button>
+      <button type="button" data-page="quality">Base cargada</button>
+      <button type="button" data-page="coverage">Cobertura por campo</button>
     </nav>
+    <a class="manual-link" href="docs/manual.html" target="_blank" rel="noopener">Guía de uso ↗</a>
 
-    <div class="privacy-box"><strong>Datos en tu navegador.</strong> El Excel no se envía a un servidor ni se guarda entre sesiones. Carga únicamente archivos autorizados.</div>
   </aside>
-<main class="main"><header class="header"><div><h1 id="page-title">Panorama del Fondo</h1><p id="page-sub">Cuántas productoras hay, cuánto crédito solicitan y qué perfiles se parecen entre sí.</p><p class="page-for" id="page-for" hidden></p></div><div class="actions"><button class="btn-upload" id="open-file">Cargar Excel</button><input type="file" id="excel-input" accept=".xlsx,.xls"><button class="btn-print" id="btn-print-action" disabled>Imprimir ficha</button></div></header>
-<div class="status-banner" id="status-banner" role="status" aria-live="polite"><span id="status-text">Carga una base para comenzar. No se muestran datos de demostración.</span><span id="status-pill">Sin datos</span></div>
-<section class="card-panel importer" id="import-panel" hidden aria-label="Configurar la carga"><h2>Revisar la carga</h2><p>Confirma qué columna del Excel corresponde a cada dato del tablero. Lo que no exista quedará sin dato. Este tablero analiza el año 2025.</p>
-<div class="import-controls">
-<div class="field"><label for="sheet-select">Qué cargar</label><select id="sheet-select"></select><p class="field-help" id="sheet-help"></p></div>
-<div class="field"><label for="header-row">Fila donde están los títulos de las columnas</label><input id="header-row" type="number" min="1" value="1"><p class="field-help">Normalmente es la 1 (la 3 en los formularios originales). Cámbiala solo si no se reconocen los títulos.</p><p class="field-warn" id="header-warn" hidden></p></div>
-<div class="field"><label for="number-mode">Cómo están escritos los números</label><select id="number-mode"><option value="auto">Automático</option><option value="dot">Punto decimal: 1,234.50</option><option value="comma">Coma decimal: 1.234,50</option></select><p class="field-help">Automático usa el número tal como lo guarda Excel. Si un número viene escrito como texto y es ambiguo (por ejemplo, «1.234»), no lo adivina: lo deja sin dato y lo anota en Revisión de datos. Compruébalo abajo, en «Así se leerán los números».</p></div>
-<div class="field"><label for="form-version">Versión del formulario (opcional)</label><input id="form-version" placeholder="Ej.: ROTA ciclo 2026-1"><p class="field-help">Queda registrada en el informe de revisión y en el mapeo guardado.</p></div>
-<div class="field" id="fixed-coop-wrap" hidden><label for="fixed-coop">Cooperativa para todas las filas</label><input id="fixed-coop" placeholder="Nombre confirmado por el responsable"><p class="field-help" id="fixed-coop-help">Aparece porque el Excel no tiene columna de cooperativa. Todas las filas quedarán con este nombre.</p></div>
+<main class="main"><header class="header"><div><p class="eyebrow">Fondo Rotatorio · Producers Direct</p><h1 id="page-title" tabindex="-1">Panorama del fondo</h1></div><div class="actions"><button class="btn-upload" id="open-file" type="button" hidden>Cambiar Excel</button><input type="file" id="excel-input" accept=".xlsx,.xls" hidden></div></header>
+<p class="import-error" id="import-error" role="alert" hidden></p>
+<section class="card-panel start-panel" id="start-panel" aria-labelledby="start-title">
+  <svg class="start-icon" width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true"><rect width="48" height="48" rx="12" fill="currentColor" opacity=".1"/><path d="M16 13h11l5 5v17H16V13Zm10 0v6h6M20 24h8m-8 5h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <div><h2 id="start-title">Abre el Excel de productoras</h2><p>Selecciona la base limpia para ver los indicadores del fondo y consultar las fichas.</p><button class="btn-upload" id="start-open" type="button">Abrir Excel</button></div>
+</section>
+<form class="card-panel sheet-picker" id="sheet-picker" hidden>
+  <div class="field"><label for="sheet-select">Hoja del Excel</label><select id="sheet-select"></select></div>
+  <button type="submit" class="btn-upload">Abrir hoja</button>
+  <button type="button" class="btn-print" id="cancel-import">Cancelar</button>
+</form>
+<div class="filters-bar"><div class="field"><label for="filter-coop">Cooperativa</label><select id="filter-coop"></select></div><div class="field"><label for="filter-territory">Distrito y provincia</label><select id="filter-territory"></select></div><div class="field"><div class="filter-label"><label for="filter-base">Grupo local</label><button type="button" id="base-search-toggle" aria-expanded="false" aria-controls="base-search" hidden>Buscar</button></div><input id="base-search" type="search" class="filter-search" data-for="filter-base" placeholder="Buscar grupo local…" aria-label="Buscar grupo local" autocomplete="off" hidden><select id="filter-base"></select></div><button type="button" class="btn-print" id="reset-filters">Limpiar filtros</button></div>
+<p class="empty-state" id="no-selection" hidden>Sin datos para esta vista.</p>
+<section class="page active" id="summary-page">
+<div id="overview-data" hidden><div class="kpis-grid"><div class="kpi-card"><div class="kpi-title">Productoras</div><div class="kpi-val" id="kpi-n">—</div></div><div class="kpi-card"><div class="kpi-title">Monto solicitado</div><div class="kpi-val" id="kpi-amount">—</div></div><div class="kpi-card"><div class="kpi-title">Área de café</div><div class="kpi-val" id="kpi-area">—</div></div><div class="kpi-card"><div class="kpi-title">Café entregado</div><div class="kpi-val" id="kpi-qq">—</div></div></div><article class="card-panel overview-detail"><h2>Resumen por cooperativa</h2><div id="overview-table" class="table-scroll numeric-table"></div></article></div></section>
+<section class="page" id="production-page"><div class="grid-12"><article class="card-panel col-6"><h3>Mediana de café entregado por productora</h3><div class="chart-box"><canvas id="chart-qq-coop" role="img" aria-label="Mediana de quintales entregados por productora, por cooperativa"></canvas></div><details><summary>Ver cifras</summary><p class="chart-note">La mediana es el valor central al ordenar las entregas.</p><div id="chart-qq-coop-table" class="table-scroll"></div></details></article><article class="card-panel col-6"><h3>Área de café frente a café entregado</h3><div class="chart-box"><canvas id="chart-yield" role="img" aria-label="Área de café y café entregado"></canvas></div><details><summary>Ver cifras</summary><div id="chart-yield-table" class="table-scroll"></div></details></article></div></section>
+<section class="page" id="credit-page"><div class="grid-12">
+ <article class="card-panel col-12" id="amount-pattern"><h3>Distribución de montos solicitados</h3>
+   <div class="chart-box distribution-chart"><canvas id="chart-amounts" role="img" aria-label="Número de solicitudes por monto y cooperativa"></canvas></div>
+   <details><summary>Ver cifras</summary><div id="chart-amounts-frequency" class="table-scroll"></div><h4>Resumen por cooperativa</h4><div id="chart-amounts-table" class="table-scroll"></div></details>
+ </article>
+ <article class="card-panel col-12"><h3>Destino de las solicitudes por cooperativa</h3><div class="chart-box"><canvas id="chart-activities" role="img" aria-label="Destino de las solicitudes por cooperativa"></canvas></div><details><summary>Ver cifras</summary><div id="chart-activities-table" class="table-scroll"></div></details></article>
+</div></section>
+<section class="page" id="inclusion-page"><div class="grid-12"><article class="card-panel col-6"><h3>Celular propio por cooperativa</h3><div class="chart-box"><canvas id="chart-phone" role="img" aria-label="Celular propio por cooperativa"></canvas></div><details><summary>Ver cifras</summary><div id="chart-phone-table" class="table-scroll"></div></details></article><article class="card-panel col-6"><h3>Lectoescritura por cooperativa</h3><div class="chart-box"><canvas id="chart-literacy" role="img" aria-label="Lectoescritura por cooperativa"></canvas></div><details><summary>Ver cifras</summary><div id="chart-literacy-table" class="table-scroll"></div></details></article></div><div id="cross-grid" class="grid-12"></div></section>
+<section class="page" id="producer-page">
+<div class="card-panel producer-picker">
+<p id="producer-note" role="status" hidden></p>
+<div id="producer-browser">
+  <div class="field"><label for="producer-query">Buscar por código de productora</label><input id="producer-query" type="search" autocomplete="off" spellcheck="false" placeholder="Escribe el código…"></div>
+  <p class="producer-results-empty" id="producer-results-empty" role="status" hidden>Sin productoras para esta búsqueda.</p>
+  <ul id="producer-results" class="producer-results"></ul>
+  <button class="btn-print" id="producer-more" type="button" hidden>Ver más productoras</button>
 </div>
-<p class="scope-line" id="scope-line" role="status"></p>
-<div class="mapping-tools"><button type="button" class="btn-print" id="use-mapping">Usar un mapeo guardado</button><input type="file" id="mapping-input" accept=".json,application/json" hidden><div class="mapping-status" id="mapping-status" role="status"></div></div>
-<p id="mapping-note"></p><div id="mapping-alerts" class="notice-shell"></div>
-<div id="mapping-fields" class="mapping-fields"></div>
-<details class="import-details" id="number-details"><summary>Así se leerán los números</summary><div id="number-preview" class="table-scroll"></div></details>
-<details class="import-details"><summary>Vista previa de filas</summary><div id="import-preview" class="table-scroll"></div><details class="import-details import-details--inner"><summary>Ver todas las columnas del Excel</summary><div id="import-preview-all" class="table-scroll"></div></details></details>
-<div class="actions"><button class="btn-upload" id="confirm-import">Confirmar e importar</button><button type="button" class="btn-print" id="save-mapping">Guardar este mapeo</button><button class="btn-print" id="cancel-import">Cancelar</button></div></section>
-<p class="filter-note" id="producer-note" role="status" hidden></p><div class="filters-bar"><div class="field"><label for="filter-coop">Cooperativa</label><select id="filter-coop"></select></div><div class="field"><label for="filter-territory">Distrito - provincia</label><select id="filter-territory"></select><p class="field-help" id="help-territory">Tal como aparece en el formulario, por ejemplo: Tabaconas - San Ignacio.</p></div><div class="field"><label for="filter-base">Base o sector de la cooperativa</label><input type="search" class="filter-search" data-for="filter-base" placeholder="Buscar base o sector…" aria-label="Buscar base o sector"><select id="filter-base"></select><p class="field-help" id="help-base">Grupo de socias dentro de la cooperativa, según el formulario.</p></div><div class="field"><label for="filter-producer">Abrir ficha de productora</label><input type="search" class="filter-search" data-for="filter-producer" placeholder="Buscar por código…" aria-label="Buscar productora por código"><select id="filter-producer"></select><p class="field-help" id="help-producer">Elegir una productora abre su ficha.</p></div></div>
-<section class="page active" id="summary-page"><div class="summary-strip"><div class="role-banner" id="role-banner" role="note"></div><div class="strip-meta"><span><strong>Datos:</strong> encuesta de solicitud 2025 (edad al 31/12/2025)<span id="period-seg"> · Seguimiento 2026: aún no cargado</span> · 1 qq = 55,2 kg y área en hectáreas (por confirmar con la cooperativa)</span><details class="care-details"><summary>🛡 Cómo cuidamos los datos</summary><ul class="care-list" id="data-care-list"></ul></details></div></div><div class="kpis-grid"><div class="kpi-card"><div class="kpi-title">Total de productoras</div><div class="kpi-val" id="kpi-n">—</div><div class="kpi-sub" id="kpi-n-sub">Registros incluidos</div></div><div class="kpi-card"><div class="kpi-title">Monto solicitado total</div><div class="kpi-val" id="kpi-amount">—</div><div class="kpi-sub" id="kpi-amount-sub">Solicitudes, no desembolsos</div></div><div class="kpi-card"><div class="kpi-title">Área de café total</div><div class="kpi-val" id="kpi-area">—</div><div class="kpi-sub" id="kpi-area-sub">Hectáreas</div></div><div class="kpi-card"><div class="kpi-title">Café entregado a la cooperativa (2025)</div><div class="kpi-val" id="kpi-qq">—</div><div class="kpi-sub" id="kpi-qq-sub">quintales (qq) entregados</div></div></div><div class="grid-12"><article class="card-panel col-12"><h3>Así son las productoras de cada cooperativa</h3><div id="summary-profile" class="table-scroll"></div><p class="chart-note" id="summary-profile-note"></p></article><article class="card-panel col-6"><h3>Para qué piden crédito</h3><div class="chart-box chart-box--mid"><canvas id="chart-summary-activity" role="img" aria-label="Para qué piden crédito, por cooperativa"></canvas></div><p class="chart-note" id="summary-activity-note"></p></article><article class="card-panel col-6"><h3>Qué conviene mirar</h3><ul class="summary-alerts" id="summary-alerts"></ul></article></div></section>
-<section class="page" id="production-page"><div class="grid-12"><article class="card-panel col-6"><h3>Acopio por cooperativa</h3><div class="field"><label for="qq-mode">Medida</label><select id="qq-mode"><option value="median">Mediana por productora (la del medio)</option><option value="total">Total reportado</option></select></div><div class="chart-box"><canvas id="chart-qq-coop" role="img" aria-label="Acopio por cooperativa"></canvas></div><p class="chart-note" id="chart-qq-coop-note"></p><div id="chart-qq-coop-table" class="table-scroll"></div></article><article class="card-panel col-6"><h3>Área de café y acopio</h3><div class="chart-box"><canvas id="chart-yield" role="img" aria-label="Área de café y acopio"></canvas></div><p class="chart-note" id="chart-yield-note"></p><div id="chart-yield-table" class="table-scroll"></div></article></div></section>
-<section class="page" id="credit-page"><div class="grid-12"><article class="card-panel col-6"><h3>Destino de las solicitudes por cooperativa</h3><div class="chart-box"><canvas id="chart-activities" role="img" aria-label="Destino de las solicitudes por cooperativa"></canvas></div><p class="chart-note" id="chart-activities-note"></p><div id="chart-activities-table" class="table-scroll"></div></article><article class="card-panel col-6"><h3>Distribución del monto solicitado</h3><div class="chart-box"><canvas id="chart-amounts" role="img" aria-label="Distribución del monto solicitado"></canvas></div><p class="chart-note" id="chart-amounts-note"></p><div id="chart-amounts-table" class="table-scroll"></div></article></div></section>
-<section class="page" id="inclusion-page"><div class="grid-12"><article class="card-panel col-6"><h3>Celular propio por cooperativa</h3><div class="chart-box"><canvas id="chart-phone" role="img" aria-label="Celular propio por cooperativa"></canvas></div><p class="chart-note" id="chart-phone-note"></p><div id="chart-phone-table" class="table-scroll"></div></article><article class="card-panel col-6"><h3>Lectoescritura por cooperativa</h3><div class="chart-box"><canvas id="chart-literacy" role="img" aria-label="Lectoescritura por cooperativa"></canvas></div><p class="chart-note" id="chart-literacy-note"></p><div id="chart-literacy-table" class="table-scroll"></div></article></div><article class="card-panel" id="part-wrap"><h3>Capacitación de la cooperativa: ¿llega a las socias?</h3><div id="part-body"><div class="cx-body" style="height:220px"><canvas id="cv-part"></canvas></div></div><p class="cx-note" id="note-part"></p></article><p class="scope-note">Estas medidas ayudan a planear canales y materiales de acompañamiento. Tener smartphone no demuestra acceso a internet ni uso de WhatsApp.</p></section>
-<section class="page" id="map-page"><div class="grid-12"><article class="card-panel col-8"><h3>Mapa de perfiles de las productoras</h3><p class="map-warning"><strong>Este mapa no mide el éxito del crédito.</strong> Agrupa a las productoras por tamaño de producción, edad y hogar. Los criterios de éxito que mencionó Eunice (repago a tiempo, compromiso de la cooperativa, asistencia a capacitaciones y uso del cuaderno de registros) todavía no están en esta base; cuando se recojan, el mapa debería replantearse.</p><div class="field"><label for="pca-plane">Qué ejes comparar</label><select id="pca-plane"><option value="1">Ejes 1 y 2</option><option value="2">Ejes 1 y 3</option></select></div><div class="chart-box"><canvas id="chart-pca" role="img" aria-label="Mapa de perfiles de las productoras"></canvas></div><p class="chart-note" id="chart-pca-note"></p><div id="chart-pca-table" class="table-scroll"></div></article><article class="card-panel col-4"><h3>Cómo leer el mapa</h3><div id="pca-reading"></div><p class="chart-note">Este mapa muestra qué productoras se parecen entre sí; no califica a nadie ni mide riesgo de crédito. La antigüedad es la del socio titular, y los familiares que conviven no equivalen a dependientes.</p></article><details class="card-panel col-12 tech-details"><summary>Ver detalle técnico del mapa</summary><div class="grid-12"><article class="card-panel col-6"><h3>Cuánta información conserva el mapa</h3><div class="chart-box"><canvas id="chart-variance" role="img" aria-label="Cuánta información conserva el mapa"></canvas></div><p class="chart-note" id="chart-variance-note"></p><div id="chart-variance-table" class="table-scroll"></div></article><article class="card-panel col-6"><h3>Qué variables definen cada eje</h3><div id="pca-loadings" class="table-scroll"></div><p class="chart-note">Cuanto más lejos de 0, más influye la variable en ese eje; el signo indica si sube o baja junto con el eje. Los ejes se calculan una vez con toda la base cargada: al filtrar cambian los puntos, no los ejes.</p></article></div></details></div></section>
-<section class="page" id="relations-page"><div class="card-panel relation-controls"><h2>¿Qué se relaciona con qué?</h2><p>¿Qué variables se mueven juntas y cambia el patrón entre cooperativas?</p><div class="import-controls"><div class="field"><label for="rel-x">Variable horizontal</label><select id="rel-x"></select></div><div class="field"><label for="rel-y">Variable vertical</label><select id="rel-y"></select></div><div class="field"><label for="corr-method">Forma de medir la relación</label><select id="corr-method"><option value="spearman" selected>Orden de los valores (menos sensible a casos extremos)</option><option value="pearson">Relación en línea recta</option></select><p class="field-help">Cambia el número y la palabra (débil, moderada, fuerte) de «Qué muestra la selección». El gráfico de puntos no cambia.</p></div></div></div><div class="grid-12"><article class="card-panel col-8"><h3>Relación entre las variables seleccionadas</h3><div class="chart-box"><canvas id="chart-relation" role="img" aria-label="Relación entre las variables seleccionadas"></canvas></div><p class="chart-note" id="chart-relation-note"></p><div id="chart-relation-table" class="table-scroll"></div></article><article class="card-panel col-4"><h3>Qué muestra la selección</h3><p class="method-note" id="method-note"></p><p id="relation-insight"></p><div id="relation-groups" class="table-scroll"></div><p class="chart-note">Que dos cosas vayan juntas no significa que una cause la otra. Compara el total con cada cooperativa: los casos extremos pueden cambiar el resultado.</p></article><article class="card-panel col-12"><h3>Tabla de relaciones entre variables</h3><p class="chart-note">Pulsa una casilla para ver ese par en el gráfico. Cada valor usa solo las productoras que tienen ambos datos, por eso su número puede variar.</p><div id="correlation-matrix" class="table-scroll"></div></article></div></section>
-<section class="page" id="cross-page">
-  <div class="view-head"><span class="view-chip" id="view-badge">Producers Direct (global)</span> <span id="cross-focus"></span></div>
-  <div class="grid-12" id="cross-grid"></div>
-</section>
-<section class="page" id="territory-page">
-  <div class="card-panel terr-controls">
-    <div class="field"><label for="terr-group">Agrupar por</label><select id="terr-group"><option value="territory">Distrito</option><option value="province">Provincia</option><option value="base">Base / sector</option></select></div>
-    <div class="field"><label for="th-net">Alerta: sin internet en casa (%)</label><input type="number" id="th-net" value="30" min="1" max="100"><p class="field-help">Alerta si el % de la zona es igual o mayor.</p></div>
-    <div class="field"><label for="th-lit">Alerta: dificultad de lectoescritura (%)</label><input type="number" id="th-lit" value="25" min="1" max="100"><p class="field-help">Alerta si el % de la zona es igual o mayor.</p></div>
-    <div class="field"><label for="th-yield">Alerta: rendimiento bajo el típico (%)</label><input type="number" id="th-yield" value="25" min="1" max="100"><p class="field-help">Alerta si la zona rinde este % o más por debajo de la mediana.</p></div>
-  </div>
-  <div id="territory-body"></div>
-</section>
-<section class="page" id="coverage-page"><div id="coverage-body"></div></section>
-<section class="page" id="producer-page"><button type="button" class="back-btn" id="back-from-producer" hidden>← Volver</button>
-<details class="card-panel visit-guide" id="visit-guide"><summary>Cómo usar esta ficha</summary>
-<ul>
-<li><strong>Antes de la visita:</strong> elige la productora en «Abrir ficha de productora» e imprime su ficha.</li>
-<li><strong>Elige la etapa del crédito.</strong> En «Solicitud» se confirma el destino, el monto y se completan los datos que faltan. En «Desembolsado» se verifica el uso del crédito.</li>
-<li><strong>Durante la visita:</strong> marca cada paso y anota la evidencia (por ejemplo, el número de boleta).</li>
-<li><strong>Después:</strong> pulsa «Guardar visita» y, al terminar el día, «Descargar visitas (CSV)» para llevarlas a la base de Producers Direct.</li>
-<li>Esta ficha <strong>no evalúa solvencia ni aprueba un crédito</strong>. El registro es de apoyo: solo cuenta cuando se guarda en la base de Producers Direct.</li>
-</ul></details>
-<div class="report-toggle" role="group" aria-label="Tipo de hoja"><button type="button" data-view="visit" aria-pressed="true">Ficha de visita (técnico)</button><button type="button" data-view="farmer" aria-pressed="false">Hoja para la productora</button></div>
-<div class="report-shell" id="report-printable">
-<div class="report-header"><div><h2>Ficha de visita</h2><p id="rep-code-coop">Selecciona una productora en «Abrir ficha de productora».</p></div></div>
-<div id="producer-fields" class="report-grid"></div>
-<section class="visit-record" id="visit-record" hidden aria-labelledby="visit-title">
-<h3 id="visit-title">Registro de la visita</h3>
+<button class="btn-print" id="producer-change" type="button" hidden>Cambiar productora</button>
+</div><div class="actions ficha-actions"><button type="button" class="btn-print" id="btn-print-action" disabled>Imprimir ficha</button></div><div class="report-toggle" role="group" aria-label="Tipo de hoja"><button type="button" data-view="visit" aria-pressed="true">Ficha para la visita</button><button type="button" data-view="farmer" aria-pressed="false">Mi finca</button></div><div class="report-shell" id="report-printable"><div class="report-header"><div><h2>Ficha para la visita</h2><p id="rep-code-coop" tabindex="-1"></p></div></div><div id="producer-fields" class="report-grid"></div></div><details class="card-panel visit-record no-print" id="visit-record" hidden><summary>Registrar una visita</summary>
+<p class="seg-hint" id="visit-seg" hidden></p>
 <div class="visit-controls">
-<div class="field"><label for="visit-stage">Etapa del crédito</label><select id="visit-stage"><option value="solicitud">Solicitud (antes del desembolso)</option><option value="desembolsado">Desembolsado (verificar el uso)</option></select></div>
+<div class="field"><label for="visit-stage">Etapa del crédito</label><select id="visit-stage"><option value="solicitud">Solicitud (antes del desembolso)</option><option value="desembolsado">Desembolsado (confirmado por ROTA)</option></select></div>
 <div class="field"><label for="visit-who">Quién visita</label><input id="visit-who" placeholder="Nombre del técnico o técnica" autocomplete="name"></div>
 <div class="field"><label for="visit-date">Fecha de la visita</label><input id="visit-date" type="date"></div>
 </div>
-<p class="seg-hint" id="visit-seg" hidden></p><table class="visit-steps"><thead><tr><th scope="col">Paso</th><th scope="col">Hecho</th><th scope="col">Fecha</th><th scope="col">Evidencia u observación</th></tr></thead><tbody id="visit-steps"></tbody></table>
-<p class="visit-disclaimer">Registro de apoyo. No es una verificación documentada ni aprueba un crédito. Para que cuente, descárgalo y guárdalo en la base de Producers Direct.</p>
-</section>
-<p class="report-privacy" id="rep-privacy" hidden></p>
-</div>
-<div class="visit-actions" id="visit-actions" hidden><button type="button" class="btn-upload" id="visit-save">Guardar visita</button><button type="button" class="btn-print" id="visit-download" disabled>Descargar visitas (CSV)</button><span class="visit-status" id="visit-status" role="status"></span></div>
-<div class="report-shell farmer-shell" id="farmer-sheet" hidden></div></section>
+<div class="table-scroll"><table class="visit-steps"><thead><tr><th scope="col">Paso</th><th scope="col">Hecho</th><th scope="col">Fecha</th><th scope="col">Evidencia u observación</th></tr></thead><tbody id="visit-steps"></tbody></table></div>
+
+<div class="visit-actions"><button type="button" class="btn-upload" id="visit-save">Guardar visita</button><span class="visit-status" id="visit-status" role="status"></span></div>
+</details>
+<div class="visit-actions" id="visit-actions" hidden><button type="button" class="btn-print" id="visit-download">Descargar visitas (CSV)</button><span class="visit-status" id="visit-export-status" role="status"></span></div><div class="report-shell farmer-shell" id="farmer-sheet" hidden></div></section>
 <section class="page" id="seguimiento-page"><div id="seg-root"></div></section>
-<section class="page" id="quality-page"><div class="card-panel"><h2>Revisión de los datos cargados</h2><p id="quality-summary">Aún no hay una base cargada.</p><div id="quality-alerts" class="notice-shell"></div><div class="actions"><button class="btn-print" id="download-audit" disabled>Descargar informe de revisión (JSON)</button><button class="btn-print" id="download-data" disabled>Descargar datos ordenados (CSV)</button></div><p class="chart-note">El informe corresponde a toda la carga. Los gráficos responden a los filtros.</p><div id="quality-table" class="table-scroll"></div><details><summary>Filas apartadas y observaciones (primeras 100; el detalle completo está en el informe)</summary><div id="quality-issues" class="table-scroll"></div></details></div></section>
-</main></div><script src="js/data_core.js"></script><script src="js/coops.js"></script><script src="js/pca_engine.js"></script><script src="js/charts.js"></script><script src="js/cross.js"></script><script src="js/fund.js"></script><script src="js/devolucion.js"></script><script src="js/roles.js"></script><script src="js/carga.js"></script><script src="js/filtros.js"></script><script src="js/ficha.js"></script><script src="js/seguimiento_core.js"></script><script src="js/seguimiento.js"></script><script src="js/panorama.js"></script><script src="js/app.js"></script></body></html>
+<section class="page" id="quality-page">
+  <article class="card-panel data-preview" id="quality-data" hidden>
+    <div class="data-preview-top">
+      <div><h2 id="quality-source"></h2><p id="quality-counts" class="data-source"></p></div>
+      <div class="actions"><a href="docs/diccionario.html" target="_blank" rel="noopener">Diccionario</a><button type="button" class="btn-print" id="download-data">Descargar CSV</button></div>
+    </div>
+    <div class="data-filters">
+      <div class="field"><label for="quality-search">Buscar por código o cooperativa</label><input type="search" id="quality-search" autocomplete="off"></div>
+      <div class="field"><label for="quality-missing">Filas sin dato en</label><select id="quality-missing"><option value="">Cualquier campo (sin filtro)</option></select></div>
+    </div>
+    <div id="quality-preview" class="table-scroll dataset-scroll" role="region" tabindex="0" aria-label="Registros de la base cargada"></div>
+    <div class="data-pagination" id="quality-pagination">
+      <span id="quality-range" role="status"></span>
+      <button type="button" class="btn-print" id="quality-prev">Anterior</button>
+      <button type="button" class="btn-print" id="quality-next">Siguiente</button>
+    </div>
+  </article>
+</section>
+<section class="page" id="coverage-page">
+  <article class="card-panel data-preview">
+    <div class="data-preview-top"><div><h2>Campos de la base</h2><p id="coverage-source" class="data-source"></p></div>
+      <label class="coverage-toggle"><input id="coverage-incomplete" type="checkbox"> Solo campos con faltantes</label>
+    </div>
+    <div id="coverage-table" class="table-scroll"></div>
+  </article>
+</section>
+</main></div><script src="js/data_core.js"></script><script src="js/coops.js"></script><script src="js/charts.js"></script><script src="js/cross.js"></script><script src="js/devolucion.js"></script><script src="js/roles.js"></script><script src="js/filtros.js"></script><script src="js/ficha.js"></script><script src="js/base_cargada.js"></script><script src="js/seguimiento_core.js"></script><script src="js/seguimiento.js"></script><script src="js/app.js"></script></body></html>

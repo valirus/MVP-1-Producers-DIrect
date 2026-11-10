@@ -1,0 +1,11 @@
+# Archivos operativos y auditorías locales (pueden contener datos de personas).
+*.xlsx
+*.xls
+*.xlsm
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+.ipynb_checkpoints/
+__pycache__/
+_site/

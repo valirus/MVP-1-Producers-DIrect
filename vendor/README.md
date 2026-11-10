@@ -1,8 +1,10 @@
 # Dependencias locales
 
-Se conservan las versiones del MVP; se sirven localmente para que cargar un Excel no dependa de un CDN.
+El navegador y el script local usan estos archivos sin CDN en tiempo de ejecución.
 
-- Chart.js 4.4.0: https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js — MIT.
-- SheetJS CE 0.18.5: https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js — Apache-2.0.
+| Dependencia | Versión | Procedencia | Licencia |
+|---|---|---|---|
+| SheetJS CE | 0.20.3 | [Distribuible oficial](https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js) | Apache-2.0 |
+| Chart.js | 4.4.0 | [Distribuible de Chart.js](https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js) | MIT |
 
-Los avisos de licencia de los distribuibles se conservan. No se presenta esto como una actualización de seguridad o de versión. Revisar versiones y avisos de seguridad antes de un despliegue productivo.
+Verifica avisos y repite las pruebas de Excel antes de subir una versión nueva. Los avisos de licencia están en esta carpeta.

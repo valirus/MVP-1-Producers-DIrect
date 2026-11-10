@@ -1,5 +1,5 @@
 /*
- * Pantalla «Seguimiento del crédito»: ingresos, egresos, uso del crédito y cuaderno de registros (enero–agosto 2026).
+ * Pantalla «Seguimiento del crédito»: ingresos, egresos, uso del crédito y cuaderno de registros.
  * La lectura de los archivos está en seguimiento_core.js (PDSeguimiento), con sus pruebas y su contrato
  * (data/contrato_seguimiento.md). Este archivo solo dibuja la pantalla y la conecta con el resto del tablero.
  * Reglas: «X de Y respondieron», sin porcentajes ni sumas con menos de MIN_N respuestas, sin imputar,
@@ -9,11 +9,12 @@
 'use strict';
 
 const SEG = PDSeguimiento;
-const segState = { files: [], pending: null, records: [], observations: [], profiles: [], message: '' };
+const segState = { pending: null, records: [], profiles: [], message: '' };
+function resetSeguimiento() { Object.assign(segState,{pending:null,records:[],profiles:[],message:''}); }
 let segCharts = {};
 const segById = (id) => document.getElementById(id);
 const segMonthLabel = (m) => m.charAt(0) + m.slice(1).toLowerCase();
-const segPct = (yes, n) => (n >= MIN_N ? `${Math.round((100 * yes) / n)}%` : `menos de ${MIN_N} respuestas`);
+const segPct = (yes, n) => `${Math.round((100 * yes) / n)}%`;
 const segMoney = (v) => `S/ ${H.fmt(v, 0)}`;
 
 /* ---------- Unión con la base de productoras ---------- */
@@ -54,29 +55,25 @@ function segFactsFor(row) {
   };
 }
 
-// Cobertura de una pregunta del seguimiento sobre la selección (para «Datos que faltan»).
-function segCoverage(rows, field) {
-  if (!segState.records.length || !rows.length) return null;
-  const recs = segRecordsFor(rows);
-  return recs.filter((r) => r.statics[field] === 0 || r.statics[field] === 1).length / rows.length;
-}
-
 /* ---------- Carga ---------- */
 
 async function segReadFiles(fileList) {
-  if (!rawData.length) { segState.message = 'Primero carga la base de productoras con «Cargar Excel». El seguimiento se une a ella por el código.'; segRerender(); return; }
+  if (!rawData.length) { segState.message = 'Primero carga la base de productoras con «Abrir Excel». El seguimiento se une a ella por el código.'; segRerender(); return; }
+  const version=datasetVersion;
   const files = [];
   for (const file of fileList) {
     try {
       if (file.size > 15 * 1024 * 1024) throw Error('El archivo supera 15 MB.');
       const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: true });
-      files.push({ fileName: file.name, sheets: workbook.SheetNames.map((name) => ({ name, matrix: XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1, defval: null, blankrows: true, raw: true }) })) });
+      const sheets=visibleWorkbookSheets(workbook);
+      if (!sheets.length) throw Error('No hay hojas visibles dentro del tamaño admitido.');
+      files.push({ fileName: file.name, sheets });
     } catch (error) {
       files.push({ fileName: file.name, error: 'No se pudo leer: ' + error.message });
     }
   }
+  if(version!==datasetVersion) return;
   const index = segBaseIndex(rawData);
-  segState.pendingFiles = files;
   segState.pending = files.map((f) => (f.error ? { fileName: f.fileName, error: f.error, observations: [], records: [] } : SEG.readFile(f.fileName, f.sheets, index)));
   segState.message = '';
   segRerender();
@@ -85,34 +82,10 @@ async function segReadFiles(fileList) {
 function segConfirm() {
   const valid = (segState.pending || []).filter((p) => !p.error);
   if (!valid.length) return;
-  segState.files = segState.pendingFiles.filter((f) => !f.error);
-  segApply(valid);
-  segState.pending = null;
+  const {records}=SEG.combine(valid);
+  Object.assign(segState,{profiles:valid,records,pending:null});
   segRerender();
 }
-
-function segApply(profiles) {
-  const { records, observations } = SEG.combine(profiles);
-  Object.assign(segState, { profiles, records, observations });
-  segRenderPeriod();
-}
-
-// Si se carga otra base, el seguimiento se vuelve a unir por código (app.js la llama).
-function rejoinSeguimiento() {
-  if (!segState.files.length) return;
-  const index = segBaseIndex(rawData);
-  segApply(segState.files.map((f) => SEG.readFile(f.fileName, f.sheets, index)));
-}
-
-function segRenderPeriod() {
-  const el = segById('period-seg');
-  if (!el) return;
-  const months = SEG.monthsPresent(segState.records);
-  el.innerHTML = segState.records.length
-    ? ` · <strong>Seguimiento 2026:</strong> ${segState.records.length} productoras, de ${months[0].toLowerCase()} a ${months[months.length - 1].toLowerCase()}`
-    : ' · Seguimiento 2026: aún no cargado';
-}
-
 /* ---------- Dibujo ---------- */
 
 function segChart(id, config) {
@@ -135,11 +108,11 @@ function segCoops(recs) {
 // Barra de % Sí por cooperativa para una pregunta Sí/No.
 function segYesNoBlock(id, recs, coops, field, label) {
   const stats = coops.map((c) => ({ c, ...SEG.yesNoSummary(recs.filter((r) => r.coop === c), field) })).filter((s) => s.answered > 0);
-  if (!stats.length) return { html: '<p class="chart-note">Esta pregunta no está en los archivos de esta selección.</p>', draw: () => {} };
+  if (!stats.some(s=>s.answered>=MIN_N)) return { html: '<p class="chart-note">Esta pregunta no está en los archivos de esta selección.</p>', draw: () => {} };
   const shown = stats.filter((s) => s.answered >= MIN_N);
   return {
     html: `<div class="chart-box chart-box--short"><canvas id="${id}" role="img" aria-label="${H.esc(label)}"></canvas></div>`
-      + `<p class="chart-note">${stats.map((s) => `${groupLabel(s.c)}: ${s.yes} de ${s.answered} respondieron que sí (${segPct(s.yes, s.answered)})`).join('. ')}.</p>`,
+      + `<p class="chart-note">${shown.map((s) => `${H.esc(groupLabel(s.c))}: ${s.yes} de ${s.answered} respondieron que sí (${segPct(s.yes, s.answered)})`).join('. ')}.</p>`,
     draw: () => segChart(id, {
       type: 'bar',
       data: { labels: shown.map((s) => `${groupLabel(s.c)} (${s.answered})`), datasets: [{ data: shown.map((s) => +(100 * s.yes / s.answered).toFixed(1)), backgroundColor: shown.map((s) => coopColor(s.c)), borderRadius: 4 }] },
@@ -150,7 +123,7 @@ function segYesNoBlock(id, recs, coops, field, label) {
 
 function segTallyTable(recs, field, filter, head) {
   const t = SEG.tally(recs, field, filter);
-  return t.answered ? `<p class="chart-note">${t.answered} respuestas, tal como se escribieron:</p>` + segTable([head, 'Productoras'], t.items.slice(0, 8).map((i) => [i.label, i.n])) : '';
+  return t.answered>=MIN_N ? `<p class="chart-note">${t.answered} respuestas, tal como se escribieron:</p>` + segTable([head, 'Productoras'], t.items.filter(i=>i.n>=MIN_N).slice(0,8).map((i) => [i.label, i.n])) : '';
 }
 
 function renderSeguimiento(rows) {
@@ -158,8 +131,8 @@ function renderSeguimiento(rows) {
   if (!root) return;
   Object.values(segCharts).forEach((c) => { try { c.destroy(); } catch (e) { /* nada */ } });
   segCharts = {};
-  const header = `<article class="card-panel seg-head"><div><h3>Seguimiento del crédito (enero a agosto de 2026)</h3>
-    <p class="chart-note">Carga los Excel de ingresos y egresos de cada cooperativa (puedes elegir varios a la vez). Se unen a la base por el código de productora. Nada se envía ni se guarda.</p></div>
+  const header = `<article class="card-panel seg-head"><div><h3>Archivos de seguimiento</h3>
+    <p class="chart-note">Selecciona los Excel de seguimiento de un mismo ciclo.</p></div>
     <div class="seg-actions"><button type="button" class="btn-upload" id="seg-open">Cargar seguimiento</button><input type="file" id="seg-input" accept=".xlsx,.xls" multiple hidden></div>
     ${segState.message ? `<p class="seg-message" role="status">${H.esc(segState.message)}</p>` : ''}
     ${segState.records.length ? `<p class="seg-loaded">✔️ ${segState.profiles.length} archivos · ${segState.records.length} productoras · meses: ${SEG.monthsPresent(segState.records).map(segMonthLabel).join(', ')}.</p>` : ''}</article>`;
@@ -178,13 +151,13 @@ function renderSeguimiento(rows) {
   const why = segTallyTable(recs, 'fertWhyNot', (r) => r.statics.fertUsed === 0, 'Motivo para no aplicarlo');
   const act = segTallyTable(recs, 'activity', () => true, 'Actividad financiada');
   const useCard = segCard(6, 'Uso del crédito: ¿ya aplicó el fertilizante?', fert.html + why + (act ? `<h4 class="seg-sub">Emprendimiento financiado</h4>${act}` : ''),
-    'El formulario de emprendimiento (Bagua Grande) no pregunta por el uso del insumo: ahí se muestra la actividad financiada.');
+    '');
 
   // Cuaderno
   const book = segYesNoBlock('seg-book', recs, coops, 'bookUse', '¿Usa el cuaderno de registros?');
   draws.push(book.draw);
   const bookCard = segCard(6, 'Cuaderno de registros: ¿anota sus ingresos y gastos?', book.html + segTallyTable(recs, 'bookUseful', () => true, '¿Le parece útil?'),
-    'Es uno de los criterios de éxito que mencionó Eunice. Mide si dice usarlo, no la calidad de lo que anota.');
+    '');
 
   // Ventas por mes
   const monthly = coops.map((c) => ({ c, by: months.map((m) => SEG.monthSummary(recs.filter((r) => r.coop === c), m)) }));
@@ -193,7 +166,7 @@ function renderSeguimiento(rows) {
     data: { labels: months.map(segMonthLabel), datasets: monthly.map(({ c, by }) => ({ label: groupLabel(c), data: by.map((s) => (s.saleAnswered >= MIN_N ? +(100 * s.soldYes / s.saleAnswered).toFixed(1) : null)), backgroundColor: coopColor(c), borderRadius: 4 })) },
     options: { plugins: { legend: { display: coops.length > 1, position: 'bottom' }, tooltip: { callbacks: { label: (ctx) => { const s = monthly[ctx.datasetIndex].by[ctx.dataIndex]; return `${ctx.dataset.label}: ${ctx.parsed.y}% (${s.soldYes} de ${s.saleAnswered})`; } } } }, scales: { y: { min: 0, max: 100, ticks: { callback: (v) => v + '%' }, title: { display: true, text: '% que vendió en el mes' } } } }
   }));
-  const soldRows = monthly.flatMap(({ c, by }) => by.filter((s) => s.saleAnswered).map((s) => [groupLabel(c), segMonthLabel(s.month), `${s.soldYes} de ${s.saleAnswered}`, s.qtyN >= MIN_N ? `${H.fmt(s.qtySold, 1)} qq` : '—']));
+  const soldRows = monthly.flatMap(({ c, by }) => by.filter((s) => s.saleAnswered>=MIN_N || s.qtyN>=MIN_N).map((s) => [groupLabel(c), segMonthLabel(s.month), s.saleAnswered>=MIN_N?`${s.soldYes} de ${s.saleAnswered}`:'—', s.qtyN >= MIN_N ? `${H.fmt(s.qtySold, 1)} qq` : '—']));
   const salesCard = segCard(12, 'Ventas por mes: ¿cuántas vendieron?', `<div class="chart-box"><canvas id="seg-sold" role="img" aria-label="Porcentaje que vendió cada mes"></canvas></div><details class="mini-details"><summary>Ver tabla</summary>${segTable(['Cooperativa', 'Mes', 'Vendieron', 'Quintales (qq) vendidos'], soldRows)}</details>`,
     `Cada barra es el % de quienes respondieron ese mes. Los quintales solo aplican al café; en emprendimiento las cantidades están en kg o unidades y no se suman. Sin barra: menos de ${MIN_N} respuestas.`);
 
@@ -202,9 +175,9 @@ function renderSeguimiento(rows) {
   draws.push(deliver.draw);
   const soon = SEG.yesNoSummary(recs.filter((r) => r.statics.coopDelivered === 0), 'coopSoon');
   const coffeeCard = segCard(6, 'Venta de café: ¿lo llevó a la cooperativa?', deliver.html
-    + (soon.answered ? `<p class="chart-note">De las que aún no lo llevaron, ${soon.yes} de ${soon.answered} dicen que lo llevarán pronto.</p>` : '')
+    + (soon.answered>=MIN_N ? `<p class="chart-note">De las que aún no lo llevaron, ${soon.yes} de ${soon.answered} dicen que lo llevarán pronto.</p>` : '')
     + segTallyTable(recs, 'coopWhyNot', (r) => r.statics.coopDelivered === 0, 'Motivo para no llevarlo'),
-    'Orienta a quién acompañar para que no venda fuera de la cooperativa cuando baja el precio.');
+    '');
 
   // Ingresos y gastos
   const money = monthly.flatMap(({ c, by }) => by.filter((s) => s.salesN || s.workN || s.famN).map((s) => [groupLabel(c), segMonthLabel(s.month),
@@ -222,30 +195,19 @@ function renderSeguimiento(rows) {
   const moneyCard = segCard(12, 'Ingresos y gastos por mes (S/)', `<div class="chart-box"><canvas id="seg-money" role="img" aria-label="Ventas y gastos por mes"></canvas></div>${segTable(['Cooperativa', 'Mes', 'Ventas (respondieron)', 'Gasto de la finca o emprendimiento', 'Gasto de la familia'], money)}`,
     'Entre paréntesis, cuántas productoras dieron ese dato. «Ventas» es lo que recibió por vender (precio por cantidad), sin restar costos, aunque el formulario lo llame «ganancia». No se calcula «ventas menos gastos» porque las que responden ventas y gastos no son siempre las mismas cada mes. El gasto de la familia es un dato sensible: solo se muestra sumado por grupo.');
 
-  // Revisión
-  const obs = segState.observations.filter((o) => recs.some((r) => r.code === o.code) || !rows.length);
-  const obsCard = segCard(12, `Revisión del seguimiento (${obs.length} ${obs.length === 1 ? 'observación' : 'observaciones'})`,
-    obs.length ? segTable(['Productora', 'Archivo', 'Fila', 'Mes', 'Dato', 'Qué se encontró', 'Qué se hizo'], obs.slice(0, 100).map((o) => [o.code, o.file, o.row, o.month ? segMonthLabel(o.month) : '—', o.field, o.finding, o.action])) : '<p class="chart-note">Sin observaciones en esta selección.</p>',
-    'Ningún valor se corrige: se aparta o se marca para revisarlo con la productora.');
-
-  root.innerHTML = header + `<div class="grid-12">${useCard}${bookCard}${salesCard}${coffeeCard}${moneyCard}${obsCard}</div>`;
+  root.innerHTML = header + `<div class="grid-12">${useCard}${bookCard}${salesCard}${coffeeCard}${moneyCard}</div>`;
   draws.forEach((d) => { try { d(); } catch (e) { console.error('Seguimiento:', e); } });
 }
 
 function segReviewPanel() {
-  const rows = segState.pending.map((p) => p.error
-    ? [p.fileName, '—', '—', '—', '—', '—', '—', `⚠️ ${p.error}`]
-    : [p.fileName, p.kindLabel, Object.keys(p.coops).map(groupLabel).join(', ') || '—', p.months.map(segMonthLabel).join(', '), p.rows,
-      `${p.matched} de ${p.rows}${p.unmatched.length ? ` (no cruzan: ${p.unmatched.slice(0, 5).join(', ')}${p.unmatched.length > 5 ? '…' : ''})` : ''}`,
-      `${p.used.length} usadas · ${p.ignored.length} no usadas`, p.observations.length ? `${p.observations.length} ${p.observations.length === 1 ? 'observación' : 'observaciones'}` : 'Sin observaciones']);
-  const ok = segState.pending.some((p) => !p.error);
-  return `<article class="card-panel"><h3>Revisar el seguimiento antes de confirmar</h3>
-    <p class="chart-note">Cada archivo se reconoce por sus preguntas, no por su nombre. Las productoras que no cruzan con la base no se incluyen.</p>
-    ${H.table(['Archivo', 'Tipo', 'Cooperativa', 'Meses', 'Filas', 'Cruzan con la base', 'Preguntas', 'Observaciones'], rows)}
-    <div class="actions"><button type="button" class="btn-upload" id="seg-confirm" ${ok ? '' : 'disabled'}>Confirmar carga</button><button type="button" class="btn-print" id="seg-cancel">Cancelar</button></div></article>`;
+  const rows=segState.pending.map(p=>[p.fileName,p.error?'—':p.months.map(segMonthLabel).join(', '),
+    p.error||`${p.matched} de ${p.rows}`]);
+  const ok=segState.pending.some(p=>!p.error&&p.matched>0);
+  return `<article class="card-panel"><h3>Confirmar archivos</h3>
+    <div class="table-scroll">${H.table(['Archivo','Meses','Filas vinculadas a la base'],rows)}</div>
+    <div class="actions"><button type="button" class="btn-upload" id="seg-confirm" ${ok?'':'disabled'}>Confirmar carga</button><button type="button" class="btn-print" id="seg-cancel">Cancelar</button></div></article>`;
 }
-
-function segRerender() { renderSeguimiento(filteredData); if (typeof renderPanorama === 'function') renderPanorama(filteredData); }
+function segRerender() { renderSeguimiento(filteredData); if (typeof renderSegHint==='function') renderSegHint(); }
 
 // Eventos (delegados: la pantalla se vuelve a dibujar).
 document.addEventListener('click', (event) => {

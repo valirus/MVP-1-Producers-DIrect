@@ -2,15 +2,20 @@
 // Gráficos accesibles: color fijo por cooperativa, niveles educativos agrupados y temas de indicadores.
 const assert = require('node:assert/strict'), fs = require('node:fs'), vm = require('node:vm');
 const ctx = {}; vm.createContext(ctx);
-vm.runInContext(fs.readFileSync(__dirname + '/../js/coops.js', 'utf8') + ';this.api={VIZ,coopColor,seriesColor,educationGroup,EDU_GROUPS,INDICATORS,INDICATOR_THEMES,THEME_ORDER};', ctx);
+vm.runInContext(fs.readFileSync(__dirname + '/../js/coops.js', 'utf8') + ';this.api={VIZ,setCoopColors,coopColor,seriesColor,educationGroup,EDU_GROUPS,INDICATORS,INDICATOR_THEMES,THEME_ORDER};', ctx);
 const A = ctx.api;
 
 // El color sigue a la cooperativa, no a su posición en la lista filtrada.
+A.setCoopColors(['NORANDINO','BAGUA GRANDE','COOP NUEVA','OTRA MAS','QUINTA'].map(coop=>({coop})));
 assert.equal(A.coopColor('BAGUA GRANDE'), A.VIZ.cat[1]);
 assert.equal(A.coopColor('NORANDINO'), A.VIZ.cat[0]);
 assert.equal(A.coopColor('COOP NUEVA'), A.VIZ.cat[2]);
-assert.equal(A.coopColor('OTRA MAS'), A.VIZ.gray, 'desde la cuarta cooperativa, gris');
+assert.equal(A.coopColor('OTRA MAS'), A.VIZ.cat[3]);
+assert.equal(A.coopColor('QUINTA'), A.VIZ.gray);
 assert.equal(A.coopColor('COOP NUEVA'), A.VIZ.cat[2], 'estable entre llamadas');
+A.setCoopColors([{coop:'Sierra'},{coop:'Costa'}]);
+assert.equal(A.coopColor('Costa'), A.VIZ.cat[0]);
+assert.equal(A.coopColor('Sierra'), A.VIZ.cat[1]);
 assert.equal(A.seriesColor('territory', 'X', 1), A.VIZ.cat[1]);
 assert.equal(A.seriesColor('territory', 'X', 7), A.VIZ.gray);
 

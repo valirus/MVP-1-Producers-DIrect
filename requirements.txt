@@ -1,0 +1,4 @@
+# Flujo validado con Python 3.12.14 y Node.js 24.22.1.
+# Python: solo biblioteca estándar; pip no instala paquetes para este flujo.
+# Node/browser: SheetJS CE 0.20.3 y Chart.js 4.4.0 en vendor/ (sin npm).
+# Jupyter es opcional; ejecutor incluido: python scripts/ejecutar_notebooks.py

@@ -38,21 +38,23 @@ function coopConfig(view) {
 
 // Indicadores binarios (1 / 0 / null). "good" indica si 1 es el sentido positivo.
 // ---------- Paleta accesible (AC2) ----------
-// Validada con el validador de daltonismo (deutan, protan, tritan) sobre fondo blanco:
-// los 3 primeros colores pasan comparando todos los pares (ΔE >= 9,2) y los 4 pasan como vecinos en barras apiladas (ΔE >= 9,1).
-// Aqua y amarillo tienen poco contraste sobre blanco: los gráficos que los usan muestran sus valores escritos o una tabla.
+// Tonos oscuros con texto blanco. Las series de puntos también se distinguen por forma.
 const VIZ = {
-  cat: ['#2a78d6', '#eb6834', '#1baf7a', '#eda100'], // orden fijo: nunca se reasigna por posición
-  gray: '#9b9a94',                                    // «Sin dato», «Otro» y series de más
+  cat: ['#2D609A', '#934825', '#16594A', '#63406C'],
+  gray: '#53636E',
   seq: ['#cde2fb', '#86b6ef', '#3987e5', '#1c5cab', '#0d366b'], // un solo tono, de claro a oscuro
   divPos: [42, 120, 214], divNeg: [227, 73, 72], divMid: [240, 239, 236] // azul ↔ rojo con gris al centro
 };
 // El color sigue a la cooperativa en todas las pantallas, aunque un filtro cambie cuántas se ven.
-const COOP_ORDER = ['NORANDINO', 'BAGUA GRANDE'];
+const COOP_ORDER = [];
+function setCoopColors(rows) {
+  const names=new Set(rows.map(r=>r.coop));
+  const familiar=['NORANDINO','BAGUA GRANDE'].filter(name=>names.delete(name));
+  COOP_ORDER.splice(0,COOP_ORDER.length,...familiar,...[...names].sort((a,b)=>a.localeCompare(b,'es')));
+}
 function coopColor(coop) {
-  if (!COOP_ORDER.includes(coop)) COOP_ORDER.push(coop);
-  const i = COOP_ORDER.indexOf(coop);
-  return i < 3 ? VIZ.cat[i] : VIZ.gray;
+  const i=COOP_ORDER.indexOf(coop);
+  return VIZ.cat[i]||VIZ.gray;
 }
 // Series que no son cooperativas (por ejemplo, zonas): orden fijo y gris desde la quinta.
 const seriesColor = (key, group, i) => (key === 'coop' ? coopColor(group) : i < VIZ.cat.length ? VIZ.cat[i] : VIZ.gray);
@@ -97,7 +99,7 @@ const GAPS = [
   { label: 'Sin ahorro en la cooperativa', f: r => r.savingsCoop != null ? 1 - r.savingsCoop : null },
   { label: 'Sin desagüe', f: r => r.water ? +!['AMBOS', 'SOLO_DESAGUE'].includes(r.water) : null },
   { label: 'Sin Yape', f: r => r.yape != null ? 1 - r.yape : null },
-  { label: 'No usa ningún servicio financiero', f: r => Array.isArray(r.services) ? +r.services.includes('NINGUNO') : null }
+  { label: 'No usa ningún servicio financiero', f: r => Array.isArray(r.services) ? (r.services.includes('NINGUNO') && r.services.length>1 ? null : +r.services.includes('NINGUNO')) : null }
 ];
 
 // ---------- utilidades ----------

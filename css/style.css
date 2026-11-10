@@ -336,3 +336,25 @@ tr.ins td { color: var(--muted); }
 .seg-sub { margin:14px 0 4px; color:var(--green); font-size:13px; }
 .chart-box--short { height:150px; }
 .seg-hint { margin:0 0 8px; padding:8px 12px; border-left:4px solid var(--green3); border-radius:6px; background:var(--pale); color:var(--green); font-size:13px; font-weight:600; }
+/* Panorama simple. */
+.summary-strip { margin-bottom:14px; }
+.summary-strip .role-banner { margin-bottom:8px; padding:8px 14px; font-size:13px; }
+.strip-meta { display:flex; flex-wrap:wrap; align-items:center; gap:6px 14px; color:var(--muted); font-size:12.5px; }
+.care-details summary { cursor:pointer; color:var(--green); font-weight:700; }
+.care-details[open] { flex:1 1 100%; padding:12px 14px; border:1px solid var(--line); border-radius:12px; background:var(--white); }
+.care-details .care-list { margin-top:10px; }
+.chart-box--mid { height:240px; }
+.profile-simple { width:100%; border-collapse:collapse; font-size:14px; }
+.profile-simple th, .profile-simple td { padding:9px 12px; border-bottom:1px solid var(--line); text-align:left; }
+.profile-simple thead th { color:var(--green); font-size:13px; }
+.profile-simple thead small { display:block; color:var(--muted); font-size:11px; font-weight:500; }
+.profile-simple tbody th { color:var(--ink); font-weight:600; }
+.profile-simple td { font-weight:700; color:var(--green); font-variant-numeric:tabular-nums; }
+.profile-simple .dot { display:inline-block; width:10px; height:10px; margin-right:6px; border-radius:50%; }
+.muted { color:var(--muted); font-weight:500; }
+.summary-alerts { display:grid; gap:12px; margin:0; padding:0; list-style:none; }
+.summary-alerts li { display:grid; grid-template-columns:auto 1fr; gap:4px 10px; align-items:start; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font-size:14px; line-height:1.45; }
+.summary-alerts .alert-icon { grid-row:span 2; font-size:18px; }
+.link-btn--small { justify-self:start; margin-top:2px; padding:5px 10px; font-size:12px; }
+.tech-details > summary { cursor:pointer; color:var(--green); font-weight:700; }
+.tech-details[open] > summary { margin-bottom:12px; }

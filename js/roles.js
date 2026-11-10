@@ -30,7 +30,7 @@ const ROLES = {
     label: 'Equipo de análisis',
     short: 'Equipo de análisis',
     decides: 'si la carga es confiable y qué relaciones vale la pena revisar',
-    pages: ['quality', 'coverage', 'cross', 'relations']
+    pages: ['quality', 'coverage', 'cross', 'map', 'relations']
   }
 };
 

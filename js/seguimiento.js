@@ -109,8 +109,8 @@ function segRenderPeriod() {
   if (!el) return;
   const months = SEG.monthsPresent(segState.records);
   el.innerHTML = segState.records.length
-    ? ` <strong>Seguimiento cargado:</strong> ${segState.records.length} productoras, de ${months[0].toLowerCase()} a ${months[months.length - 1].toLowerCase()} de 2026 (ver «Seguimiento del crédito»).`
-    : '';
+    ? ` · <strong>Seguimiento 2026:</strong> ${segState.records.length} productoras, de ${months[0].toLowerCase()} a ${months[months.length - 1].toLowerCase()}`
+    : ' · Seguimiento 2026: aún no cargado';
 }
 
 /* ---------- Dibujo ---------- */
@@ -245,7 +245,7 @@ function segReviewPanel() {
     <div class="actions"><button type="button" class="btn-upload" id="seg-confirm" ${ok ? '' : 'disabled'}>Confirmar carga</button><button type="button" class="btn-print" id="seg-cancel">Cancelar</button></div></article>`;
 }
 
-function segRerender() { renderSeguimiento(filteredData); }
+function segRerender() { renderSeguimiento(filteredData); if (typeof renderPanorama === 'function') renderPanorama(filteredData); }
 
 // Eventos (delegados: la pantalla se vuelve a dibujar).
 document.addEventListener('click', (event) => {

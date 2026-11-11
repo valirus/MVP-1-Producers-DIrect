@@ -15,7 +15,7 @@ const COOP_CONFIG = {
   'NORANDINO': {
     label: 'Norandino',
     groupBy: 'territory',
-    focus: 'Acopio, capacitación y acceso digital por distrito',
+    focus: 'Café entregado, capacitación y acceso digital por distrito',
     cross: ['radar', 'services', 'channels', 'heat', 'gaps', 'bubble', 'edu', 'age']
   },
   'BAGUA GRANDE': {
@@ -27,7 +27,7 @@ const COOP_CONFIG = {
   DEFAULT: {
     label: 'Cooperativa',
     groupBy: 'territory',
-    focus: 'Perfil de las socias por territorio',
+    focus: 'Perfil de las productoras por territorio',
     cross: ['radar', 'heat', 'gaps', 'bubble', 'edu', 'age']
   }
 };
@@ -87,7 +87,7 @@ const INDICATORS = [
   { id: 'call', label: 'Prefiere llamadas', good: true, f: r => r.channels ? +r.channels.includes('LLAMADAS') : null },
   { id: 'yape', label: 'Usa Yape', good: true, f: r => r.yape ?? null },
   { id: 'sewer', label: 'Tiene desagüe', good: true, f: r => ['AMBOS','SOLO_DESAGUE','SOLO_AGUA','NINGUNO'].includes(r.water) ? +['AMBOS', 'SOLO_DESAGUE'].includes(r.water) : null },
-  { id: 'coopcred', label: 'Crédito vigente en la cooperativa', good: true, f: r => r.coopCredit ?? null }
+  { id: 'coopcred', label: 'Crédito vigente en la cooperativa (socia titular)', good: true, f: r => r.coopCredit ?? null }
 ];
 
 // Brechas = lo contrario de un indicador positivo (para el ranking de brechas)

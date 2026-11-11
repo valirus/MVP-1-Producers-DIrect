@@ -28,7 +28,7 @@ function segRecordsFor(rows) {
   return segState.records.filter((rec) => keys.has(rec.key + '|' + rec.coop));
 }
 
-// Resumen de una productora para la ficha de visita y la hoja «Reporte para la cooperativa».
+// Resumen de una productora para la ficha de visita y la hoja «Para la productora».
 function segFactsFor(row) {
   if (!row || !segState.records.length) return null;
   const rec = segState.records.find((r) => r.key === SEG.norm(row.code) && r.coop === row.coop);

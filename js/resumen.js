@@ -26,6 +26,6 @@ function describeText(stats,key){
 }
 function datasetStructure(profile){
   const sheets=sourceSession?.sheets||[],headers=profile.matrix[profile.header]||[];
-  $('workbook-overview').innerHTML=`<dl class="source-stats"><div><dt>Hojas</dt><dd>${sheets.length}</dd></div><div><dt>Columnas de la hoja</dt><dd>${Math.max(headers.length,sourceSession.sheets.find(s=>s.name===profile.name)?.columns||0)}</dd></div><div><dt>Registros incluidos</dt><dd>${rawData.length}</dd></div><div><dt>Filas excluidas</dt><dd>${audit.quarantine.length}</dd></div></dl>
+  $('workbook-overview').innerHTML=`<dl class="source-stats"><div><dt>Hojas</dt><dd>${sheets.length}</dd></div><div><dt>Columnas de la hoja</dt><dd>${Math.max(headers.length,sourceSession.sheets.find(s=>s.name===profile.name)?.columns||0)}</dd></div><div><dt>Filas incluidas</dt><dd>${rawData.length}</dd></div><div><dt>Filas excluidas</dt><dd>${audit.quarantine.length}</dd></div></dl>
     <details><summary>Hojas del archivo</summary><div class="table-scroll">${H.table(['Hoja','Columnas','Filas con contenido','Uso'],sheets.map(s=>[s.name,s.columns,s.hidden?'—':s.rows,s.name===profile.name?'Seleccionada':s.state]))}</div></details>`;
 }

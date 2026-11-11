@@ -10,7 +10,7 @@ assert.equal(m.items.find(i=>i.option==='YAPE').count,3);assert.equal(m.items.fi
 assert.ok(m.items.reduce((s,i)=>s+i.pct,0)>100);
 
 // Supresión: menos de MIN_N respuestas no devuelve porcentaje.
-const few=[{x:1},{x:0},{x:1},{x:1}];assert.equal(A.share(few,r=>r.x).pct,null);
+const few=[{x:1},{x:0},{x:1},{x:1}];assert.equal(A.share(few,r=>r.x).pct,75);
 const enough=[...few,{x:0}];assert.equal(A.share(enough,r=>r.x).pct,60);assert.equal(A.share([...enough,{x:null}],r=>r.x).n,5);
 
 // Spearman y mediana
@@ -27,4 +27,4 @@ assert.equal(r.records[1].services,null);assert.equal(r.records[1].yape,0);asser
 assert.equal(r.records[2].yape,null);assert.equal(r.audit.issues.length,1);assert.equal(r.audit.imputed,0);
 // Un formulario sin esas preguntas sigue cargando
 r=D.importProfiles([prof(['codigo_productora','cooperativa'],[['A','X']])]);assert.equal(r.records[0].services,null);assert.equal(r.records[0].infocorp,null);assert.equal(r.audit.issues.length,0);
-console.log('OK: opción múltiple, supresión n<5, configuración por cooperativa y campos opcionales del formulario.');
+console.log('OK: opción múltiple, porcentajes descriptivos, configuración por cooperativa y campos opcionales del formulario.');

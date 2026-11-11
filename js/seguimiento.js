@@ -9,8 +9,9 @@
 'use strict';
 
 const SEG = PDSeguimiento;
-const segState = { pending: null, records: [], profiles: [], message: '' };
-function resetSeguimiento() { Object.assign(segState,{pending:null,records:[],profiles:[],message:''}); }
+const segState = { pending:null, records:[], profiles:[], observations:[], message:'', year:null, busy:false };
+let segRequest=0;
+function resetSeguimiento() { segRequest++; Object.assign(segState,{pending:null,records:[],profiles:[],observations:[],message:'',year:null,busy:false}); }
 let segCharts = {};
 const segById = (id) => document.getElementById(id);
 const segMonthLabel = (m) => m.charAt(0) + m.slice(1).toLowerCase();
@@ -19,16 +20,7 @@ const segMoney = (v) => `S/ ${H.fmt(v, 0)}`;
 
 /* ---------- Unión con la base de productoras ---------- */
 
-function segBaseIndex(allRows) {
-  const index = new Map(), repeated = new Set();
-  allRows.forEach((row) => {
-    const key = SEG.norm(row.code);
-    if (index.has(key)) repeated.add(key);
-    index.set(key, { code: row.code, coop: row.coop });
-  });
-  repeated.forEach((key) => index.delete(key)); // un código repetido en la base no se une
-  return index;
-}
+function segBaseIndex(allRows) { return SEG.baseIndex(allRows); }
 
 // Registros de seguimiento de las productoras que están en la selección actual (filtros del tablero).
 function segRecordsFor(rows) {
@@ -36,7 +28,7 @@ function segRecordsFor(rows) {
   return segState.records.filter((rec) => keys.has(rec.key + '|' + rec.coop));
 }
 
-// Resumen de una productora para la ficha de visita y la hoja «Mi finca».
+// Resumen de una productora para la ficha de visita y la hoja «Reporte para la cooperativa».
 function segFactsFor(row) {
   if (!row || !segState.records.length) return null;
   const rec = segState.records.find((r) => r.key === SEG.norm(row.code) && r.coop === row.coop);
@@ -58,32 +50,45 @@ function segFactsFor(row) {
 /* ---------- Carga ---------- */
 
 async function segReadFiles(fileList) {
-  if (!rawData.length) { segState.message = 'Primero carga la base de productoras con «Abrir Excel». El seguimiento se une a ella por el código.'; segRerender(); return; }
-  const version=datasetVersion;
-  const files = [];
-  for (const file of fileList) {
-    try {
-      if (file.size > 15 * 1024 * 1024) throw Error('El archivo supera 15 MB.');
-      const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: true });
-      const sheets=visibleWorkbookSheets(workbook);
-      if (!sheets.length) throw Error('No hay hojas visibles dentro del tamaño admitido.');
-      files.push({ fileName: file.name, sheets });
-    } catch (error) {
-      files.push({ fileName: file.name, error: 'No se pudo leer: ' + error.message });
-    }
+  if(!rawData.length)return;
+  const entered=Number(segById('seg-year')?.value);
+  if(!segState.profiles.length)segState.year=Number.isInteger(entered)&&entered>=1900&&entered<=2199?entered:null;
+  const version=datasetVersion,request=++segRequest,year=segState.year;
+  const index=segBaseIndex(rawData),files=[];
+  segState.busy=true;segState.message='';segRerender();
+  for(const file of fileList){
+    try{
+      if(file.size>15*1024*1024)throw Error('El archivo supera 15 MB.');
+      const bytes=await file.arrayBuffer();
+      const digest=await crypto.subtle.digest('SHA-256',bytes);
+      const id=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,'0')).join('');
+      if([...segState.profiles,...files].some(p=>p.id===id))continue;
+      const workbook=XLSX.read(bytes,{type:'array',cellDates:true});
+      const inspected=inspectWorkbook(workbook),sheets=inspected.profiles.map(({name,matrix})=>({name,matrix}));
+      if(!sheets.length)throw Error('No hay hojas visibles dentro del límite admitido.');
+      const profile=SEG.readFile(file.name,sheets,index,{period:year});
+      profile.id=id;profile.sheets=inspected.sheets;
+      if(!profile.error&&!profile.period)profile.error='Indica el año del seguimiento antes de añadir este archivo: el Excel no lo incluye.';
+      files.push(profile);
+    }catch(error){files.push({fileName:file.name,error:error.message,observations:[],records:[],months:[]});}
   }
-  if(version!==datasetVersion) return;
-  const index = segBaseIndex(rawData);
-  segState.pending = files.map((f) => (f.error ? { fileName: f.fileName, error: f.error, observations: [], records: [] } : SEG.readFile(f.fileName, f.sheets, index)));
-  segState.message = '';
+  if(version!==datasetVersion||request!==segRequest)return;
+  segState.busy=false;
+  if(!files.length){segState.message='Los archivos seleccionados ya están en la carga.';segRerender();return;}
+  segState.pending=files;segRerender();
+}
+function segConfirm() {
+  const valid=(segState.pending||[]).filter(p=>!p.error&&p.records.length);
+  if(!valid.length)return;
+  const profiles=[...segState.profiles,...valid],years=new Set(profiles.map(p=>p.period));
+  if(years.size>1){segState.message='Los archivos pertenecen a años distintos. Carga un año por sesión.';segRerender();return;}
+  const {records,observations}=SEG.combine(profiles);
+  Object.assign(segState,{profiles,records,observations,pending:null,year:valid[0].period,message:''});
   segRerender();
 }
-
-function segConfirm() {
-  const valid = (segState.pending || []).filter((p) => !p.error);
-  if (!valid.length) return;
-  const {records}=SEG.combine(valid);
-  Object.assign(segState,{profiles:valid,records,pending:null});
+function segRemove(id){
+  const profiles=segState.profiles.filter(p=>p.id!==id),combined=SEG.combine(profiles);
+  Object.assign(segState,{profiles,...combined,pending:null,message:''});
   segRerender();
 }
 /* ---------- Dibujo ---------- */
@@ -108,7 +113,7 @@ function segCoops(recs) {
 // Barra de % Sí por cooperativa para una pregunta Sí/No.
 function segYesNoBlock(id, recs, coops, field, label) {
   const stats = coops.map((c) => ({ c, ...SEG.yesNoSummary(recs.filter((r) => r.coop === c), field) })).filter((s) => s.answered > 0);
-  if (!stats.some(s=>s.answered>=MIN_N)) return { html: '<p class="chart-note">Esta pregunta no está en los archivos de esta selección.</p>', draw: () => {} };
+  if (!stats.some(s=>s.answered>=MIN_N)) return { html: '<p class="chart-note">No hay suficientes respuestas para comparar esta pregunta.</p>', draw: () => {} };
   const shown = stats.filter((s) => s.answered >= MIN_N);
   return {
     html: `<div class="chart-box chart-box--short"><canvas id="${id}" role="img" aria-label="${H.esc(label)}"></canvas></div>`
@@ -131,11 +136,10 @@ function renderSeguimiento(rows) {
   if (!root) return;
   Object.values(segCharts).forEach((c) => { try { c.destroy(); } catch (e) { /* nada */ } });
   segCharts = {};
-  const header = `<article class="card-panel seg-head"><div><h3>Archivos de seguimiento</h3>
-    <p class="chart-note">Selecciona los Excel de seguimiento de un mismo ciclo.</p></div>
-    <div class="seg-actions"><button type="button" class="btn-upload" id="seg-open">Cargar seguimiento</button><input type="file" id="seg-input" accept=".xlsx,.xls" multiple hidden></div>
-    ${segState.message ? `<p class="seg-message" role="status">${H.esc(segState.message)}</p>` : ''}
-    ${segState.records.length ? `<p class="seg-loaded">✔️ ${segState.profiles.length} archivos · ${segState.records.length} productoras · meses: ${SEG.monthsPresent(segState.records).map(segMonthLabel).join(', ')}.</p>` : ''}</article>`;
+  const header = `<article class="card-panel seg-head"><div><h3>Archivos de seguimiento</h3></div>
+    <div class="seg-actions"><div class="field"><label for="seg-year">Año del seguimiento</label><input type="number" id="seg-year" min="1900" max="2199" placeholder="AAAA" value="${segState.year||''}" ${segState.profiles.length||segState.busy?'disabled':''}></div><button type="button" class="btn-upload" id="seg-open" ${segState.busy?'disabled':''}>${segState.busy?'Leyendo…':'Añadir Excel'}</button><input type="file" id="seg-input" accept=".xlsx,.xls" multiple hidden><a href="docs/seguimiento.html" target="_blank" rel="noopener">Formato y reglas</a></div>
+    ${segState.message?`<p class="seg-message" role="status">${H.esc(segState.message)}</p>`:''}
+    ${segState.profiles.length?`<div class="seg-files table-scroll">${H.table(['Archivo','Hoja','Meses','Productoras vinculadas'],segState.profiles.map(p=>[p.fileName,p.sheet,p.months.map(segMonthLabel).join(', '),p.matched]))}</div><div class="seg-file-tools">${segState.profiles.map((p,i)=>`<button type="button" class="btn-print" data-seg-remove="${p.id}" aria-label="Quitar ${H.esc(p.fileName)}">Quitar archivo ${i+1}</button>`).join('')}</div>`:''}</article>`;
   if (segState.pending) { root.innerHTML = header + segReviewPanel(); return; }
   if (!segState.records.length) { root.innerHTML = header + '<p class="cx-empty">Todavía no hay seguimiento cargado.</p>'; return; }
 
@@ -150,14 +154,15 @@ function renderSeguimiento(rows) {
   draws.push(fert.draw);
   const why = segTallyTable(recs, 'fertWhyNot', (r) => r.statics.fertUsed === 0, 'Motivo para no aplicarlo');
   const act = segTallyTable(recs, 'activity', () => true, 'Actividad financiada');
-  const useCard = segCard(6, 'Uso del crédito: ¿ya aplicó el fertilizante?', fert.html + why + (act ? `<h4 class="seg-sub">Emprendimiento financiado</h4>${act}` : ''),
-    '');
+  const hasFert=recs.some(r=>r.statics.fertUsed!=null);
+  const useCard = hasFert||act ? segCard(6, hasFert?'Uso del crédito: ¿ya aplicó el fertilizante?':'Actividad financiada', (hasFert?fert.html+why:'') + (act ? act : ''),
+    '') : '';
 
   // Cuaderno
   const book = segYesNoBlock('seg-book', recs, coops, 'bookUse', '¿Usa el cuaderno de registros?');
   draws.push(book.draw);
-  const bookCard = segCard(6, 'Cuaderno de registros: ¿anota sus ingresos y gastos?', book.html + segTallyTable(recs, 'bookUseful', () => true, '¿Le parece útil?'),
-    '');
+  const bookCard = recs.some(r=>r.statics.bookUse!=null) ? segCard(6, 'Cuaderno de registros: ¿anota sus ingresos y gastos?', book.html + segTallyTable(recs, 'bookUseful', () => true, '¿Le parece útil?'),
+    '') : '';
 
   // Ventas por mes
   const monthly = coops.map((c) => ({ c, by: months.map((m) => SEG.monthSummary(recs.filter((r) => r.coop === c), m)) }));
@@ -167,17 +172,18 @@ function renderSeguimiento(rows) {
     options: { plugins: { legend: { display: coops.length > 1, position: 'bottom' }, tooltip: { callbacks: { label: (ctx) => { const s = monthly[ctx.datasetIndex].by[ctx.dataIndex]; return `${ctx.dataset.label}: ${ctx.parsed.y}% (${s.soldYes} de ${s.saleAnswered})`; } } } }, scales: { y: { min: 0, max: 100, ticks: { callback: (v) => v + '%' }, title: { display: true, text: '% que vendió en el mes' } } } }
   }));
   const soldRows = monthly.flatMap(({ c, by }) => by.filter((s) => s.saleAnswered>=MIN_N || s.qtyN>=MIN_N).map((s) => [groupLabel(c), segMonthLabel(s.month), s.saleAnswered>=MIN_N?`${s.soldYes} de ${s.saleAnswered}`:'—', s.qtyN >= MIN_N ? `${H.fmt(s.qtySold, 1)} qq` : '—']));
-  const salesCard = segCard(12, 'Ventas por mes: ¿cuántas vendieron?', `<div class="chart-box"><canvas id="seg-sold" role="img" aria-label="Porcentaje que vendió cada mes"></canvas></div><details class="mini-details"><summary>Ver tabla</summary>${segTable(['Cooperativa', 'Mes', 'Vendieron', 'Quintales (qq) vendidos'], soldRows)}</details>`,
-    `Cada barra es el % de quienes respondieron ese mes. Los quintales solo aplican al café; en emprendimiento las cantidades están en kg o unidades y no se suman. Sin barra: menos de ${MIN_N} respuestas.`);
+  const hasSales=monthly.some(g=>g.by.some(s=>s.saleAnswered>=MIN_N||s.qtyN>=MIN_N));
+  const salesCard = hasSales ? segCard(12, 'Ventas por mes: ¿cuántas vendieron?', `<div class="chart-box"><canvas id="seg-sold" role="img" aria-label="Porcentaje que vendió cada mes"></canvas></div><details class="mini-details"><summary>Ver tabla</summary>${segTable(['Cooperativa', 'Mes', 'Vendieron', 'Quintales (qq) vendidos'], soldRows)}</details>`,
+    `Cada barra es el % de quienes respondieron ese mes. Los quintales solo aplican al café; en emprendimiento las cantidades están en kg o unidades y no se suman.`) : '';
 
   // Venta de café a la cooperativa
   const deliver = segYesNoBlock('seg-deliver', recs, coops, 'coopDelivered', '¿Llevó su café a la cooperativa?');
   draws.push(deliver.draw);
   const soon = SEG.yesNoSummary(recs.filter((r) => r.statics.coopDelivered === 0), 'coopSoon');
-  const coffeeCard = segCard(6, 'Venta de café: ¿lo llevó a la cooperativa?', deliver.html
+  const coffeeCard = recs.some(r=>r.statics.coopDelivered!=null) ? segCard(6, 'Venta de café: ¿lo llevó a la cooperativa?', deliver.html
     + (soon.answered>=MIN_N ? `<p class="chart-note">De las que aún no lo llevaron, ${soon.yes} de ${soon.answered} dicen que lo llevarán pronto.</p>` : '')
     + segTallyTable(recs, 'coopWhyNot', (r) => r.statics.coopDelivered === 0, 'Motivo para no llevarlo'),
-    '');
+    '') : '';
 
   // Ingresos y gastos
   const money = monthly.flatMap(({ c, by }) => by.filter((s) => s.salesN || s.workN || s.famN).map((s) => [groupLabel(c), segMonthLabel(s.month),
@@ -192,30 +198,45 @@ function renderSeguimiento(rows) {
     ]) },
     options: { plugins: { legend: { display: true, position: 'bottom' }, tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${segMoney(ctx.parsed.y)}` } } }, scales: { y: { beginAtZero: true, ticks: { callback: (v) => 'S/ ' + v.toLocaleString('es-PE') } } } }
   }));
-  const moneyCard = segCard(12, 'Ingresos y gastos por mes (S/)', `<div class="chart-box"><canvas id="seg-money" role="img" aria-label="Ventas y gastos por mes"></canvas></div>${segTable(['Cooperativa', 'Mes', 'Ventas (respondieron)', 'Gasto de la finca o emprendimiento', 'Gasto de la familia'], money)}`,
-    'Entre paréntesis, cuántas productoras dieron ese dato. «Ventas» es lo que recibió por vender (precio por cantidad), sin restar costos, aunque el formulario lo llame «ganancia». No se calcula «ventas menos gastos» porque las que responden ventas y gastos no son siempre las mismas cada mes. El gasto de la familia es un dato sensible: solo se muestra sumado por grupo.');
+  const hasMoney=monthly.some(g=>g.by.some(s=>s.salesN>=MIN_N||s.workN>=MIN_N||s.famN>=MIN_N));
+  const moneyCard = hasMoney ? segCard(12, 'Ingresos y gastos por mes (S/)', `<div class="chart-box"><canvas id="seg-money" role="img" aria-label="Ventas y gastos por mes"></canvas></div>${segTable(['Cooperativa', 'Mes', 'Ventas (respondieron)', 'Gasto de la finca o emprendimiento', 'Gasto de la familia'], money)}`,
+    'Entre paréntesis, cuántas productoras dieron ese dato. «Ventas» es lo que recibió por vender (precio por cantidad), sin restar costos, aunque el formulario lo llame «ganancia». No se calcula «ventas menos gastos» porque las que responden ventas y gastos no son siempre las mismas cada mes. El gasto de la familia es un dato sensible: solo se muestra sumado por grupo.') : '';
 
-  root.innerHTML = header + `<div class="grid-12">${useCard}${bookCard}${salesCard}${coffeeCard}${moneyCard}</div>`;
+  root.innerHTML = header + `<div class="grid-12">${useCard}${bookCard}${salesCard}${coffeeCard}${moneyCard}</div>`
+    + (!useCard&&!bookCard&&!salesCard&&!coffeeCard&&!moneyCard?'<p class="empty-state">No hay suficientes respuestas para mostrar gráficos en esta selección.</p>':'')
+    + (segState.observations.length?`<article class="card-panel"><details><summary>Valores no utilizados (${segState.observations.length})</summary><div class="table-scroll">${H.table(['Archivo','Fila','Código','Mes','Campo','Regla'],segState.observations.map(o=>[o.file,o.row,o.code,o.month||'—',o.field,o.finding]))}</div></details></article>`:'');
   draws.forEach((d) => { try { d(); } catch (e) { console.error('Seguimiento:', e); } });
 }
 
 function segReviewPanel() {
-  const rows=segState.pending.map(p=>[p.fileName,p.error?'—':p.months.map(segMonthLabel).join(', '),
-    p.error||`${p.matched} de ${p.rows}`]);
-  const ok=segState.pending.some(p=>!p.error&&p.matched>0);
-  return `<article class="card-panel"><h3>Confirmar archivos</h3>
-    <div class="table-scroll">${H.table(['Archivo','Meses','Filas vinculadas a la base'],rows)}</div>
-    <div class="actions"><button type="button" class="btn-upload" id="seg-confirm" ${ok?'':'disabled'}>Confirmar carga</button><button type="button" class="btn-print" id="seg-cancel">Cancelar</button></div></article>`;
+  const rows=segState.pending.map(p=>[p.fileName,p.error?'—':p.months.map(segMonthLabel).join(', '),p.error||p.matched+' productoras']);
+  const ok=segState.pending.some(p=>!p.error&&p.records.length);
+  const details=segState.pending.filter(p=>!p.error).map(p=>`<details><summary>${H.esc(p.fileName)}: columnas y filas</summary>
+    <p>${p.sheets?.length||1} hojas · ${p.columns} columnas · encabezados en fila ${p.headerRow} · ${p.rows} filas con contenido</p>
+    <div class="table-scroll">${H.table(['Columna de Excel','Uso en el tablero'],(p.fields||[]).map(f=>[f.header,f.field]))}</div>
+    ${p.unmatched.length?'<p>Códigos sin coincidencia: '+p.unmatched.map(H.esc).join(', ')+'</p>':''}
+    ${p.unknown.length?'<h4>Columnas no reconocidas</h4><p class="source-columns">'+p.unknown.map(H.esc).join(' · ')+'</p>':''}
+    ${p.observations.length?'<p>'+p.observations.length+' valores no utilizables por las reglas del formato.</p>':''}
+    </details>`).join('');
+  return `<article class="card-panel"><h3>Revisar archivos</h3><div class="table-scroll">${H.table(['Archivo','Meses','Cruce con la base'],rows)}</div>${details}
+    <div class="actions"><button type="button" class="btn-upload" id="seg-confirm" ${ok?'':'disabled'}>Añadir a la carga</button><button type="button" class="btn-print" id="seg-cancel">Cancelar</button></div></article>`;
 }
 function segRerender() { renderSeguimiento(filteredData); if (typeof renderSegHint==='function') renderSegHint(); }
 
 // Eventos (delegados: la pantalla se vuelve a dibujar).
 document.addEventListener('click', (event) => {
   const id = event.target.closest('button')?.id;
+  const remove=event.target.closest('[data-seg-remove]'); if(remove){segRemove(remove.dataset.segRemove);return;}
   if (id === 'seg-open') segById('seg-input')?.click();
   if (id === 'seg-confirm') segConfirm();
   if (id === 'seg-cancel') { segState.pending = null; segState.message = segState.records.length ? 'Carga cancelada. Se mantiene el seguimiento anterior.' : 'Carga cancelada.'; segRerender(); }
 });
 document.addEventListener('change', (event) => {
+  if(event.target.id==='seg-year'){const year=Number(event.target.value);segState.year=Number.isInteger(year)&&year>=1900&&year<=2199?year:null;}
   if (event.target.id === 'seg-input' && event.target.files.length) { segReadFiles([...event.target.files]).finally(() => { event.target.value = ''; }); }
+});
+document.addEventListener('input',event=>{
+  if(event.target.id==='seg-year'){
+    const year=Number(event.target.value);segState.year=Number.isInteger(year)&&year>=1900&&year<=2199?year:null;
+  }
 });

@@ -3,7 +3,7 @@
 const $ = id => document.getElementById(id), D = PDData, H = PDCharts;
 let rawData = [], filteredData = [], audit = null, pending = null, datasetVersion = 0;
 let page = 'summary';
-const pageNames = { summary: 'Panorama del fondo', production: 'Área y café entregado', inclusion: 'Participación y acceso', credit: 'Solicitudes de crédito', producer: 'Ficha de productora', quality: 'Base cargada', coverage: 'Cobertura por campo', seguimiento: 'Seguimiento del crédito' };
+const pageNames = { summary: 'Panorama del fondo', production: 'Área y café entregado', inclusion: 'Participación y acceso', credit: 'Solicitudes de crédito', producer: 'Ficha de productora', quality: 'Registros', coverage: 'Resumen del Excel', seguimiento: 'Seguimiento del crédito' };
 const aggregates = ['summary', 'production', 'inclusion', 'credit'];
 
 function setImportError(message = '') {
@@ -49,7 +49,7 @@ const region = r => r.territory && r.province && !D.norm(r.territory).endsWith('
 function setOptions(id, values, title, reset = false) {
   const select = $(id), previous = reset ? 'all' : select.value;
   select.replaceChildren(new Option(title, 'all'));
-  [...new Set(values)].sort((a,b) => String(a).localeCompare(String(b),'es')).forEach(v => select.add(new Option(v == null ? 'Sin dato' : groupLabel(v), v ?? '__null__')));
+  [...new Set(values)].sort((a,b) => String(a).localeCompare(String(b),'es')).forEach(v => select.add(new Option(v == null ? 'Vacío' : groupLabel(v), v ?? '__null__')));
   select.value = [...select.options].some(o => o.value === previous) ? previous : 'all';
   select.closest('.field').hidden = !values.some(v=>v!=null) || select.options.length<=2;
 }
@@ -80,10 +80,11 @@ function applyFilters(reset = false) {
   };
   const coverage=(rows,k)=>rows.filter(r=>D.finite(r[k])).length;
   const metrics=[['amount','Monto solicitado (S/)',2],['area','Área de café (ha)',2],['qq','Café entregado (quintales)',2]];
-  const available=metrics.filter(([k])=>coverage(filteredData,k)>=MIN_N);
+  const available=metrics.filter(([k])=>coverage(filteredData,k)>0);
   for(const [key,,digits] of metrics){
     const el=$('kpi-'+key), show=available.some(([k])=>k===key);
-    el.closest('.kpi-card').hidden=!show;
+    el.closest('.kpi-card').hidden=false;
+    if(!show)el.textContent='Vacío';
     if (show) {
       el.textContent=(key==='amount'?'S/ ':'')+total(filteredData,key,digits);
       const unit=key==='area'?'ha':key==='qq'?'quintales':'';
@@ -102,10 +103,7 @@ function applyFilters(reset = false) {
       }
     }
   }
-  const summaryGroups=groupRows(filteredData,'coop').filter(([,rows])=>rows.length>=MIN_N);
-  $('overview-table').closest('article').hidden=summaryGroups.length<2;
-  $('overview-table').innerHTML = H.table(['Cooperativa','Productoras',...available.map(([,label])=>label)],
-    summaryGroups.map(([g,rows])=>[groupLabel(g),rows.length,...available.map(([key,,digits])=>coverage(rows,key)>=MIN_N?total(rows,key,digits):'—')]));
+  renderOverview(filteredData,available,total);
   if (page === 'seguimiento' && audit) renderSeguimiento(filteredData);
   const cross=renderCross(filteredData);
   const stats=H.render(filteredData, rawData);
@@ -187,7 +185,7 @@ $('producer-change').addEventListener('click', () => {
   $('producer-query').focus();
 });
 $('btn-print-action').addEventListener('click', () => { if (selectedProducer()) window.print(); });
-function openPicker() { setImportError(); $('excel-input').click(); }
+function openPicker() { importRequest++; setImportError(); $('excel-input').click(); }
 $('open-file').addEventListener('click',openPicker);
 $('start-open').addEventListener('click',openPicker);
 function cancelImport() {
@@ -196,13 +194,13 @@ function cancelImport() {
   syncControls();
   (audit?$('open-file'):$('start-open')).focus();
 }
-function loadProfile(profile,fileName) {
-  const conflicts=D.ambiguousFields(profile.matrix[profile.header]);
-  if (conflicts.length) throw Error('Deja una sola columna por campo: '+conflicts.map(D.label).join(', ')+'.');
-  if (D.sensitiveHeaders([profile]).length) throw Error('Abre una copia autorizada sin nombres, documentos ni teléfonos.');
-  const result=D.importProfiles([profile],{fileName});
+function loadProfile(profile,fileName,session) {
+  const result=D.importProfiles([profile],{fileName,numberMode:'dot'});
   if (!result.records.length) throw Error('No hay filas válidas. Revisa el código y la cooperativa.');
+  if(pendingDownload && !window.confirm('Hay visitas por descargar. ¿Cambiar de base?')) return;
+  if(session)sourceSession={...session,selectedName:profile.name};
   rawData=result.records; audit=result.audit; pending=null; datasetVersion++;
+  sessionVisits=[]; pendingDownload=false; updateVisitStatus();
   setCoopColors(rawData);
   resetSeguimiento();
   $('base-search').value='';
@@ -215,45 +213,31 @@ function loadProfile(profile,fileName) {
   setImportError();
   $('page-title').focus();
 }
-function visibleWorkbookSheets(wb) {
-  return wb.SheetNames.flatMap((name,i)=>{
-    if(wb.Workbook?.Sheets?.[i]?.Hidden) return [];
-    const sheet=wb.Sheets[name];
-    if(!sheet?.['!ref']) return [];
-    const {e}=XLSX.utils.decode_range(sheet['!ref']);
-    if(e.r>=50001 || e.c>=250 || (e.r+1)*(e.c+1)>2000000) return [];
-    const matrix=XLSX.utils.sheet_to_json(sheet,{header:1,defval:null,blankrows:true,raw:true,range:{s:{r:0,c:0},e}});
-    return [{name,matrix}];
-  });
-}
+function visibleWorkbookSheets(wb) { return inspectWorkbook(wb).profiles.map(({name,matrix})=>({name,matrix})); }
 $('excel-input').addEventListener('change', async e => {
   const file=e.target.files[0]; if (!file) return;
+  const request=++importRequest;
   try {
     if (file.size>15*1024*1024) throw Error('El archivo supera 15 MB.');
     const wb=XLSX.read(await file.arrayBuffer(),{type:'array',cellDates:true});
-    const profiles=visibleWorkbookSheets(wb).map(({name,matrix})=>D.sheetProfile(name,matrix));
-    const choices=profiles.filter(p=>p.map.code!==undefined && p.map.coop!==undefined);
+    if(request!==importRequest)return;
+    const {profiles,sheets}=inspectWorkbook(wb);
+    if(!profiles.length)throw Error('No hay hojas visibles dentro del límite: 50.000 filas, 250 columnas y 2 millones de celdas.');
+    const session={profiles,sheets,fileName:file.name,numberMode:'dot'};
+    const choices=profiles.filter(p=>p.map.code!==undefined&&(p.map.coop!==undefined||p.fixedCoop));
     const clean=choices.find(p=>D.norm(p.name)==='PRODUCTORAS')||(choices.length===1?choices[0]:null);
-    if (clean) loadProfile(clean,file.name);
-    else if (choices.length>1) {
-      pending={profiles:choices,fileName:file.name};
-      $('sheet-select').replaceChildren(...choices.map((p,i)=>new Option(p.name,String(i))));
-      syncControls();
-      $('sheet-select').focus();
-    } else {
-      throw Error('No se encontró una hoja visible compatible. Revisa las columnas código y cooperativa, los duplicados de encabezado y el tamaño de la hoja.');
-    }
+    if(clean&&!D.ambiguousFields(clean.matrix[clean.header]).length)loadProfile(clean,file.name,session);
+    else beginConfiguration(session,clean?.name||choices[0]?.name);
   } catch(err) {
-    pending=null;
-    setImportError(err.message);
-    syncControls();
-  } finally { e.target.value=''; }
+    if(request!==importRequest)return;
+    pending=null;setImportError(err.message);syncControls();
+  } finally { if(request===importRequest)e.target.value=''; }
 });
 $('cancel-import').addEventListener('click',cancelImport);
 $('sheet-picker').addEventListener('submit',e=>{
   e.preventDefault();
   if (!pending) return;
-  try { loadProfile(pending.profiles[Number($('sheet-select').value)],pending.fileName); }
+  try { saveConfiguration(); }
   catch(err) { setImportError(err.message); }
 });
 function download(name,content,type) {

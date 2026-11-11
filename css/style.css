@@ -558,3 +558,49 @@ body { background:#F4F6F1; }
 .seg-hint { padding:8px 12px; border-radius:8px; background:var(--pale); color:var(--green); }
 .chart-box--short { height:150px; }
 @media(max-width:600px) { .data-filters { grid-template-columns:1fr; } }
+
+/* Estructura y configuración de la carga. */
+.source-stats { display:flex; flex-wrap:wrap; gap:12px 30px; margin:16px 0; padding-block:14px; border-block:1px solid var(--line); }
+.source-stats div { min-width:130px; }
+.source-stats dt { color:var(--muted); font-size:13px; }
+.source-stats dd { margin:4px 0 0; font-size:21px; font-weight:700; }
+.source-columns { line-height:1.65; font-size:13px; overflow-wrap:anywhere; }
+.column-mapping { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr)); gap:12px 18px; margin:20px 0; }
+.column-mapping select { width:100%; min-width:0; }
+.sheet-picker h2 { margin-top:0; }
+.active-filter { background:var(--pale); padding:10px 12px; border-radius:6px; }
+.seg-files { width:100%; }
+.seg-head .seg-actions { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.seg-file-tools { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+.seg-file-tools .btn-print { font-size:13px; padding:6px 10px; }
+
+.sheet-picker { display:block; }
+.sheet-picker .column-mapping select { text-overflow:ellipsis; }
+#coverage-table th:first-child { min-width:150px; }
+#coverage-table td:nth-child(2) { font-size:13px; max-width:380px; }
+
+/* Resumen territorial y revisión del archivo. */
+.territory-map { margin:12px 0 20px; }
+.territory-map svg { display:block; width:100%; max-height:330px; }
+.territory-map text { font-family:inherit; }
+.overview-detail h2 { font-size:21px; margin:0 0 16px; }
+.contract-list { list-style:none; padding:0; margin:12px 0 22px; display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr)); gap:14px 24px; }
+.contract-list li { display:flex; gap:10px; align-items:flex-start; }
+.contract-list strong,.contract-list span:not(.check-mark) { display:block; }
+.contract-list div>span { font-size:13px; color:var(--muted); margin-top:3px; }
+.check-mark { flex:none; display:grid; place-items:center; width:22px; height:22px; border-radius:50%; font-size:14px; font-weight:700; }
+.check-ok { background:#E7F0EA; color:#245547; }
+.check-review { background:#F8E3B9; color:#714214; }
+.description-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-top:20px; }
+#coverage-table table { min-width:850px; }
+#coverage-table td:nth-child(6) { min-width:170px; font-size:13px; }
+.kpi-card:has(#kpi-n) { border-top:3px solid #245547; }
+@media(max-width:760px) { .territory-map { overflow-x:auto; } .territory-map svg { min-width:600px; } }
+
+#coverage-table table { table-layout:auto; min-width:820px; }
+#coverage-table th:first-child { width:29%; min-width:200px; }
+#coverage-table th:not(:first-child),#coverage-table td:nth-child(2) { white-space:nowrap; overflow-wrap:normal; }
+#coverage-table th:nth-child(2),#coverage-table td:nth-child(2) { min-width:85px; }
+#coverage-table th:nth-child(3),#coverage-table th:nth-child(4),#coverage-table th:nth-child(5),#coverage-table td:nth-child(3),#coverage-table td:nth-child(4),#coverage-table td:nth-child(5) { min-width:55px; text-align:center; padding-inline:7px; }
+#coverage-table td:nth-child(6) { min-width:215px; }
+.mapping-source { display:block; font-size:11px; font-weight:400; color:var(--muted); margin-top:4px; line-height:1.4; }

@@ -6,7 +6,7 @@ const fields=[['code','codigo_productora','Código de productora'],['coop','coop
  ['education','nivel_educativo','Nivel educativo'],['internet','acceso_internet','Acceso a internet'],['water','agua_desague','Agua y desagüe'],['services','servicios_financieros','Servicios financieros (opción múltiple)'],['channels','canales_preferidos','Canales preferidos (opción múltiple)'],['yape','usa_yape','Usa Yape'],['savingsCoop','ahorro_capitalizacion_cooperativa','Ahorros o aportes de capital de la beneficiaria'],['coopCredit','credito_vigente_socio_cooperativa','Crédito vigente en la cooperativa'],['sysCredit','credito_vigente_beneficiaria_sistema','Crédito vigente en el sistema financiero'],['trainedCoop','capacitacion_cooperativa','Capacitación de la cooperativa'],['infocorp','infocorp_categoria','Categoría Infocorp']];
 // Preguntas que no existen en todos los formularios: texto, opción múltiple (varias opciones en una respuesta) o 0/1.
 const extraKinds={education:'str',internet:'str',water:'str',infocorp:'str',services:'multi',channels:'multi',yape:'bin',savingsCoop:'bin',coopCredit:'bin',sysCredit:'bin',trainedCoop:'bin'};
-function bin(v){if(v==null||String(v).trim()==='')return null;if(typeof v==='number')return v===1?1:v===0?0:undefined;const s=norm(v);if(s==='SI'||s==='1')return 1;if(s==='NO'||s==='0')return 0;return undefined;}
+function bin(v){if(typeof v==='boolean')return v?1:0;if(v==null||String(v).trim()==='')return null;if(typeof v==='number')return v===1?1:v===0?0:undefined;const s=norm(v);if(s==='SI'||s==='1')return 1;if(s==='NO'||s==='0')return 0;return undefined;}
 function multi(v){if(v==null||String(v).trim()==='')return null;const parts=[...new Set(String(v).split(/[;,]/).map(norm).filter(Boolean))];return parts.length?parts:null;}
 const numeric=['age','family','years','area','qq','income','amount'],pcaVars=['age','family','years','area','qq','income'];
 const label=k=>fields.find(f=>f[0]===k)?.[2]||k,finite=v=>typeof v==='number'&&Number.isFinite(v);
@@ -32,7 +32,7 @@ const aliases={code:['CODIGO','CODIGO_DE_PRODUCTORA','ID_PRODUCTORA'],coop:['COO
  const pats=[['code',/^1\. CODIGO\/PRODUCTORA$/],['birth',/^3\. FECHA DE NACIMIENTO DE LA BENEFICIARIA$/],['base',/^4\. BASE\/SECTOR DE LA BENEFICIARIA$/],['territory',/^4\.1 DISTRITO Y PROVINCIA DE LA BENEFICIARIA$/],['family',/^6\. NUMERO DE MIEMBROS DE LA FAMILIA/],['years',/^7\. TIEMPO DE ASOCIADO/],['services',/^1[56]\. ¿QUE SERVICIOS FINANCIEROS/],['savingsCoop',/^17\. ¿LA BENEFICIARIA CUENTA CON ALGUN AHORRO/],['coopCredit',/^1[68]\. ¿LA SOCIA TITULAR.*CREDITOS VIGENTES/],['sysCredit',/^1[89]\.\s*¿LA BENEFICIARIA TIENE CREDITOS EN EL SISTEMA/],['trainedCoop',/^2[23]\. PRODUCTORA BENEFICIA.*ACTIVIDADES DE CAPACITACION DE LA COOPERATIVA/],['education',/^2[45]\. NIVEL O GRADO EDUCATIVO/],['channels',/^2[89]\. ¿PREFIERE LAS LLAMADAS/],['internet',/^(29|30)\. ¿ACCEDE A INTERNET/],['water',/^3[12]\. ¿CUENTA CON AGUA Y DESAGUE/],['area',/^9\. AREA DE CULTIVO DE CAFE$/],['qq',/^10\. QUINTALES (?:ACOPIADOS|ENTREGADOS) ?(?:DURANTE EL (?:19|20|21)\d{2})?$/],['income',/^(20|25)\. INGRESO ANUAL.*ACTIVIDAD PRINCIPAL/],['amount',/^(13|14)\. MONTO REQUERIDO EN SOLES$/],['activity',/^(12\. ACTIVIDAD SECUNDARIA PRODUCTIVA A FINANCIAR|13\. ¿CUAL ES LA ACTIVIDAD PRODUCTIVA A FINANCIAR)/],['phone',/^(26|27)\. ¿LA PRODUCTORA BENEFICIARIA TIENE SMARTPHONE/],['literacy',/^(25|26)\. ¿LA PRODUCTORA BENEFICIARIA TIENE DIFICULTADES PARA LEER Y ESCRIBIR/]];
 function detectedField(h){
  const raw=norm(h),clean=heading(h);
- const f=fields.find(([k,name])=>[heading(name),...(aliases[k]||[])].some(a=>clean===a||(datedFields.has(k)&&clean.replace(/_(?:DE_)?(?:19|20|21)\d{2}$/,'')===a)));
+ const f=fields.find(([k,name,title])=>[heading(name),heading(title),...(aliases[k]||[])].some(a=>clean===a||(datedFields.has(k)&&clean.replace(/_(?:DE_)?(?:19|20|21)\d{2}$/,'')===a)));
  return f?.[0]||pats.find(([,re])=>re.test(raw))?.[0];
 }
 function inferMap(headers){
@@ -71,8 +71,9 @@ const cleanPlace=s=>String(s).replace(/\s+/g,' ').replace(/\s*-\s*/g,' - ').trim
 // Variantes que solo difieren en mayúsculas o tildes se juntan bajo la más frecuente. El original queda en <campo>Raw.
 function unifyPlaces(records){for(const k of ['territory','province','base']){const byKey=new Map();for(const r of records){if(r[k]==null)continue;const key=norm(r[k]);if(!byKey.has(key))byKey.set(key,new Map());const m=byKey.get(key);m.set(r[k],(m.get(r[k])||0)+1);}
  const pick=new Map([...byKey].map(([key,m])=>[key,[...m].sort((a,b)=>b[1]-a[1])[0][0]]));for(const r of records)if(r[k]!=null)r[k]=pick.get(norm(r[k]));}}
-function ageAtYearEnd(v,year){let d;if(v instanceof Date)d=v;else if(typeof v==='number')d=new Date(Date.UTC(1899,11,30)+v*86400000);else if(/^\d{4}-\d{2}-\d{2}/.test(String(v)))d=new Date(String(v).slice(0,10)+'T00:00:00Z');else return null;return finite(d.getTime())?year-d.getUTCFullYear():null;}
+function ageAtYearEnd(v,year){let d;if(v instanceof Date)d=v;else if(typeof v==='number')d=new Date(Date.UTC(1899,11,30)+v*86400000);else if(/^\d{4}-\d{2}-\d{2}$/.test(String(v))){d=new Date(String(v)+'T00:00:00Z');if(!finite(d.getTime())||d.toISOString().slice(0,10)!==String(v))return null;}else return null;return finite(d.getTime())?year-d.getUTCFullYear():null;}
 function importProfiles(profiles,{numberMode='auto',fileName='',includeOutliers=false}={}){
+ for(const p of profiles){const values=Object.values(p.map);if(new Set(values).size!==values.length)throw Error('Una columna no puede asignarse a dos campos.');}
  const period=resolvePeriod(profiles);
  const candidates=[],issues=[],quarantine=[];let emptyRows=0;
  for(const p of profiles){if(sensitiveHeaders([p]).some(s=>Object.values(p.map).includes(s.column-1)))throw Error('No se pueden asignar campos personales.');
@@ -83,11 +84,11 @@ function importProfiles(profiles,{numberMode='auto',fileName='',includeOutliers=
  const os=cells[heads.indexOf('HOJA_ORIGEN')], or=cells[heads.indexOf('FILA_EXCEL_ORIGEN')];
  const r={code:String(get('code')??'').trim(),coop:coop(get('coop')||(p.map.coop===undefined?p.fixedCoop:null)),sourceSheet:p.name,sourceRow:i+1,originalSheet:typeof os==='string'?os:p.name,originalRow:Number.isInteger(or)&&or>0?or:i+1};
  if(!r.code||!r.coop){quarantine.push({...r,reason:'Falta el código o la cooperativa'});continue;}
- for(const k of numeric){const x=parseNumber(get(k),numberMode);r[k]=x.value;if(x.error)issue(k,x.error);if(r[k]!==null&&!valid(r[k],k)){issue(k,'Valor fuera de rango; se dejó sin dato');r[k]=null;}}
+ for(const k of numeric){const x=parseNumber(get(k),numberMode);r[k]=x.value;if(x.error)issue(k,x.error);if(r[k]!==null&&!valid(r[k],k)){issue(k,'Valor fuera de rango; no se usa en los cálculos');r[k]=null;}}
  if(r.age===null&&norm(get('age'))===''&&get('birth')!=null&&period!==null){const a=ageAtYearEnd(get('birth'),period);if(a!==null&&valid(a,'age'))r.age=a;else issue('birth','Fecha no reconocida; use una fecha de Excel o el formato AAAA-MM-DD');}
  for(const k of ['territory','province','base']){const raw=get(k)==null?null:String(get(k)).trim()||null;r[k+'Raw']=raw;r[k]=raw&&cleanPlace(raw);}
  r.activityRaw=get('activity');r.phoneRaw=get('phone');r.literacyRaw=get('literacy');r.activity=activity(r.activityRaw);r.phone=phone(r.phoneRaw);r.literacy=literacy(r.literacyRaw);
- for(const k of ['phone','literacy'])if(r[k]==='OTRO / REVISAR')issue(k,'Respuesta no reconocida; revisar el valor original');for(const [k,kind] of Object.entries(extraKinds)){const v=get(k);if(kind==='str')r[k]=v==null||String(v).trim()===''?null:norm(v);else if(kind==='multi')r[k]=multi(v);else{const b=bin(v);if(b===undefined){r[k]=null;issue(k,'Se esperaba 0/1 o SI/NO; se dejó sin dato');}else r[k]=b;}}
+ for(const k of ['phone','literacy'])if(r[k]==='OTRO / REVISAR')issue(k,'Respuesta no reconocida; revisar el valor original');for(const [k,kind] of Object.entries(extraKinds)){const v=get(k);if(kind==='str')r[k]=v==null||String(v).trim()===''?null:norm(v);else if(kind==='multi')r[k]=multi(v);else{const b=bin(v);if(b===undefined){r[k]=null;issue(k,'Se esperaba 0/1 o SI/NO; no se usa en los cálculos');}else r[k]=b;}}
  // Adaptaciones explícitas para los dos formularios originales.
  const loc=r.territory?.match(/^(.*?)\s*-\s*(.*?)$/);
  if(p.fixedCoop && !r.province && loc?.[1] && loc?.[2]) { r.territory=loc[1]; r.province=loc[2]; }
@@ -97,9 +98,10 @@ function importProfiles(profiles,{numberMode='auto',fileName='',includeOutliers=
    const v=norm(get(k));
    if(v && p.fixedCoop) { const matches=dict.filter(([,rx])=>rx.test(v)).map(([name])=>name);r[k]=matches.length?matches:r[k]; }
  }
- if(r.services?.length && p.map.yape===undefined) r.yape=r.services.includes('YAPE')?1:r.services.includes('NINGUNO')&&r.services.length>1?null:0;
+ if(r.services?.length && p.map.yape===undefined) r.yape=r.services.includes('NINGUNO')&&r.services.length>1?null:r.services.includes('YAPE')?1:0;
+ for(const k of ['internet','water'])if(r[k])r[k]=r[k].replace(/ /g,'_');
  if(r.education){r.education=r.education.replace(/ /g,'_');if(r.education==='ESTUDIOS_TECNICOS_COMPLETOS')r.education='TECNICO_COMPLETO';}
- if(p.fixedCoop && r.internet) r.internet=/^SI, EN MI CASA/.test(r.internet)?'EN_CASA':/NO HAY SENAL/.test(r.internet)?'SIN_SENAL_SECTOR':/SALIR FUERA/.test(r.internet)?'FUERA_DE_CASA':null;
+ if(p.fixedCoop && r.internet){const v=norm(get('internet'));r.internet=/^SI, EN MI CASA/.test(v)?'EN_CASA':/NO HAY SENAL/.test(v)?'SIN_SENAL_SECTOR':/SALIR FUERA/.test(v)?'FUERA_DE_CASA':r.internet;}
  if(p.fixedCoop && r.water) r.water=/AMBOS/.test(r.water)?'AMBOS':r.water.replace(/ /g,'_');
  if(r.services?.includes('NINGUNO') && r.services.length>1)issue('services','Respuesta contradictoria: marcó Ninguno y otro servicio. Se conserva para revisión.');
  candidates.push(r);
@@ -199,7 +201,7 @@ function visitsCsv(visits){
 const mean=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:null;
 function median(a){const b=a.filter(finite).sort((a,b)=>a-b);return b.length?(b[Math.floor((b.length-1)/2)]+b[Math.ceil((b.length-1)/2)])/2:null;}
 function ranks(a){const b=a.map((v,i)=>({v,i})).sort((a,b)=>a.v-b.v),r=[];for(let i=0;i<b.length;){let j=i+1;while(j<b.length&&b[j].v===b[i].v)j++;for(let k=i;k<j;k++)r[b[k].i]=(i+j+1)/2;i=j;}return r;}
-// Mediana de la cooperativa de la productora para la hoja "Mi finca". Solo con minN productoras con dato.
+// Mediana de referencia para el reporte de la cooperativa.
 function peerMedian(allRows,row,key,minN=5){const vals=allRows.filter(r=>r.coop===row.coop&&finite(r[key])).map(r=>r[key]);return vals.length>=minN?{median:median(vals),n:vals.length}:null;}
 // Montos más frecuentes por cooperativa (CO9): muestra si el monto es un paquete fijo. Solo grupos con minN o más montos.
 function commonAmounts(rows,{minN=5,top=3}={}){const by=new Map();for(const r of rows){if(!r.coop||!finite(r.amount))continue;if(!by.has(r.coop))by.set(r.coop,[]);by.get(r.coop).push(r.amount);}
@@ -229,5 +231,23 @@ function flagOutliers(rows) {
   return rows.filter(r=>finite(r[field])&&(r[field]<low||r[field]>high)).map(r=>({field,value:r[field],code:r.code,coop:r.coop,sheet:r.sourceSheet,row:r.sourceRow,originalSheet:r.originalSheet,originalRow:r.originalRow,low,high}));
  });
 }
-const api={ambiguousFields,resolvePeriod,flagOutliers,missingVisitFields,csvCell,visitsCsv,norm,fields,extraKinds,numeric,pcaVars,label,parseNumber,phone,literacy,activity,inferMap,sheetProfile,importProfiles,commonAmounts,amountScale,cleanPlace,unifyPlaces,unmappedFields,fieldKind,columnProfiles,columnCompat,nameScore,suggestedColumns,scopePreview,exportMapping,applyMapping,sensitiveHeaders,peerMedian,finite,mean,median,ranks,correlation};root.PDData=api;if(typeof module!=='undefined')module.exports=api;
+// Estado técnico de cada campo del contrato, incluidos los que no traía el archivo.
+function unusableValues(records,audit){
+ const rows=new Map(records.map(r=>[JSON.stringify([r.sourceSheet,r.sourceRow]),r]));
+ return audit.issues.filter(i=>{
+  const r=rows.get(JSON.stringify([i.sheet,i.row]));
+  return r && (i.field==='birth'?r.age==null:r[i.field]==null);
+ });
+}
+function coverage(records,audit){
+ const unusable=unusableValues(records,audit);
+ return fields.filter(([k])=>!['birth','infocorp'].includes(k)).map(field=>{
+  const key=field[0],sourceCols=audit.sheets.flatMap(s=>s.mapping[key]?[s.mapping[key].header]:[]);
+  const filled=records.filter(r=>r[key]!=null).length;
+  const derived=!sourceCols.length&&((key==='age'&&audit.period&&audit.sheets.some(s=>s.mapping.birth))||(key==='yape'&&audit.sheets.some(s=>s.mapping.services)));
+  const invalid=unusable.filter(i=>i.field===key||(key==='age'&&i.field==='birth')).length;
+  return {key,field,filled,missing:records.length-filled,invalid,status:sourceCols.length?'mapped':derived?'derived':'absent',source:sourceCols.join(' · ')||(derived?(key==='age'?'Desde nacimiento y periodo':'Desde servicios financieros'):'Columna no incluida')};
+ });
+}
+const api={coverage,unusableValues,ambiguousFields,resolvePeriod,flagOutliers,missingVisitFields,csvCell,visitsCsv,norm,fields,extraKinds,numeric,pcaVars,label,parseNumber,phone,literacy,activity,inferMap,sheetProfile,importProfiles,commonAmounts,amountScale,cleanPlace,unifyPlaces,unmappedFields,fieldKind,columnProfiles,columnCompat,nameScore,suggestedColumns,scopePreview,exportMapping,applyMapping,sensitiveHeaders,peerMedian,finite,mean,median,ranks,correlation};root.PDData=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

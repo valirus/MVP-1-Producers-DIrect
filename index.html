@@ -19,27 +19,30 @@
       <button type="button" data-page="credit">Solicitudes de crédito</button>
       <button type="button" data-page="seguimiento">Seguimiento del crédito</button>
       <button type="button" data-page="producer">Ficha de productora</button>
-      <button type="button" data-page="quality">Base cargada</button>
-      <button type="button" data-page="coverage">Cobertura por campo</button>
+      <button type="button" data-page="coverage">Resumen del Excel</button>
+      <button type="button" data-page="quality">Registros</button>
     </nav>
-    <a class="manual-link" href="docs/manual.html" target="_blank" rel="noopener">Guía de uso ↗</a>
+    <a class="manual-link" href="docs/manual.html" target="_blank" rel="noopener">Guía de uso</a>
 
   </aside>
 <main class="main"><header class="header"><div><p class="eyebrow">Fondo Rotatorio · Producers Direct</p><h1 id="page-title" tabindex="-1">Panorama del fondo</h1></div><div class="actions"><button class="btn-upload" id="open-file" type="button" hidden>Cambiar Excel</button><input type="file" id="excel-input" accept=".xlsx,.xls" hidden></div></header>
 <p class="import-error" id="import-error" role="alert" hidden></p>
 <section class="card-panel start-panel" id="start-panel" aria-labelledby="start-title">
   <svg class="start-icon" width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true"><rect width="48" height="48" rx="12" fill="currentColor" opacity=".1"/><path d="M16 13h11l5 5v17H16V13Zm10 0v6h6M20 24h8m-8 5h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  <div><h2 id="start-title">Abre el Excel de productoras</h2><p>Selecciona la base limpia para ver los indicadores del fondo y consultar las fichas.</p><button class="btn-upload" id="start-open" type="button">Abrir Excel</button></div>
+  <div><h2 id="start-title">Abre el Excel de productoras</h2><p>Código de productora y cooperativa en columnas separadas.</p><button class="btn-upload" id="start-open" type="button">Abrir Excel</button></div>
 </section>
 <form class="card-panel sheet-picker" id="sheet-picker" hidden>
-  <div class="field"><label for="sheet-select">Hoja del Excel</label><select id="sheet-select"></select></div>
-  <button type="submit" class="btn-upload">Abrir hoja</button>
-  <button type="button" class="btn-print" id="cancel-import">Cancelar</button>
+  <h2>Columnas del Excel</h2>
+  <div class="data-filters"><div class="field"><label for="sheet-select">Hoja</label><select id="sheet-select"></select></div><div class="field"><label for="header-row">Fila de encabezados</label><input type="number" id="header-row" min="1" max="100"></div></div>
+  <div id="column-mapping" class="column-mapping"></div>
+  <details><summary>Columnas fuera de los gráficos</summary><p id="mapping-unused" class="source-columns"></p></details>
+  <p id="mapping-personal" class="chart-note" hidden>Las columnas personales quedan fuera de la configuración y de la vista.</p>
+  <div class="actions"><button type="submit" class="btn-upload">Aplicar columnas</button><button type="button" class="btn-print" id="cancel-import">Cancelar</button></div>
 </form>
 <div class="filters-bar"><div class="field"><label for="filter-coop">Cooperativa</label><select id="filter-coop"></select></div><div class="field"><label for="filter-territory">Distrito y provincia</label><select id="filter-territory"></select></div><div class="field"><div class="filter-label"><label for="filter-base">Grupo local</label><button type="button" id="base-search-toggle" aria-expanded="false" aria-controls="base-search" hidden>Buscar</button></div><input id="base-search" type="search" class="filter-search" data-for="filter-base" placeholder="Buscar grupo local…" aria-label="Buscar grupo local" autocomplete="off" hidden><select id="filter-base"></select></div><button type="button" class="btn-print" id="reset-filters">Limpiar filtros</button></div>
-<p class="empty-state" id="no-selection" hidden>Sin datos para esta vista.</p>
+<p class="empty-state" id="no-selection" hidden>No hay valores para esta selección.</p>
 <section class="page active" id="summary-page">
-<div id="overview-data" hidden><div class="kpis-grid"><div class="kpi-card"><div class="kpi-title">Productoras</div><div class="kpi-val" id="kpi-n">—</div></div><div class="kpi-card"><div class="kpi-title">Monto solicitado</div><div class="kpi-val" id="kpi-amount">—</div></div><div class="kpi-card"><div class="kpi-title">Área de café</div><div class="kpi-val" id="kpi-area">—</div></div><div class="kpi-card"><div class="kpi-title">Café entregado</div><div class="kpi-val" id="kpi-qq">—</div></div></div><article class="card-panel overview-detail"><h2>Resumen por cooperativa</h2><div id="overview-table" class="table-scroll numeric-table"></div></article></div></section>
+<div id="overview-data" hidden><div class="kpis-grid"><div class="kpi-card"><div class="kpi-title">Productoras</div><div class="kpi-val" id="kpi-n">—</div></div><div class="kpi-card"><div class="kpi-title">Monto solicitado</div><div class="kpi-val" id="kpi-amount">—</div></div><div class="kpi-card"><div class="kpi-title">Área de café</div><div class="kpi-val" id="kpi-area">—</div></div><div class="kpi-card"><div class="kpi-title">Café entregado</div><div class="kpi-val" id="kpi-qq">—</div></div></div><article class="card-panel overview-detail"><h2 id="territory-title">Productoras por distrito</h2><div id="territory-map" class="territory-map"></div><div id="overview-table" class="table-scroll numeric-table"></div></article></div></section>
 <section class="page" id="production-page"><div class="grid-12"><article class="card-panel col-6"><h3>Mediana de café entregado por productora</h3><div class="chart-box"><canvas id="chart-qq-coop" role="img" aria-label="Mediana de quintales entregados por productora, por cooperativa"></canvas></div><details><summary>Ver cifras</summary><p class="chart-note">La mediana es el valor central al ordenar las entregas.</p><div id="chart-qq-coop-table" class="table-scroll"></div></details></article><article class="card-panel col-6"><h3>Área de café frente a café entregado</h3><div class="chart-box"><canvas id="chart-yield" role="img" aria-label="Área de café y café entregado"></canvas></div><details><summary>Ver cifras</summary><div id="chart-yield-table" class="table-scroll"></div></details></article></div></section>
 <section class="page" id="credit-page"><div class="grid-12">
  <article class="card-panel col-12" id="amount-pattern"><h3>Distribución de montos solicitados</h3>
@@ -59,7 +62,7 @@
   <button class="btn-print" id="producer-more" type="button" hidden>Ver más productoras</button>
 </div>
 <button class="btn-print" id="producer-change" type="button" hidden>Cambiar productora</button>
-</div><div class="actions ficha-actions"><button type="button" class="btn-print" id="btn-print-action" disabled>Imprimir ficha</button></div><div class="report-toggle" role="group" aria-label="Tipo de hoja"><button type="button" data-view="visit" aria-pressed="true">Ficha para la visita</button><button type="button" data-view="farmer" aria-pressed="false">Mi finca</button></div><div class="report-shell" id="report-printable"><div class="report-header"><div><h2>Ficha para la visita</h2><p id="rep-code-coop" tabindex="-1"></p></div></div><div id="producer-fields" class="report-grid"></div></div><details class="card-panel visit-record no-print" id="visit-record" hidden><summary>Registrar una visita</summary>
+</div><div class="actions ficha-actions"><button type="button" class="btn-print" id="btn-print-action" disabled>Imprimir ficha</button></div><div class="report-toggle" role="group" aria-label="Tipo de hoja"><button type="button" data-view="visit" aria-pressed="true">Ficha de visita</button><button type="button" data-view="farmer" aria-pressed="false">Reporte para la cooperativa</button></div><div class="report-shell" id="report-printable"><div class="report-header"><div><h2>Ficha de visita</h2><p id="rep-code-coop" tabindex="-1"></p></div></div><div id="producer-fields" class="report-grid"></div></div><details class="card-panel visit-record no-print" id="visit-record" hidden><summary>Registrar una visita</summary>
 <p class="seg-hint" id="visit-seg" hidden></p>
 <div class="visit-controls">
 <div class="field"><label for="visit-stage">Etapa del crédito</label><select id="visit-stage"><option value="solicitud">Solicitud (antes del desembolso)</option><option value="desembolsado">Desembolsado (confirmado por ROTA)</option></select></div>
@@ -78,10 +81,8 @@
       <div><h2 id="quality-source"></h2><p id="quality-counts" class="data-source"></p></div>
       <div class="actions"><a href="docs/diccionario.html" target="_blank" rel="noopener">Diccionario</a><button type="button" class="btn-print" id="download-data">Descargar CSV</button></div>
     </div>
-    <div class="data-filters">
-      <div class="field"><label for="quality-search">Buscar por código o cooperativa</label><input type="search" id="quality-search" autocomplete="off"></div>
-      <div class="field"><label for="quality-missing">Filas sin dato en</label><select id="quality-missing"><option value="">Cualquier campo (sin filtro)</option></select></div>
-    </div>
+    <div class="data-filters"><div class="field"><label for="quality-search">Buscar por código o cooperativa</label><input type="search" id="quality-search" autocomplete="off"></div></div>
+    <p id="quality-missing-active" class="active-filter" hidden><span></span> <button type="button" class="coverage-link" id="clear-missing">Quitar filtro</button></p>
     <div id="quality-preview" class="table-scroll dataset-scroll" role="region" tabindex="0" aria-label="Registros de la base cargada"></div>
     <div class="data-pagination" id="quality-pagination">
       <span id="quality-range" role="status"></span>
@@ -92,10 +93,11 @@
 </section>
 <section class="page" id="coverage-page">
   <article class="card-panel data-preview">
-    <div class="data-preview-top"><div><h2>Campos de la base</h2><p id="coverage-source" class="data-source"></p></div>
-      <label class="coverage-toggle"><input id="coverage-incomplete" type="checkbox"> Solo campos con faltantes</label>
-    </div>
-    <div id="coverage-table" class="table-scroll"></div>
+    <div class="data-preview-top"><div><p id="coverage-source" class="data-source"></p></div><div class="actions"><a href="docs/diccionario.html" target="_blank" rel="noopener">Contrato de datos</a><button type="button" class="btn-print" id="configure-data">Asignar columnas</button></div></div>
+    <div id="workbook-overview"></div>
+    <div id="contract-checks" class="contract-checks"></div>
+    <div class="description-heading"><h3>Campos del tablero</h3><label class="coverage-toggle"><input id="coverage-incomplete" type="checkbox"> Solo campos por revisar</label></div>
+    <div id="coverage-table" class="table-scroll"></div><div id="coverage-values"></div><div id="extra-columns"></div>
   </article>
 </section>
-</main></div><script src="js/data_core.js"></script><script src="js/coops.js"></script><script src="js/charts.js"></script><script src="js/cross.js"></script><script src="js/devolucion.js"></script><script src="js/roles.js"></script><script src="js/filtros.js"></script><script src="js/ficha.js"></script><script src="js/base_cargada.js"></script><script src="js/seguimiento_core.js"></script><script src="js/seguimiento.js"></script><script src="js/app.js"></script></body></html>
+</main></div><script src="js/data_core.js"></script><script src="js/coops.js"></script><script src="js/charts.js"></script><script src="js/cross.js"></script><script src="js/devolucion.js"></script><script src="js/roles.js"></script><script src="js/filtros.js"></script><script src="js/ficha.js"></script><script src="js/base_cargada.js"></script><script src="js/seguimiento_core.js"></script><script src="js/seguimiento.js"></script><script src="js/importacion.js"></script><script src="js/resumen_core.js"></script><script src="js/resumen.js"></script><script src="js/app.js"></script></body></html>

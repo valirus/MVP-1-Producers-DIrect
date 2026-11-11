@@ -1,0 +1,27 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Formato de seguimiento | Producers Direct</title><link rel="stylesheet" href="../css/style.css"></head><body><main class="guide">
+<a href="../index.html">Volver al tablero</a><h1>Formato de seguimiento</h1>
+<p>Abre primero la base de productoras. En Seguimiento del crédito puedes añadir un Excel, revisar sus columnas y confirmar la carga. Repite para añadir los demás. Cada archivo se puede quitar por separado.</p>
+<section><h2>Una fila por productora y mes</h2><p>Este formato sirve para nuevas exportaciones. Los nombres de hoja y el orden de columnas pueden cambiar. Usa un solo año por sesión. Si el archivo no trae el año, indícalo en «Año del seguimiento» antes de abrirlo.</p>
+<div class="table-scroll"><table><thead><tr><th>Columna</th><th>Formato</th><th>Uso</th></tr></thead><tbody>
+<tr><td><code>codigo_productora</code></td><td>Texto, obligatorio</td><td>Debe coincidir con la base cargada.</td></tr>
+<tr><td><code>cooperativa</code></td><td>Texto</td><td>Obligatoria si el mismo código existe en más de una cooperativa.</td></tr>
+<tr><td><code>mes</code></td><td>1 a 12, o nombre completo</td><td>Obligatorio. Se acepta septiembre o setiembre.</td></tr>
+<tr><td><code>periodo</code></td><td>Año de cuatro dígitos</td><td>Si falta, se usa el año elegido por quien carga el archivo.</td></tr>
+<tr><td><code>vendio</code>, <code>tuvo_gastos</code></td><td>Sí / No o 1 / 0</td><td>Porcentaje de respuestas afirmativas. No son importes.</td></tr>
+<tr><td><code>ventas_pen</code></td><td>Número ≥ 0, soles</td><td>Importe de las ventas, antes de restar gastos.</td></tr>
+<tr><td><code>gasto_actividad_pen</code>, <code>gasto_familiar_pen</code></td><td>Número ≥ 0, soles</td><td>Gastos de la actividad y del hogar, separados.</td></tr>
+<tr><td><code>cantidad_vendida</code>, <code>unidad_cantidad</code></td><td>Número ≥ 0 y texto</td><td>Solo <code>qq</code>, <code>quintal</code> o <code>quintales</code> permiten agregar cantidades como café. Los kg y unidades de emprendimientos no se suman.</td></tr>
+</tbody></table></div><p>Además del código y el mes, incluye al menos uno de los campos de ventas o gastos. Una columna opcional ausente no impide usar las demás.</p>
+<h3>Ejemplo ficticio</h3><div class="table-scroll"><table><thead><tr><th>codigo_productora</th><th>cooperativa</th><th>periodo</th><th>mes</th><th>vendio</th><th>ventas_pen</th></tr></thead><tbody><tr><td>DEMO-001</td><td>Cooperativa demo</td><td>2027</td><td>julio</td><td>Sí</td><td>1500</td></tr><tr><td>DEMO-001</td><td>Cooperativa demo</td><td>2027</td><td>agosto</td><td>No</td><td></td></tr></tbody></table></div></section>
+<section><h2>Formularios con preguntas repetidas por mes</h2><p>Se mantienen los formularios originales de café y emprendimiento. Se reconoce la hoja «Registros», o una única hoja compatible entre las hojas visibles. La columna «Código» debe estar en los primeros diez renglones.</p><p>Las preguntas «¿Vendió café en julio?» o «¿Vendió productos de su emprendimiento en julio?» identifican la actividad y el bloque mensual. «Cantidad total vendida», «Ganancia total de la venta», «¿Generó gastos en julio?», «¿Cuánto gastó en total en la finca / el emprendimiento?» y «¿Cuánto gastó en total en la familia?» se asignan por su texto. Si una pregunta no nombra el mes, pertenece al último bloque de ventas o gastos. No cambies el orden de esos bloques sin añadir el mes a cada encabezado.</p><p>La revisión muestra cada columna reconocida y su uso. Las columnas desconocidas no alimentan los gráficos. Si cambia una pregunta, conserva el encabezado reconocido o exporta el formato mensual de arriba.</p></section>
+<section><h2>Reglas de lectura</h2><ul>
+<li>Las celdas vacías no se rellenan. Una respuesta «No» no rellena los importes vacíos con cero. Para declarar un importe cero, escribe 0.</li>
+<li>Los valores numéricos de Excel se conservan. En texto se usa punto decimal y coma para miles: «69.9» y «1,500.25». Un número con coma decimal queda fuera del cálculo. Negativos y texto no numérico tampoco se agregan.</li>
+<li>No se descartan cantidades por ser grandes. No hay límites estimados, interpretación automática ni imputación.</li>
+<li>Un archivo repetido no se vuelve a añadir. Dos archivos con datos iguales o complementarios del mismo mes se unen sin sumarlos dos veces. Si sus respuestas difieren, ese mes queda fuera hasta corregir el origen o quitar un archivo.</li>
+<li>Filas repetidas de la misma productora y mes dentro de un archivo mensual no se incluyen. En el formulario ancho, no se incluyen los códigos repetidos dentro de la misma cooperativa.</li>
+<li>Los códigos sin coincidencia no se vinculan. Si hay códigos iguales entre cooperativas, añade <code>cooperativa</code>.</li>
+<li>Se admiten archivos de hasta 15 MB, hojas de hasta 50.000 filas, 250 columnas y 2 millones de celdas. Las hojas ocultas no se leen.</li>
+</ul></section>
+<section><h2>Cómo leer las cifras</h2><p>Cada porcentaje usa solo las respuestas a su pregunta. Cada suma incluye solo los importes numéricos disponibles, con su número de respuestas. Las ventas no son cuotas pagadas, desembolsos ni mora. Los gastos del hogar solo se presentan como suma del grupo.</p><p>Los archivos permanecen en la sesión del navegador. Al cambiar la base se retiran los seguimientos anteriores para evitar cruces entre bases.</p></section>
+</main></body></html>

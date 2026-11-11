@@ -1,3 +1,5 @@
+> Registro de una entrega anterior. Para los nombres, pantallas y reglas vigentes consulta el [manual](manual.html) y el [informe técnico](INFORME_TECNICO.md).
+
 # Producers Direct · Reporte de entrega al equipo
 
 **Estado:** versión consolidada, probada localmente, pendiente de integración y aceptación por ROTA.

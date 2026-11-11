@@ -49,7 +49,7 @@ const region = r => r.territory && r.province && !D.norm(r.territory).endsWith('
 function setOptions(id, values, title, reset = false) {
   const select = $(id), previous = reset ? 'all' : select.value;
   select.replaceChildren(new Option(title, 'all'));
-  [...new Set(values)].sort((a,b) => String(a).localeCompare(String(b),'es')).forEach(v => select.add(new Option(v == null ? 'Vacío' : groupLabel(v), v ?? '__null__')));
+  [...new Set(values)].sort((a,b) => String(a).localeCompare(String(b),'es')).forEach(v => select.add(new Option(v == null ? 'Sin respuesta' : groupLabel(v), v ?? '__null__')));
   select.value = [...select.options].some(o => o.value === previous) ? previous : 'all';
   select.closest('.field').hidden = !values.some(v=>v!=null) || select.options.length<=2;
 }
@@ -84,7 +84,7 @@ function applyFilters(reset = false) {
   for(const [key,,digits] of metrics){
     const el=$('kpi-'+key), show=available.some(([k])=>k===key);
     el.closest('.kpi-card').hidden=false;
-    if(!show)el.textContent='Vacío';
+    if(!show)el.textContent='Sin datos';
     if (show) {
       el.textContent=(key==='amount'?'S/ ':'')+total(filteredData,key,digits);
       const unit=key==='area'?'ha':key==='qq'?'quintales':'';
@@ -165,7 +165,7 @@ function showProducer() {
   $('rep-code-coop').textContent = [r.code,groupLabel(r.coop),region(r)].filter(Boolean).join(' · ');
   const num = (k, suffix = '', prefix = '') => D.finite(r[k]) ? prefix+H.fmt(r[k],Number.isInteger(r[k])?0:2)+suffix : null;
   const yes = x => x === 1 ? 'Sí' : x === 0 ? 'No' : null;
-  const fields = [['Actividad solicitada',r.activity ? prettyLabel(r.activity) : null],['Monto solicitado',num('amount','','S/ ')],['Café entregado',num('qq',' quintales')],['Área de café',num('area',' ha')],['Ingreso principal declarado',num('income','','S/ ')],['Celular propio',({SMARTPHONE:'Teléfono inteligente',BASICO:'Celular de teclas',NINGUNO:'Sin celular'})[r.phone]||r.phone],['Antigüedad del socio titular',num('years',' años')],['¿La beneficiaria tiene ahorros o aportes de capital en su cooperativa?',yes(r.savingsCoop)],['¿La persona titular tiene un crédito vigente con la cooperativa?',yes(r.coopCredit)]];
+  const fields = [['Actividad solicitada',r.activity ? prettyLabel(r.activity) : null],['Monto solicitado',num('amount','','S/ ')],['Café entregado',num('qq',' quintales')],['Área de café',num('area',' ha')],['Ingreso principal declarado',num('income','','S/ ')],['Celular propio',({SMARTPHONE:'Smartphone',BASICO:'Celular de teclas',NINGUNO:'Sin celular'})[r.phone]||r.phone],['Antigüedad de la socia titular',num('years',' años')],['¿La productora tiene ahorros o aportes de capital en su cooperativa?',yes(r.savingsCoop)],['¿La socia titular tiene un crédito vigente con la cooperativa?',yes(r.coopCredit)]];
   $('producer-fields').innerHTML=fields.filter(([,v])=>v!=null).map(([k,v])=>`<div class="report-card"><h4>${H.esc(k)}</h4><div class="big">${H.esc(v)}</div></div>`).join('');
   $('btn-print-action').disabled=false;
   renderVisit(r); updateProducerExtras(r);

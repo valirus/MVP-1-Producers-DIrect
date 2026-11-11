@@ -33,14 +33,14 @@ function renderDatasetRows() {
   $('quality-next').disabled=start+batch.length>=filtered.length;
   $('quality-prev').hidden=$('quality-next').hidden=filtered.length<=datasetPageSize;
   $('quality-missing-active').hidden=!datasetMissing;
-  $('quality-missing-active').querySelector('span').textContent=datasetMissing?(datasetFilterKind==='invalid'?'No válido en ':'Vacío en ')+datasetLabel(D.fields.find(([k])=>k===datasetMissing)):'';
+  $('quality-missing-active').querySelector('span').textContent=datasetMissing?(datasetFilterKind==='invalid'?'No válido en ':'Sin respuesta en ')+datasetLabel(D.fields.find(([k])=>k===datasetMissing)):'';
 }
 function renderDataset() {
   $('quality-data').hidden=!audit;
   if(!audit)return;
   const fields=datasetFields();
   $('quality-source').textContent=audit.fileName;
-  $('quality-counts').textContent=[audit.sheets[0].name,audit.period,rawData.length+' registros',fields.length+' campos'].filter(Boolean).join(' · ');
+  $('quality-counts').textContent=[audit.sheets[0].name,audit.period,rawData.length+(rawData.length===1?' fila':' filas'),fields.length+' campos'].filter(Boolean).join(' · ');
   renderDatasetRows();
 }
 function datasetLabel([key,,label]) {
@@ -53,15 +53,15 @@ function renderCoverage() {
   const report=PDResumen.dataset(rawData,audit,profile);
   $('coverage-source').textContent=[audit.fileName,profile.name,audit.period].filter(Boolean).join(' · ');
   datasetStructure(profile);
-  $('contract-checks').innerHTML='<h3>Revisión del contrato</h3><ul class="contract-list">'+report.checks.map(c=>`<li><span class="check-mark ${c.ok?'check-ok':'check-review'}" aria-label="${c.ok?'Cumple':'Revisar'}">${c.ok?'✓':'!'}</span><div><strong>${H.esc(c.name)}</strong><span>${H.esc(c.detail)}</span></div></li>`).join('')+'</ul>';
+  $('contract-checks').innerHTML='<h3>Revisión del archivo</h3><ul class="contract-list">'+report.checks.map(c=>`<li><span class="check-mark ${c.ok?'check-ok':'check-review'}" aria-label="${c.ok?'Cumple':'Revisar'}">${c.ok?'✓':'!'}</span><div><strong>${H.esc(c.name)}</strong><span>${H.esc(c.detail)}</span></div></li>`).join('')+'</ul>';
   const fields=$('coverage-incomplete').checked?report.columns.filter(f=>f.missing>0||f.status==='absent'):report.columns;
   const kind=f=>f.stats.kind==='number'?'Numérico':f.stats.kind==='id'?'Identificador':'Categoría';
   const counts=(f,value,type)=>value?`<button type="button" class="coverage-link" data-missing="${f.key}" data-kind="${type}" aria-label="Ver ${type==='invalid'?'no válidos':'vacíos'} en ${H.esc(datasetLabel(f.field))}">${value}</button>`:'0';
-  $('coverage-table').innerHTML=fields.length?`<table class="coverage-table"><thead><tr><th scope="col">Campo</th><th scope="col">Tipo</th><th scope="col">Válidos</th><th scope="col">Vacíos</th><th scope="col">No válidos</th><th scope="col">Resumen</th></tr></thead><tbody>${fields.map(f=>`<tr><th scope="row">${H.esc(datasetLabel(f.field))}<small class="mapping-source">${H.esc(f.status==='absent'?'No incluida (opcional)':f.source)}</small></th><td>${kind(f)}</td><td>${f.filled}</td><td>${f.status==='absent'?'—':counts(f,f.empty,'empty')}</td><td>${counts(f,f.invalid,'invalid')}</td><td>${H.esc(describeText(f.stats,f.key))}</td></tr>`).join('')}</tbody></table>`:'<p class="empty-state">No hay campos por revisar.</p>';
+  $('coverage-table').innerHTML=fields.length?`<table class="coverage-table"><thead><tr><th scope="col">Campo</th><th scope="col">Tipo</th><th scope="col">Válidos</th><th scope="col">Sin respuesta</th><th scope="col">No válidos</th><th scope="col">Resumen</th></tr></thead><tbody>${fields.map(f=>`<tr><th scope="row">${H.esc(datasetLabel(f.field))}<small class="mapping-source">${H.esc(f.status==='absent'?'No incluida (opcional)':f.source)}</small></th><td>${kind(f)}</td><td>${f.filled}</td><td>${f.status==='absent'?'—':counts(f,f.empty,'empty')}</td><td>${counts(f,f.invalid,'invalid')}</td><td>${H.esc(describeText(f.stats,f.key))}</td></tr>`).join('')}</tbody></table>`:'<p class="empty-state">No hay campos por revisar.</p>';
   const invalid=D.unusableValues(rawData,audit);
   $('coverage-values').innerHTML=(invalid.length?`<details><summary>Valores no válidos (${invalid.length})</summary><div class="table-scroll">${H.table(['Fila de Excel','Campo','Motivo'],invalid.map(i=>[i.row,D.label(i.field),i.reason]))}</div></details>`:'')
     +(audit.quarantine.length?`<details><summary>Filas excluidas (${audit.quarantine.length})</summary><div class="table-scroll">${H.table(['Fila de Excel','Código','Cooperativa','Motivo'],audit.quarantine.map(r=>[r.sourceRow,r.code,r.coop,r.reason]))}</div></details>`:'');
-  $('extra-columns').innerHTML=report.extras.length?`<details><summary>Columnas fuera del tablero (${report.extras.length})</summary><div class="table-scroll">${H.table(['Columna','Tipo','Celdas llenas','Vacíos','Resumen'],report.extras.map(c=>[c.header,c.stats.kind==='number'?'Numérico':'Texto',c.stats.valid,c.stats.empty,describeText(c.stats)]))}</div></details>`:'';
+  $('extra-columns').innerHTML=report.extras.length?`<details><summary>Columnas fuera del tablero (${report.extras.length})</summary><div class="table-scroll">${H.table(['Columna','Tipo','Celdas llenas','Sin respuesta','Resumen'],report.extras.map(c=>[c.header,c.stats.kind==='number'?'Numérico':'Texto',c.stats.valid,c.stats.empty,describeText(c.stats)]))}</div></details>`:'';
 }
 function initDataset() {
   $('quality-search').addEventListener('input',()=>{datasetPage=0;renderDatasetRows();});

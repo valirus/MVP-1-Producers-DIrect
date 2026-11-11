@@ -26,7 +26,7 @@ function farmerSheet(row) {
     ? `<section class="farmer-section"><h3>Ventas registradas en seguimiento</h3><p class="farmer-line">S/ ${H.fmt(follow.salesTotal,2)} · ${follow.salesMonths} meses con ventas</p></section>`
     : '';
   return `<div class="farmer-sheet">
-    <div class="farmer-head"><div><p class="farmer-kicker">Reporte para la cooperativa</p><h2>Cooperativa ${H.esc(groupLabel(row.coop))}</h2><p class="farmer-code">Código ${H.esc(row.code)}</p></div></div>
+    <div class="farmer-head"><div><p class="farmer-kicker">Reporte para la productora</p><h2>Cooperativa ${H.esc(groupLabel(row.coop))}</h2><p class="farmer-code">Código ${H.esc(row.code)}</p></div></div>
     ${cards.length?`<div class="farmer-cards">${cards.join('')}</div>`:''}
     ${sales}
     ${amount||activity?`<section class="farmer-section"><h3>Solicitud de crédito</h3><p class="farmer-line">${[amount,activity].filter(Boolean).join(' · ')}</p></section>`:''}

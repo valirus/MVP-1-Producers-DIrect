@@ -5,7 +5,7 @@ Responde, para Producers Direct, cómo avanza el crédito después de la entrega
 ## Cómo usarla
 
 1. Carga la base de productoras con **Abrir Excel**, como siempre.
-2. Entra a **Seguimiento del crédito** y pulsa **Cargar seguimiento**. Elige los Excel de ingresos y egresos de un mismo ciclo.
+2. Entra a **Seguimiento del crédito** y pulsa **Cargar seguimiento**. Elige uno o varios Excel de ingresos y egresos de un mismo ciclo. Puedes añadir otros después.
 3. Revisa los meses y cuántas filas de cada archivo se vinculan con la base. Pulsa **Confirmar carga** o **Cancelar**.
 4. Filtra por cooperativa o por zona con los filtros de arriba.
 
@@ -24,7 +24,7 @@ El seguimiento queda en la memoria del navegador, igual que la base: no se enví
 Reglas que siguen todos los bloques:
 
 - Siempre «X de Y productoras respondieron».
-- Sin porcentajes ni montos con menos de 5 respuestas.
+- Porcentajes y montos calculados con los valores válidos disponibles.
 - Sin imputar datos.
 - Gastos de la familia solo sumados.
 - Entre cooperativas solo se comparan soles.

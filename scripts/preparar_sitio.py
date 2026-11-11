@@ -8,11 +8,11 @@ paths = [
     "index.html", "css/style.css",
     "js/data_core.js", "js/coops.js", "js/charts.js", "js/cross.js", "js/devolucion.js",
     "js/roles.js", "js/filtros.js", "js/ficha.js", "js/base_cargada.js", "js/app.js",
-    "js/seguimiento.js", "js/seguimiento_core.js",
+    "js/resumen_core.js", "js/resumen.js", "js/importacion.js", "js/seguimiento.js", "js/seguimiento_core.js",
     "vendor/xlsx.full.min.js", "vendor/chart.umd.min.js",
     "vendor/LICENSE-Chartjs.md", "vendor/LICENSE-SheetJS.txt",
-    "docs/manual.html", "docs/diccionario.html",
-    "docs/capturas/inicio.jpg", "docs/capturas/consulta.jpg", "docs/capturas/datos.jpg", "docs/capturas/ficha.jpg", "docs/capturas/cobertura.jpg",
+    "docs/manual.html", "docs/diccionario.html", "docs/seguimiento.html",
+    "docs/capturas/inicio.jpg", "docs/capturas/consulta.jpg", "docs/capturas/datos.jpg", "docs/capturas/ficha.jpg", "docs/capturas/cobertura.jpg", "docs/capturas/grafico.jpg",
 ]
 if site.is_symlink():
     raise SystemExit("Quita el enlace _site antes de generar la copia pública.")

@@ -2,7 +2,7 @@
 // Cada cooperativa tiene su propio formulario: lo que cambia entre ellas se declara aquí,
 // no en el código de los gráficos.
 
-const MIN_N = 5; // mínimo de productoras por celda para mostrar un porcentaje
+const MIN_N = 1; // agregados descriptivos sobre las respuestas disponibles
 
 // Gráficos disponibles en la página "Análisis cruzado" (ids definidos en cross.js)
 const COOP_CONFIG = {
@@ -78,26 +78,26 @@ function educationGroup(v) {
 }
 
 const INDICATORS = [
-  { id: 'smart', label: 'Smartphone propio', good: true, f: r => r.phone ? +(r.phone === 'SMARTPHONE') : null },
-  { id: 'net', label: 'Internet en casa', good: true, f: r => r.internet ? +(r.internet === 'EN_CASA') : null },
-  { id: 'lit', label: 'Sin dificultad de lectoescritura', good: true, f: r => r.literacy ? +(r.literacy === 'NINGUNA') : null },
+  { id: 'smart', label: 'Smartphone propio', good: true, f: r => ['SMARTPHONE','BASICO','NINGUNO'].includes(r.phone) ? +(r.phone === 'SMARTPHONE') : null },
+  { id: 'net', label: 'Internet en casa', good: true, f: r => ['EN_CASA','FUERA_DE_CASA','SIN_SENAL_SECTOR'].includes(r.internet) ? +(r.internet === 'EN_CASA') : null },
+  { id: 'lit', label: 'Sin dificultad de lectoescritura', good: true, f: r => ['NINGUNA','LECTURA','ESCRITURA','AMBAS'].includes(r.literacy) ? +(r.literacy === 'NINGUNA') : null },
   { id: 'train', label: 'Capacitación de la cooperativa', good: true, f: r => r.trainedCoop ?? null },
   { id: 'save', label: 'Ahorro en la cooperativa', good: true, f: r => r.savingsCoop ?? null },
   { id: 'wa', label: 'Prefiere WhatsApp', good: true, f: r => r.channels ? +r.channels.includes('WHATSAPP') : null },
   { id: 'call', label: 'Prefiere llamadas', good: true, f: r => r.channels ? +r.channels.includes('LLAMADAS') : null },
   { id: 'yape', label: 'Usa Yape', good: true, f: r => r.yape ?? null },
-  { id: 'sewer', label: 'Tiene desagüe', good: true, f: r => r.water ? +['AMBOS', 'SOLO_DESAGUE'].includes(r.water) : null },
+  { id: 'sewer', label: 'Tiene desagüe', good: true, f: r => ['AMBOS','SOLO_DESAGUE','SOLO_AGUA','NINGUNO'].includes(r.water) ? +['AMBOS', 'SOLO_DESAGUE'].includes(r.water) : null },
   { id: 'coopcred', label: 'Crédito vigente en la cooperativa', good: true, f: r => r.coopCredit ?? null }
 ];
 
 // Brechas = lo contrario de un indicador positivo (para el ranking de brechas)
 const GAPS = [
-  { label: 'Sin internet en casa', f: r => r.internet ? +(r.internet !== 'EN_CASA') : null },
-  { label: 'Sin smartphone propio', f: r => r.phone ? +(r.phone !== 'SMARTPHONE') : null },
-  { label: 'Dificultad de lectoescritura', f: r => r.literacy ? +(r.literacy !== 'NINGUNA') : null },
+  { label: 'Sin internet en casa', f: r => ['EN_CASA','FUERA_DE_CASA','SIN_SENAL_SECTOR'].includes(r.internet) ? +(r.internet !== 'EN_CASA') : null },
+  { label: 'Sin smartphone propio', f: r => ['SMARTPHONE','BASICO','NINGUNO'].includes(r.phone) ? +(r.phone !== 'SMARTPHONE') : null },
+  { label: 'Dificultad de lectoescritura', f: r => ['NINGUNA','LECTURA','ESCRITURA','AMBAS'].includes(r.literacy) ? +(r.literacy !== 'NINGUNA') : null },
   { label: 'Sin capacitación de la cooperativa', f: r => r.trainedCoop != null ? 1 - r.trainedCoop : null },
   { label: 'Sin ahorro en la cooperativa', f: r => r.savingsCoop != null ? 1 - r.savingsCoop : null },
-  { label: 'Sin desagüe', f: r => r.water ? +!['AMBOS', 'SOLO_DESAGUE'].includes(r.water) : null },
+  { label: 'Sin desagüe', f: r => ['AMBOS','SOLO_DESAGUE','SOLO_AGUA','NINGUNO'].includes(r.water) ? +!['AMBOS', 'SOLO_DESAGUE'].includes(r.water) : null },
   { label: 'Sin Yape', f: r => r.yape != null ? 1 - r.yape : null },
   { label: 'No usa ningún servicio financiero', f: r => Array.isArray(r.services) ? (r.services.includes('NINGUNO') && r.services.length>1 ? null : +r.services.includes('NINGUNO')) : null }
 ];

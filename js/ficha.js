@@ -25,15 +25,15 @@ const localStamp = (d = new Date()) => new Date(d.getTime() - d.getTimezoneOffse
 
 function stepsFor(row, stage) {
   if (stage === 'desembolsado') return USE_STEPS;
-  const activity = row.activity ? prettyLabel(row.activity).toLowerCase() : 'sin dato';
-  const amount = D.finite(row.amount) ? `S/ ${H.fmt(row.amount, 0)}` : 'sin dato';
+  const activity = row.activity ? prettyLabel(row.activity).toLowerCase() : 'vacío';
+  const amount = D.finite(row.amount) ? `S/ ${H.fmt(row.amount, 0)}` : 'vacío';
   const missing = D.missingVisitFields(row);
   return [
     `Confirmar el destino solicitado (en la base: ${activity})`,
     `Confirmar el monto solicitado (en la base: ${amount})`,
     missing.length
       ? `Completar los datos que faltan: ${missing.map((m) => m.label).join(', ')}`
-      : 'Revisar que los datos sigan vigentes (no falta ningún dato clave)'
+      : 'Confirmar los datos de la ficha'
   ];
 }
 

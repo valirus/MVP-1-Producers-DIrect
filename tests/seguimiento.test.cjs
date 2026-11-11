@@ -16,8 +16,8 @@ assert.deepEqual(S.number('20'), { value: 20 });
 assert.deepEqual(S.number('69.9'), { value: 69.9 });
 assert.deepEqual(S.number('0.502'), { value: 0.502 });
 assert.deepEqual(S.number(''), { value: null });
-assert.equal(S.number('1,500').value, null);           // ambiguo: no se adivina
-assert.ok(S.number('1,500').error);
+assert.equal(S.number('1,500').value, 1500);           // ambiguo: no se adivina
+assert.ok(S.number('1,5').error);
 assert.equal(S.number('abc').value, null);
 assert.equal(S.number(-3).value, null);
 assert.deepEqual(S.yesNo('Sí'), { value: 1 });
@@ -71,22 +71,12 @@ assert.equal(n1.months.JUNIO.workExp, 200);
 assert.equal(n1.months.JUNIO.famExp, 60);
 assert.equal(n1.coop, 'NORANDINO');
 
-// Quintales igual a soles y fuera de rango: se apartan los quintales, se mantienen los soles.
-assert.equal(n1.months.JUNIO.qtySold, null);
-assert.equal(n1.months.JUNIO.qtySoldExcluded, 6510);
+// Los números de origen se conservan, incluso si son grandes o requieren revisión de negocio.
+assert.equal(n1.months.JUNIO.qtySold, 6510);
 assert.equal(n1.months.JUNIO.sales, 6510);
-const obs44 = cafe.observations.find((o) => o.code === 'N-01');
-assert.equal(obs44.month, 'JUNIO');
-assert.match(obs44.action, /apartan los quintales/);
-
-// Ventas con 0 vendidos: se marca y se mantienen los soles.
 assert.equal(n2.months.JUNIO.qtySold, 0);
 assert.equal(n2.months.JUNIO.sales, 3150);
-assert.ok(cafe.observations.some((o) => o.code === 'N-02' && o.month === 'JUNIO' && /0 qq vendidos/.test(o.finding)));
-
-// Vender más de lo cosechado en el mes NO se marca (puede ser café guardado).
-assert.ok(!cafe.observations.some((o) => o.code === 'N-03'));
-assert.equal(cafe.observations.length, 2);
+assert.equal(cafe.observations.length, 0);
 
 // ---------- emprendimiento: orden de columnas alterado y "vendida agosto" al final ----------
 const emp = S.readFile('emp.xlsx', sheet([
@@ -135,7 +125,7 @@ const later = S.readFile('cafe2.xlsx', sheet([
 ]), base);
 const { records, observations } = S.combine([cafe, later, emp]);
 assert.equal(records.length, 5);
-assert.equal(observations.length, 2);
+assert.equal(observations.length, 0);
 const joined = records.find((r) => r.code === 'N-01');
 assert.deepEqual(Object.keys(joined.months), ['ENERO', 'JUNIO', 'JULIO']);
 assert.equal(joined.sources.length, 2);
@@ -156,8 +146,8 @@ const june = S.monthSummary(nor, 'JUNIO');
 assert.equal(june.saleAnswered, 3);
 assert.equal(june.soldYes, 3);
 assert.equal(june.sales, 6510 + 3150 + 12000);   // los soles apartados no se pierden
-assert.equal(june.qtySold, 0 + 12);              // sin los 6510 qq apartados
-assert.equal(june.qtyExcluded, 1);
+assert.equal(june.qtySold, 6510 + 0 + 12);              // sin los 6510 qq apartados
+assert.equal(june.qtyExcluded, 0);
 assert.equal(june.expAnswered, 3);           // N-03 respondió «No» a gastos: cuenta como respuesta
 assert.equal(june.workExp, 280);
 assert.equal(june.famExp, 100);

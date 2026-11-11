@@ -1,8 +1,9 @@
 /* Modos de trabajo: navegación, no autenticación ni control de acceso. */
 'use strict';
 const ROLES = {
-  consulta: { label: 'Consulta del fondo', pages: ['summary', 'production', 'inclusion', 'credit', 'seguimiento', 'producer'] },
-  datos: { label: 'Equipo de datos', pages: ['quality', 'coverage'] }
+  consulta: { label: 'Consulta del fondo', pages: ['summary', 'production', 'inclusion', 'credit', 'seguimiento'] },
+  campo: { label: 'Equipo de campo', pages: ['producer'] },
+  datos: { label: 'Equipo de datos', pages: ['coverage', 'quality'] }
 };
 let currentRole = 'consulta';
 function applyRole(key) {

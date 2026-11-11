@@ -25,10 +25,10 @@ const PDCharts=(()=>{
  }};
  if(typeof Chart!=='undefined'){Chart.defaults.font.family='Segoe UI, sans-serif';Chart.defaults.font.size=12;Chart.defaults.color='#46534A';Chart.register(lineLabels);}
  function scatter(id,rows,x,y,coops,opts={}){
-  const datasets=coops.map(coop=>({label:groupLabel(coop),data:rows.filter(r=>r.coop===coop&&D.finite(r[x])&&D.finite(r[y])).map(r=>({x:r[x],y:r[y],code:r.code,ref:r})),backgroundColor:coopColor(coop),pointStyle:marks[COOP_ORDER.indexOf(coop)%marks.length],pointRadius:4,pointHoverRadius:6})).filter(d=>d.data.length);
+  const datasets=coops.map(coop=>({label:groupLabel(coop),data:rows.filter(r=>r.coop===coop&&D.finite(r[x])&&D.finite(r[y])).map(r=>({x:r[x],y:r[y],code:r.code,ref:r})),backgroundColor:coopColor(coop),pointStyle:marks[Math.max(0,coops.indexOf(coop))%marks.length],pointRadius:4,pointHoverRadius:6})).filter(d=>d.data.length);
   chart(id,'scatter',{datasets},{plugins:{legend:{display:true,position:'top',labels:{usePointStyle:true}},tooltip:{callbacks:{label:c=>opts.tooltip?opts.tooltip(c.raw):`${c.raw.code}: ${fmt(c.raw.x)}; ${fmt(c.raw.y)}`}}},scales:{x:{title:{display:true,text:opts.xLabel||measure(x)}},y:{title:{display:true,text:opts.yLabel||measure(y)}}}});
  }
- const NICE={SMARTPHONE:'Smartphone',BASICO:'Celular de teclas','SIN DATO':'Sin dato','OTRO / REVISAR':'Otra respuesta',LECTURA:'Dificultad para leer',ESCRITURA:'Dificultad para escribir',AMBAS:'Dificultad para leer y escribir','FERTILIZACIÓN':'Fertilización','CRIANZA DE ANIMALES':'Crianza de animales','EMPRENDIMIENTO / OTROS':'Emprendimiento u otros'};
+ const NICE={SMARTPHONE:'Smartphone',BASICO:'Celular de teclas','SIN DATO':'Vacío','OTRO / REVISAR':'Otra respuesta',LECTURA:'Dificultad para leer',ESCRITURA:'Dificultad para escribir',AMBAS:'Dificultad para leer y escribir','FERTILIZACIÓN':'Fertilización','CRIANZA DE ANIMALES':'Crianza de animales','EMPRENDIMIENTO / OTROS':'Emprendimiento u otros'};
  const nice=(cat,key)=>cat==='NINGUNO'&&key==='phone'?'Sin celular':cat==='NINGUNA'?'Sin dificultad':NICE[cat]||prettyLabel(cat);
  function stacked(id,rows,key,coops,allRows){
   const visible=showChart(id,rows.some(r=>r[key]!=null)&&coops.some(c=>rows.filter(r=>r.coop===c&&r[key]!=null).length>=MIN_N));
@@ -84,7 +84,7 @@ const PDCharts=(()=>{
   }
   const activities=stacked('chart-activities',rows,'activity',coops,allRows);
   const phone=stacked('chart-phone',rows,'phone',coops,allRows),literacy=stacked('chart-literacy',rows,'literacy',coops,allRows);
-  const frequent = new Map(D.commonAmounts(rows,{top:Infinity}).map(g=>[g.coop,g]));
+  const frequent = new Map(D.commonAmounts(rows,{top:Infinity,minN:MIN_N}).map(g=>[g.coop,g]));
   const amountGroups=groups.map(([coop,group])=>[coop,group.map(r=>r.amount).filter(D.finite)]).filter(([,v])=>v.length>=MIN_N);
   const amounts=!!amountGroups.length;
   el('amount-pattern').hidden=!amounts;

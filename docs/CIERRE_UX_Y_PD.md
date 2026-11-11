@@ -1,3 +1,5 @@
+> Registro de una entrega anterior. Para los nombres, pantallas y reglas vigentes consulta el [manual](manual.html) y el [informe técnico](INFORME_TECNICO.md).
+
 # Cierre de observaciones | UX y Producers Direct
 
 **Vigencia:** la matriz de abajo registra decisiones de la iteración evaluada. En la versión actual, «Base cargada» reemplaza carga guiada, mapa PCA, correlaciones y valores atípicos. El análisis técnico reproducible sigue disponible en los notebooks locales. Los títulos, cifras y categorías del sitio responden al archivo y sus filtros; no hay interpretación generada.

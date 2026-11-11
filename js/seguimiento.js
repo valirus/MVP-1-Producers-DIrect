@@ -51,6 +51,7 @@ function segFactsFor(row) {
 
 async function segReadFiles(fileList) {
   if(!rawData.length)return;
+  if(fileList.length!==1){segState.message='Añade y revisa un solo archivo a la vez.';segRerender();return;}
   const entered=Number(segById('seg-year')?.value);
   if(!segState.profiles.length)segState.year=Number.isInteger(entered)&&entered>=1900&&entered<=2199?entered:null;
   const version=datasetVersion,request=++segRequest,year=segState.year;
@@ -136,16 +137,20 @@ function renderSeguimiento(rows) {
   if (!root) return;
   Object.values(segCharts).forEach((c) => { try { c.destroy(); } catch (e) { /* nada */ } });
   segCharts = {};
-  const header = `<article class="card-panel seg-head"><div><h3>Archivos de seguimiento</h3></div>
-    <div class="seg-actions"><div class="field"><label for="seg-year">Año del seguimiento</label><input type="number" id="seg-year" min="1900" max="2199" placeholder="AAAA" value="${segState.year||''}" ${segState.profiles.length||segState.busy?'disabled':''}></div><button type="button" class="btn-upload" id="seg-open" ${segState.busy?'disabled':''}>${segState.busy?'Leyendo…':'Añadir Excel'}</button><input type="file" id="seg-input" accept=".xlsx,.xls" multiple hidden><a href="docs/seguimiento.html" target="_blank" rel="noopener">Formato y reglas</a></div>
+  const header = `<article class="card-panel seg-head"><div><h3>Archivos de seguimiento</h3><p class="seg-intro">Añade un archivo por vez, revisa sus datos y confírmalo antes de continuar con el siguiente.</p></div>
+    <div class="seg-actions"><div class="field"><label for="seg-year">Año del seguimiento</label><input type="number" id="seg-year" min="1900" max="2199" placeholder="AAAA" value="${segState.year||''}" ${segState.profiles.length||segState.busy?'disabled':''}></div><button type="button" class="btn-upload" id="seg-open" ${segState.busy?'disabled':''}>${segState.busy?'Leyendo…':'Añadir archivo'}</button><input type="file" id="seg-input" accept=".xlsx,.xls" hidden></div>
     ${segState.message?`<p class="seg-message" role="status">${H.esc(segState.message)}</p>`:''}
     ${segState.profiles.length?`<div class="seg-files table-scroll">${H.table(['Archivo','Hoja','Meses','Productoras vinculadas'],segState.profiles.map(p=>[p.fileName,p.sheet,p.months.map(segMonthLabel).join(', '),p.matched]))}</div><div class="seg-file-tools">${segState.profiles.map((p,i)=>`<button type="button" class="btn-print" data-seg-remove="${p.id}" aria-label="Quitar ${H.esc(p.fileName)}">Quitar archivo ${i+1}</button>`).join('')}</div>`:''}</article>`;
-  if (segState.pending) { root.innerHTML = header + segReviewPanel(); return; }
-  if (!segState.records.length) { root.innerHTML = header + '<p class="cx-empty">Todavía no hay seguimiento cargado.</p>'; return; }
+  const contract = `<article class="card-panel seg-contract" aria-labelledby="seg-contract-title"><h3 id="seg-contract-title">Contrato del archivo</h3>
+    <p>Se aceptan el formato mensual y los formularios anchos compatibles. En ambos casos se identifican las columnas por sus encabezados, no por su posición.</p>
+    <ul><li>Incluye el código de productora y el mes; agrega la cooperativa si un código aparece en más de una.</li><li>Incluye un solo año por sesión; si el archivo no lo indica, selecciónalo antes de cargarlo.</li><li>En formato mensual, añade al menos un campo reconocido, como <code>vendio</code>, <code>ventas_pen</code> o <code>cantidad_vendida</code>. Importes y cantidades deben ser números no negativos; en texto, el punto separa decimales.</li><li>Las filas sin coincidencia no se vinculan. Duplicados y respuestas conflictivas no se suman como registros nuevos.</li></ul>
+    <a href="docs/seguimiento.html" target="_blank" rel="noopener">Ver encabezados, unidades y reglas completas</a></article>`;
+  if (segState.pending) { root.innerHTML = header + contract + segReviewPanel(); return; }
+  if (!segState.records.length) { root.innerHTML = header + contract + '<p class="cx-empty">Todavía no hay seguimiento cargado.</p>'; return; }
 
   const recs = segRecordsFor(rows);
   const coops = segCoops(recs);
-  if (!recs.length) { root.innerHTML = header + '<p class="cx-empty">Ninguna productora de la selección actual tiene seguimiento. Prueba quitando filtros.</p>'; return; }
+  if (!recs.length) { root.innerHTML = header + contract + '<p class="cx-empty">Ninguna productora de la selección actual tiene seguimiento. Prueba quitando filtros.</p>'; return; }
   const months = SEG.monthsPresent(recs);
   const draws = [];
 
@@ -202,7 +207,7 @@ function renderSeguimiento(rows) {
   const moneyCard = hasMoney ? segCard(12, 'Ingresos y gastos por mes (S/)', `<div class="chart-box"><canvas id="seg-money" role="img" aria-label="Ventas y gastos por mes"></canvas></div>${segTable(['Cooperativa', 'Mes', 'Ventas (respondieron)', 'Gasto de la finca o emprendimiento', 'Gasto de la familia'], money)}`,
     'Entre paréntesis, cuántas productoras dieron ese dato. «Ventas» es lo que recibió por vender (precio por cantidad), sin restar costos, aunque el formulario lo llame «ganancia». No se calcula «ventas menos gastos» porque las que responden ventas y gastos no son siempre las mismas cada mes. El gasto de la familia es un dato sensible: solo se muestra sumado por grupo.') : '';
 
-  root.innerHTML = header + `<div class="grid-12">${useCard}${bookCard}${salesCard}${coffeeCard}${moneyCard}</div>`
+  root.innerHTML = header + contract + `<div class="grid-12">${useCard}${bookCard}${salesCard}${coffeeCard}${moneyCard}</div>`
     + (!useCard&&!bookCard&&!salesCard&&!coffeeCard&&!moneyCard?'<p class="empty-state">No hay suficientes respuestas para mostrar gráficos en esta selección.</p>':'')
     + (segState.observations.length?`<article class="card-panel"><details><summary>Valores no utilizados (${segState.observations.length})</summary><div class="table-scroll">${H.table(['Archivo','Fila','Código','Mes','Campo','Regla'],segState.observations.map(o=>[o.file,o.row,o.code,o.month||'—',o.field,o.finding]))}</div></details></article>`:'');
   draws.forEach((d) => { try { d(); } catch (e) { console.error('Seguimiento:', e); } });

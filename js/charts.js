@@ -28,6 +28,52 @@ const PDCharts=(()=>{
   const datasets=coops.map(coop=>({label:groupLabel(coop),data:rows.filter(r=>r.coop===coop&&D.finite(r[x])&&D.finite(r[y])).map(r=>({x:r[x],y:r[y],code:r.code,ref:r})),backgroundColor:coopColor(coop),pointStyle:marks[Math.max(0,coops.indexOf(coop))%marks.length],pointRadius:4,pointHoverRadius:6})).filter(d=>d.data.length);
   chart(id,'scatter',{datasets},{plugins:{legend:{display:true,position:'top',labels:{usePointStyle:true}},tooltip:{callbacks:{label:c=>opts.tooltip?opts.tooltip(c.raw):`${c.raw.code}: ${fmt(c.raw.x)}; ${fmt(c.raw.y)}`}}},scales:{x:{title:{display:true,text:opts.xLabel||measure(x)}},y:{title:{display:true,text:opts.yLabel||measure(y)}}}});
  }
+ function renderOverview(rows){
+  const model=PDResumen.overview(rows),level={territory:'distrito',base:'grupo local',coop:'cooperativa',selection:'selección'}[model.level];
+  const metrics=[
+   {key:'amount',suffix:'amount',label:'Monto solicitado',unit:'S/',digits:2,color:VIZ.cat[0]},
+   {key:'area',suffix:'area',label:'Área de café',unit:'ha',digits:2,color:VIZ.cat[2]},
+   {key:'qq',suffix:'qq',label:'Café entregado',unit:'quintales',digits:2,color:VIZ.cat[1]}
+  ];
+  let visible=false;
+  metrics.forEach(metric=>{
+   const id='overview-'+metric.suffix+'-chart',canvas=el(id),article=canvas.closest('article');
+   const groups=PDResumen.metricGroups(rows,metric.key);
+   article.hidden=!groups.length;
+   if(!groups.length)return;
+   visible=true;
+   const title=model.level==='selection'?`${metric.label} en la selección`:`${metric.label} por ${level}`;
+   el('overview-'+metric.suffix+'-title').textContent=title;
+   canvas.setAttribute('aria-label',title);
+   const plotted=groups.length>10
+    ? [...groups.slice(0,9),groups.slice(9).reduce((other,group)=>({
+       name:'Otros grupos',records:other.records+group.records,answered:other.answered+group.answered,total:other.total+group.total
+      }),{name:'Otros grupos',records:0,answered:0,total:0})]
+    : groups;
+   el('overview-'+metric.suffix+'-note').textContent=`Suma de los valores disponibles; cada barra incluye ${metric.label.toLowerCase()} con dato.`
+    +(groups.length>10?' Los grupos restantes se reúnen en «Otros grupos».':'');
+   const formatTotal=total=>(metric.unit==='S/'?'S/ ':'')+fmt(total,metric.digits)+(metric.unit==='S/'?'':' '+metric.unit);
+   el('overview-'+metric.suffix+'-table').innerHTML=table(
+    ['Grupo','Con dato','Total'],
+    groups.map(group=>[groupLabel(group.name),`${group.answered} de ${group.records}`,formatTotal(group.total)])
+   );
+   const chartBox=canvas.closest('.chart-box');
+   chartBox.style.height=`${Math.max(220,plotted.length*32+76)}px`;
+   chart(id,'bar',{labels:plotted.map(group=>`${groupLabel(group.name)} · ${group.answered}/${group.records}`),
+    datasets:[{label:metric.label,data:plotted.map(group=>group.total),backgroundColor:metric.color,borderRadius:4,maxBarThickness:30}]},{
+    indexAxis:'y',
+    plugins:{
+     legend:{display:false},
+     tooltip:{callbacks:{label:context=>{
+      const group=plotted[context.dataIndex];
+      return `${formatTotal(group.total)} · ${group.answered} de ${group.records} con dato`;
+     }}}
+    },
+    scales:{x:{beginAtZero:true,title:{display:true,text:metric.unit==='S/'?'Soles':metric.unit},ticks:{callback:value=>metric.unit==='S/'?'S/ '+Number(value).toLocaleString('es-PE'):Number(value).toLocaleString('es-PE')}}}
+   });
+  });
+  el('overview-charts').hidden=!visible;
+ }
  const NICE={SMARTPHONE:'Smartphone',BASICO:'Celular de teclas','SIN DATO':'Vacío','OTRO / REVISAR':'Otra respuesta',LECTURA:'Dificultad para leer',ESCRITURA:'Dificultad para escribir',AMBAS:'Dificultad para leer y escribir','FERTILIZACIÓN':'Fertilización','CRIANZA DE ANIMALES':'Crianza de animales','EMPRENDIMIENTO / OTROS':'Emprendimiento u otros'};
  const nice=(cat,key)=>cat==='NINGUNO'&&key==='phone'?'Sin celular':cat==='NINGUNA'?'Sin dificultad':NICE[cat]||prettyLabel(cat);
  function stacked(id,rows,key,coops,allRows){
@@ -68,6 +114,7 @@ const PDCharts=(()=>{
  }
  function render(rows,allRows){
   Object.values(charts).forEach(c=>c.destroy());for(const k of Object.keys(charts))delete charts[k];
+  renderOverview(rows);
   const coops=[...new Set(rows.map(r=>r.coop))].sort(),groups=groupRows(rows,'coop');
   const stats=groups.map(([c,rs])=>{const vals=rs.map(r=>r.qq).filter(D.finite);return {c,n:vals.length,median:D.median(vals)};}).filter(s=>s.n>=MIN_N);
   const coffee=showChart('chart-qq-coop',stats.length);

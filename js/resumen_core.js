@@ -14,6 +14,12 @@
     rows.forEach(r=>{const name=get(r)||'Ubicación vacía';if(!groups.has(name))groups.set(name,[]);groups.get(name).push(r);});
     return {level,title,groups:[...groups].map(([name,records])=>({name,records,n:records.length})).sort((a,b)=>b.n-a.n||a.name.localeCompare(b.name,'es'))};
   }
+  function metricGroups(rows,key){
+    return overview(rows).groups.map(({name,records,n})=>{
+      const values=records.map(r=>r[key]).filter(D.finite);
+      return {name,records:n,answered:values.length,total:values.reduce((sum,value)=>sum+value,0)};
+    }).filter(group=>group.answered);
+  }
   function tiles(groups,width=900,height=280){
     const out=[];
     function split(items,x,y,w,h){
@@ -79,5 +85,5 @@
     });
     return {columns,checks,extras,inputRows:input.length,repeated,missingKeys};
   }
-  const api={place,overview,tiles,describe,dataset};root.PDResumen=api;if(typeof module!=='undefined')module.exports=api;
+  const api={place,overview,metricGroups,tiles,describe,dataset};root.PDResumen=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

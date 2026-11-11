@@ -51,7 +51,7 @@
  </article>
  <article class="card-panel col-12"><h3>Destino de las solicitudes por cooperativa</h3><div class="chart-box"><canvas id="chart-activities" role="img" aria-label="Destino de las solicitudes por cooperativa"></canvas></div><details><summary>Ver cifras</summary><div id="chart-activities-table" class="table-scroll"></div></details></article>
 </div></section>
-<section class="page" id="inclusion-page"><div class="grid-12"><article class="card-panel col-6"><h3>Celular propio por cooperativa</h3><div class="chart-box"><canvas id="chart-phone" role="img" aria-label="Celular propio por cooperativa"></canvas></div><details><summary>Ver cifras</summary><div id="chart-phone-table" class="table-scroll"></div></details></article><article class="card-panel col-6"><h3>Lectoescritura por cooperativa</h3><div class="chart-box"><canvas id="chart-literacy" role="img" aria-label="Lectoescritura por cooperativa"></canvas></div><details><summary>Ver cifras</summary><div id="chart-literacy-table" class="table-scroll"></div></details></article></div><div id="cross-grid" class="grid-12"></div></section>
+<section class="page" id="inclusion-page"><div class="grid-12"><article class="card-panel col-6"><h3>Celular propio por cooperativa</h3><div class="chart-box"><canvas id="chart-phone" role="img" aria-label="Celular propio por cooperativa"></canvas></div><details><summary>Ver cifras</summary><div id="chart-phone-table" class="table-scroll"></div></details></article><article class="card-panel col-6"><h3>Dificultad para leer o escribir por cooperativa</h3><div class="chart-box"><canvas id="chart-literacy" role="img" aria-label="Dificultad para leer o escribir por cooperativa"></canvas></div><details><summary>Ver cifras</summary><div id="chart-literacy-table" class="table-scroll"></div></details></article></div><div id="cross-grid" class="grid-12"></div></section>
 <section class="page" id="producer-page">
 <div class="card-panel producer-picker">
 <p id="producer-note" role="status" hidden></p>
@@ -62,7 +62,7 @@
   <button class="btn-print" id="producer-more" type="button" hidden>Ver más productoras</button>
 </div>
 <button class="btn-print" id="producer-change" type="button" hidden>Cambiar productora</button>
-</div><div class="actions ficha-actions"><button type="button" class="btn-print" id="btn-print-action" disabled>Imprimir ficha</button></div><div class="report-toggle" role="group" aria-label="Tipo de hoja"><button type="button" data-view="visit" aria-pressed="true">Ficha de visita</button><button type="button" data-view="farmer" aria-pressed="false">Reporte para la cooperativa</button></div><div class="report-shell" id="report-printable"><div class="report-header"><div><h2>Ficha de visita</h2><p id="rep-code-coop" tabindex="-1"></p></div></div><div id="producer-fields" class="report-grid"></div></div><details class="card-panel visit-record no-print" id="visit-record" hidden><summary>Registrar una visita</summary>
+</div><div class="actions ficha-actions"><button type="button" class="btn-print" id="btn-print-action" disabled>Imprimir ficha</button></div><div class="report-toggle" role="group" aria-label="Tipo de hoja"><button type="button" data-view="visit" aria-pressed="true">Para la visita</button><button type="button" data-view="farmer" aria-pressed="false">Para la productora</button></div><div class="report-shell" id="report-printable"><div class="report-header"><div><h2>Ficha de visita</h2><p id="rep-code-coop" tabindex="-1"></p></div></div><div id="producer-fields" class="report-grid"></div></div><details class="card-panel visit-record no-print" id="visit-record" hidden><summary>Registrar una visita</summary>
 <p class="seg-hint" id="visit-seg" hidden></p>
 <div class="visit-controls">
 <div class="field"><label for="visit-stage">Etapa del crédito</label><select id="visit-stage"><option value="solicitud">Solicitud (antes del desembolso)</option><option value="desembolsado">Desembolsado (confirmado por ROTA)</option></select></div>
@@ -93,7 +93,7 @@
 </section>
 <section class="page" id="coverage-page">
   <article class="card-panel data-preview">
-    <div class="data-preview-top"><div><p id="coverage-source" class="data-source"></p></div><div class="actions"><a href="docs/diccionario.html" target="_blank" rel="noopener">Contrato de datos</a><button type="button" class="btn-print" id="configure-data">Asignar columnas</button></div></div>
+    <div class="data-preview-top"><div><p id="coverage-source" class="data-source"></p></div><div class="actions"><a href="docs/diccionario.html" target="_blank" rel="noopener">Revisión del archivo</a><button type="button" class="btn-print" id="configure-data">Asignar columnas</button></div></div>
     <div id="workbook-overview"></div>
     <div id="contract-checks" class="contract-checks"></div>
     <div class="description-heading"><h3>Campos del tablero</h3><label class="coverage-toggle"><input id="coverage-incomplete" type="checkbox"> Solo campos por revisar</label></div>

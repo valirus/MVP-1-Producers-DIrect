@@ -6,7 +6,7 @@
   function overview(rows){
     const distinct=fn=>new Set(rows.map(fn).filter(v=>v!=null)).size;
     let level,title,get;
-    if(distinct(place)>1){level='territory';title='Productoras por distrito';get=place;}
+    if(distinct(place)>1){level='territory';title='Productoras por distrito y provincia';get=place;}
     else if(distinct(r=>r.base)>1){level='base';title='Productoras por grupo local';get=r=>r.base;}
     else if(distinct(r=>r.coop)>1){level='coop';title='Productoras por cooperativa';get=r=>r.coop;}
     else {level='selection';title=rows.length?(place(rows[0])||rows[0].base||rows[0].coop):'Resumen de la selección';get=r=>place(r)||r.base||r.coop;}

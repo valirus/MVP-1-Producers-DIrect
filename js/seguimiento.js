@@ -127,11 +127,17 @@ function segYesNoBlock(id, recs, coops, field, label) {
   };
 }
 
-function segTallyTable(recs, field, filter, head) {
+function segTallyTable(recs, field, filter, head, blankLabel) {
   // Una tabla por cooperativa, con su nombre, para que se sepa de qué zona son las respuestas.
+  // Con blankLabel se añade una fila con quienes respondieron pero no escribieron el motivo.
   return segCoops(recs).map((c) => {
-    const t = SEG.tally(recs.filter((r) => r.coop === c), field, filter);
-    return t.answered >= MIN_N ? `<p class="chart-note"><strong>${H.esc(groupLabel(c))}</strong>: ${t.answered} respuestas, tal como se escribieron:</p>` + segTable([head, 'Productoras'], t.items.filter((i) => i.n >= MIN_N).slice(0, 8).map((i) => [i.label, i.n])) : '';
+    const own = recs.filter((r) => r.coop === c);
+    const t = SEG.tally(own, field, filter);
+    if (t.answered < MIN_N) return '';
+    const blanks = blankLabel ? own.filter(filter).length - t.answered : 0;
+    const rows = t.items.filter((i) => i.n >= MIN_N).slice(0, 8).map((i) => [i.label, i.n]);
+    if (blanks > 0) rows.push([blankLabel, blanks]);
+    return `<p class="chart-note"><strong>${H.esc(groupLabel(c))}</strong>: ${t.answered} respuestas, tal como se escribieron:</p>` + segTable([head, 'Productoras'], rows);
   }).join('');
 }
 
@@ -160,7 +166,7 @@ function renderSeguimiento(rows) {
   // Uso del crédito
   const fert = segYesNoBlock('seg-fert', recs, coops, 'fertUsed', '¿Ya aplicó el fertilizante?');
   draws.push(fert.draw);
-  const why = segTallyTable(recs, 'fertWhyNot', (r) => r.statics.fertUsed === 0, 'Motivo para no aplicarlo');
+  const why = segTallyTable(recs, 'fertWhyNot', (r) => r.statics.fertUsed === 0, 'Motivo para no aplicarlo', 'Sin motivo indicado');
   const act = segTallyTable(recs, 'activity', () => true, 'Actividad financiada');
   const hasFert=recs.some(r=>r.statics.fertUsed!=null);
   const useCard = hasFert||act ? segCard(6, hasFert&&act?'Uso del crédito':hasFert?'Uso del crédito: ¿ya aplicó el fertilizante?':'Actividad financiada', (hasFert?(act?'<p class="chart-note"><strong>¿Ya aplicó el fertilizante?</strong></p>':'')+fert.html+why:'') + (act ? act : ''),
@@ -190,7 +196,7 @@ function renderSeguimiento(rows) {
   const soon = SEG.yesNoSummary(recs.filter((r) => r.statics.coopDelivered === 0), 'coopSoon');
   const coffeeCard = recs.some(r=>r.statics.coopDelivered!=null) ? segCard(6, 'Venta de café: ¿lo llevó a la cooperativa?', deliver.html
     + (soon.answered>=MIN_N ? `<p class="chart-note">De las que aún no lo llevaron, ${soon.yes} de ${soon.answered} dicen que lo llevarán pronto.</p>` : '')
-    + segTallyTable(recs, 'coopWhyNot', (r) => r.statics.coopDelivered === 0, 'Motivo para no llevarlo'),
+    + segTallyTable(recs, 'coopWhyNot', (r) => r.statics.coopDelivered === 0, 'Motivo para no llevarlo', 'Sin motivo indicado'),
     '') : '';
 
   // Ingresos y gastos

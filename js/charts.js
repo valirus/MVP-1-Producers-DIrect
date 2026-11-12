@@ -5,7 +5,7 @@ const PDCharts=(()=>{
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const table=(headers,rows)=>`<table><thead><tr>${headers.map(h=>`<th scope="col">${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(x=>`<td>${esc(x)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
  const el=id=>document.getElementById(id);
- const measure=k=>k==='area'?'Área de café (ha)':D.label(k);
+ const measure=k=>k==='area'?'Área de café (hectáreas)':D.label(k);
  function chart(id,type,data,options={}){if(typeof Chart==='undefined')return;
   charts[id]=new Chart(el(id),{type,data,options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:false}},...options}});
  }
@@ -15,8 +15,6 @@ const PDCharts=(()=>{
   c.data.datasets.forEach((d,i)=>c.isDatasetVisible(i)&&c.getDatasetMeta(i).data.forEach((bar,j)=>{
    const width=Math.abs(bar.x-bar.base), x=(bar.x+bar.base)/2;
    let label=Math.round(d.data[j])+'%';
-   const full=d.counts?label+' · '+d.counts[j]:label;
-   if(ctx.measureText(full).width+8<=width)label=full;
    const labelWidth=ctx.measureText(label).width+8;
    if(d.data[j]>=9 && width>=labelWidth+2){
     ctx.fillStyle='#fff';ctx.fillText(label,x,bar.y);
@@ -32,7 +30,7 @@ const PDCharts=(()=>{
   const model=PDResumen.overview(rows),level={territory:'distrito',base:'grupo local',coop:'cooperativa',selection:'selección'}[model.level];
   const metrics=[
    {key:'amount',suffix:'amount',label:'Monto solicitado',unit:'S/',digits:2,color:VIZ.cat[0]},
-   {key:'area',suffix:'area',label:'Área de café',unit:'ha',digits:2,color:VIZ.cat[2]},
+   {key:'area',suffix:'area',label:'Área de café',unit:'hectáreas',digits:2,color:VIZ.cat[2]},
    {key:'qq',suffix:'qq',label:'Café entregado',unit:'quintales',digits:2,color:VIZ.cat[1]}
   ];
   let visible=false;
@@ -59,7 +57,7 @@ const PDCharts=(()=>{
    );
    const chartBox=canvas.closest('.chart-box');
    chartBox.style.height=`${Math.max(220,plotted.length*32+76)}px`;
-   chart(id,'bar',{labels:plotted.map(group=>`${groupLabel(group.name)} · ${group.answered}/${group.records}`),
+   chart(id,'bar',{labels:plotted.map(group=>groupLabel(group.name)),
     datasets:[{label:metric.label,data:plotted.map(group=>group.total),backgroundColor:metric.color,borderRadius:4,maxBarThickness:30}]},{
     indexAxis:'y',
     plugins:{
@@ -97,7 +95,7 @@ const PDCharts=(()=>{
     label:nice(cat,key),counts:counts[k],data:counts[k].map((n,j)=>100*n/ns[j]),
     backgroundColor:palette[index(cat)],borderWidth:0,barThickness:'flex',maxBarThickness:46
    }));
-   chart(id,'bar',{labels:groups.map(g=>groupLabel(g.coop)+' · '+g.answers.length+'/'+g.total),datasets},{
+   chart(id,'bar',{labels:groups.map(g=>groupLabel(g.coop)),datasets},{
     indexAxis:'y',pdPercent:true,
     plugins:{legend:{display:true,position:'bottom',onClick:()=>{},labels:{boxWidth:12,padding:14}},
      tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmt(c.raw,1)}% (${counts[c.datasetIndex][c.dataIndex]} de ${ns[c.dataIndex]})`}}},
@@ -119,14 +117,14 @@ const PDCharts=(()=>{
   const stats=groups.map(([c,rs])=>{const vals=rs.map(r=>r.qq).filter(D.finite);return {c,n:vals.length,median:D.median(vals)};}).filter(s=>s.n>=MIN_N);
   const coffee=showChart('chart-qq-coop',stats.length);
   if(coffee){
-   chart('chart-qq-coop','bar',{labels:stats.map(s=>groupLabel(s.c)+' · '+s.n+' con dato'),datasets:[{data:stats.map(s=>s.median),backgroundColor:stats.map(s=>coopColor(s.c)),maxBarThickness:58,borderRadius:5}]},{scales:{y:{beginAtZero:true,title:{display:true,text:'Quintales'}}}});
+   chart('chart-qq-coop','bar',{labels:stats.map(s=>groupLabel(s.c)),datasets:[{data:stats.map(s=>s.median),backgroundColor:stats.map(s=>coopColor(s.c)),maxBarThickness:58,borderRadius:5}]},{scales:{y:{beginAtZero:true,title:{display:true,text:'Quintales'}}}});
    el('chart-qq-coop-table').innerHTML=table(['Cooperativa','Productoras con dato','Mediana (quintales)'],stats.map(s=>[groupLabel(s.c),s.n,fmt(s.median,1)]));
   }
   const pairGroups=groupRows(rows.filter(r=>D.finite(r.area)&&D.finite(r.qq)),'coop').filter(([,r])=>r.length>=MIN_N);
   const pairs=pairGroups.flatMap(([,r])=>r);
   const yieldPlot=showChart('chart-yield',pairs.length);
   if(yieldPlot){
-   scatter('chart-yield',pairs,'area','qq',coops,{tooltip:p=>[fmt(p.x,2)+' ha',fmt(p.y,1)+' quintales']});
+   scatter('chart-yield',pairs,'area','qq',coops,{tooltip:p=>[fmt(p.x,2)+' hectáreas',fmt(p.y,1)+' quintales']});
    el('chart-yield-table').innerHTML=table(['Cooperativa','Registros con ambos datos'],groupRows(pairs,'coop').map(([g,r])=>[groupLabel(g),r.length]));
   }
   const activities=stacked('chart-activities',rows,'activity',coops,allRows);
@@ -157,7 +155,6 @@ const PDCharts=(()=>{
    chart('chart-amounts','bar',{labels,datasets:visible.map(g=>({label:g.name,data:g.values.map(n=>n||null),skipNull:true,backgroundColor:g.color,maxBarThickness:36,borderRadius:3}))},{
     interaction:{mode:'index',intersect:false},
     plugins:{legend:{display:true,position:'top',onClick:()=>{},labels:{boxWidth:12,
-     generateLabels:c=>Chart.defaults.plugins.legend.labels.generateLabels(c).map((item,i)=>({...item,text:item.text+' · '+visible[i].values.reduce((a,b)=>a+b,0)}))
     }}},
     scales:{x:{title:{display:true,text:scale.exact?'Monto exacto (S/)':'Rango de monto (S/)'},grid:{display:false},ticks:{maxRotation:45}},
      y:{beginAtZero:true,title:{display:true,text:'Solicitudes'},ticks:{precision:0}}}

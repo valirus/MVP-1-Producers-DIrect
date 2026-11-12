@@ -16,7 +16,7 @@ function peerText(row, key, format) {
 
 function farmerSheet(row) {
   const cards = [];
-  if (D.finite(row.area)) cards.push(farmerCard('🌱', `Área de café: <strong>${H.fmt(row.area, 2)} ha</strong>`, peerText(row, 'area', v=>H.fmt(v, 2)+' ha')));
+  if (D.finite(row.area)) cards.push(farmerCard('🌱', `Área de café: <strong>${H.fmt(row.area, 2)} hectáreas</strong>`, peerText(row, 'area', v=>H.fmt(v, 2)+' hectáreas')));
   if (D.finite(row.qq)) cards.push(farmerCard('☕', `Café entregado: <strong>${reportNumber(row.qq)} quintales</strong>`, peerText(row, 'qq', v=>reportNumber(v)+' quintales')));
   if (D.finite(row.income)) cards.push(farmerCard('💰', `Ingreso principal: <strong>S/ ${reportNumber(row.income)}</strong>`, peerText(row, 'income', v=>'S/ '+reportNumber(v))));
   const activity=row.activity?H.esc(prettyLabel(row.activity)):'';

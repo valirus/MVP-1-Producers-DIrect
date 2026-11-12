@@ -44,7 +44,7 @@ function renderDataset() {
   renderDatasetRows();
 }
 function datasetLabel([key,,label]) {
-  return key==='area'?'Área de café (ha)':key==='base'?'Grupo local':label;
+  return key==='area'?'Área de café (hectáreas)':key==='base'?'Grupo local':label;
 }
 function renderCoverage() {
   if(!audit)return;

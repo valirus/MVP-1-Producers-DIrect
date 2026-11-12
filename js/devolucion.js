@@ -11,7 +11,7 @@ function farmerCard(icon, text, peer) {
 // Compara con la productora típica (mediana) de su cooperativa, solo si hay MIN_N o más con dato.
 function peerText(row, key, format) {
   const peer = D.peerMedian(rawData, row, key, Math.max(2,MIN_N));
-  return peer ? `Mediana de la cooperativa: <strong>${format(peer.median)}</strong> (${H.fmt(peer.n, 0)} productoras).` : '';
+  return peer ? `Una productora típica de tu cooperativa: <strong>${format(peer.median)}</strong> (según ${H.fmt(peer.n, 0)} productoras).` : '';
 }
 
 function farmerSheet(row) {
@@ -28,6 +28,7 @@ function farmerSheet(row) {
   return `<div class="farmer-sheet">
     <div class="farmer-head"><div><p class="farmer-kicker">Reporte para la productora</p><h2>Cooperativa ${H.esc(groupLabel(row.coop))}</h2><p class="farmer-code">Código ${H.esc(row.code)}</p></div></div>
     ${cards.length?`<div class="farmer-cards">${cards.join('')}</div>`:''}
+    ${cards.some(c=>c.includes('farmer-peer'))?'<p class="farmer-peer farmer-note">«Típica» es el valor del medio: la mitad de las productoras de tu cooperativa tiene menos que eso y la otra mitad tiene más.</p>':''}
     ${sales}
     ${amount||activity?`<section class="farmer-section"><h3>Solicitud de crédito</h3><p class="farmer-line">${[amount,activity].filter(Boolean).join(' · ')}</p></section>`:''}
   </div>`;

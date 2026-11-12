@@ -56,8 +56,8 @@ const PDCharts=(()=>{
     groups.map(group=>[groupLabel(group.name),`${group.answered} de ${group.records}`,formatTotal(group.total)])
    );
    const chartBox=canvas.closest('.chart-box');
-   chartBox.style.height=`${Math.max(220,plotted.length*32+76)}px`;
-   chart(id,'bar',{labels:plotted.map(group=>groupLabel(group.name)),
+   chartBox.style.height=`${Math.max(240,plotted.length*46+76)}px`;
+   chart(id,'bar',{labels:plotted.map(group=>{const n=groupLabel(group.name),i=n.indexOf(' - ');return i>0?[n.slice(0,i),n.slice(i+3)]:n;}),
     datasets:[{label:metric.label,data:plotted.map(group=>group.total),backgroundColor:metric.color,borderRadius:4,maxBarThickness:30}]},{
     indexAxis:'y',
     plugins:{

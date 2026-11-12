@@ -111,17 +111,30 @@ function segCoops(recs) {
   return [...new Set(recs.map((r) => r.coop))].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
 }
 
-// Barra de % Sí por cooperativa para una pregunta Sí/No.
-function segYesNoBlock(id, recs, coops, field, label) {
+// Etiqueta con el porcentaje al final de cada barra (la cantidad exacta va en «Ver cifras»).
+const segPctLabels = { id: 'segPctLabels', afterDatasetsDraw(c) {
+  const ctx = c.ctx; ctx.save(); ctx.font = "600 12px 'Segoe UI', sans-serif"; ctx.textBaseline = 'middle';
+  c.getDatasetMeta(0).data.forEach((bar, i) => {
+    const label = Math.round(c.data.datasets[0].data[i]) + '%', inside = Math.abs(bar.x - bar.base) > 46;
+    ctx.textAlign = inside ? 'right' : 'left'; ctx.fillStyle = inside ? '#fff' : '#1F2A24';
+    ctx.fillText(label, inside ? bar.x - 8 : bar.x + 8, bar.y);
+  });
+  ctx.restore();
+} };
+
+// Barra de % Sí por cooperativa para una pregunta Sí/No. Las cantidades van en «Ver cifras».
+function segYesNoBlock(id, recs, coops, field, label, extra = '') {
   const stats = coops.map((c) => ({ c, ...SEG.yesNoSummary(recs.filter((r) => r.coop === c), field) })).filter((s) => s.answered > 0);
   if (!stats.some(s=>s.answered>=MIN_N)) return { html: '<p class="chart-note">No hay suficientes respuestas para comparar esta pregunta.</p>', draw: () => {} };
   const shown = stats.filter((s) => s.answered >= MIN_N);
+  const figures = segTable(['Cooperativa', 'Respondieron', 'Sí', 'No', '% que respondió sí'], shown.map((s) => [groupLabel(s.c), s.answered, s.yes, s.answered - s.yes, segPct(s.yes, s.answered)]));
   return {
     html: `<div class="chart-box chart-box--short"><canvas id="${id}" role="img" aria-label="${H.esc(label)}"></canvas></div>`
-      + `<p class="chart-note">${shown.map((s) => `${H.esc(groupLabel(s.c))}: ${s.yes} de ${s.answered} respondieron que sí (${segPct(s.yes, s.answered)})`).join('. ')}.</p>`,
+      + `<details class="mini-details"><summary>Ver cifras</summary>${figures}${extra}</details>`,
     draw: () => segChart(id, {
       type: 'bar',
-      data: { labels: shown.map((s) => `${groupLabel(s.c)} (${s.answered})`), datasets: [{ data: shown.map((s) => +(100 * s.yes / s.answered).toFixed(1)), backgroundColor: shown.map((s) => coopColor(s.c)), borderRadius: 4 }] },
+      plugins: [segPctLabels],
+      data: { labels: shown.map((s) => groupLabel(s.c)), datasets: [{ data: shown.map((s) => +(100 * s.yes / s.answered).toFixed(1)), backgroundColor: shown.map((s) => coopColor(s.c)), borderRadius: 4 }] },
       options: { indexAxis: 'y', plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.parsed.x}% (${shown[c.dataIndex].yes} de ${shown[c.dataIndex].answered})` } } }, scales: { x: { min: 0, max: 100, ticks: { callback: (v) => v + '%' } } } }
     })
   };
@@ -137,7 +150,7 @@ function segTallyTable(recs, field, filter, head, blankLabel) {
     const blanks = blankLabel ? own.filter(filter).length - t.answered : 0;
     const rows = t.items.filter((i) => i.n >= MIN_N).slice(0, 8).map((i) => [i.label, i.n]);
     if (blanks > 0) rows.push([blankLabel, blanks]);
-    return `<p class="chart-note"><strong>${H.esc(groupLabel(c))}</strong>: ${t.answered} respuestas, tal como se escribieron:</p>` + segTable([head, 'Productoras'], rows);
+    return `<p class="chart-note"><strong>${H.esc(groupLabel(c))}</strong>: respuestas tal como se escribieron</p>` + segTable([head, 'Productoras'], rows);
   }).join('');
 }
 
@@ -191,11 +204,12 @@ function renderSeguimiento(rows) {
     `Cada barra es el % de quienes respondieron ese mes. Los quintales solo aplican al café; en emprendimiento las cantidades están en kg o unidades y no se suman.`) : '';
 
   // Venta de café a la cooperativa
-  const deliver = segYesNoBlock('seg-deliver', recs, coops, 'coopDelivered', '¿Llevó su café a la cooperativa?');
-  draws.push(deliver.draw);
   const soon = SEG.yesNoSummary(recs.filter((r) => r.statics.coopDelivered === 0), 'coopSoon');
+  const deliver = segYesNoBlock('seg-deliver', recs, coops, 'coopDelivered', '¿Llevó su café a la cooperativa?',
+    soon.answered >= MIN_N ? `<p class="chart-note">De las que aún no lo llevaron: ${soon.yes} de ${soon.answered} dicen que lo llevarán pronto.</p>` : '');
+  draws.push(deliver.draw);
   const coffeeCard = recs.some(r=>r.statics.coopDelivered!=null) ? segCard(6, 'Venta de café: ¿lo llevó a la cooperativa?', deliver.html
-    + (soon.answered>=MIN_N ? `<p class="chart-note">De las que aún no lo llevaron, ${soon.yes} de ${soon.answered} dicen que lo llevarán pronto.</p>` : '')
+    + (soon.answered>=MIN_N ? `<p class="chart-note">${segPct(soon.yes, soon.answered)} de las que aún no lo llevaron dicen que lo llevarán pronto.</p>` : '')
     + segTallyTable(recs, 'coopWhyNot', (r) => r.statics.coopDelivered === 0, 'Motivo para no llevarlo', 'Sin motivo indicado'),
     '') : '';
 

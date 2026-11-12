@@ -128,8 +128,11 @@ function segYesNoBlock(id, recs, coops, field, label) {
 }
 
 function segTallyTable(recs, field, filter, head) {
-  const t = SEG.tally(recs, field, filter);
-  return t.answered>=MIN_N ? `<p class="chart-note">${t.answered} respuestas, tal como se escribieron:</p>` + segTable([head, 'Productoras'], t.items.filter(i=>i.n>=MIN_N).slice(0,8).map((i) => [i.label, i.n])) : '';
+  // Una tabla por cooperativa, con su nombre, para que se sepa de qué zona son las respuestas.
+  return segCoops(recs).map((c) => {
+    const t = SEG.tally(recs.filter((r) => r.coop === c), field, filter);
+    return t.answered >= MIN_N ? `<p class="chart-note"><strong>${H.esc(groupLabel(c))}</strong>: ${t.answered} respuestas, tal como se escribieron:</p>` + segTable([head, 'Productoras'], t.items.filter((i) => i.n >= MIN_N).slice(0, 8).map((i) => [i.label, i.n])) : '';
+  }).join('');
 }
 
 function renderSeguimiento(rows) {
@@ -160,7 +163,7 @@ function renderSeguimiento(rows) {
   const why = segTallyTable(recs, 'fertWhyNot', (r) => r.statics.fertUsed === 0, 'Motivo para no aplicarlo');
   const act = segTallyTable(recs, 'activity', () => true, 'Actividad financiada');
   const hasFert=recs.some(r=>r.statics.fertUsed!=null);
-  const useCard = hasFert||act ? segCard(6, hasFert?'Uso del crédito: ¿ya aplicó el fertilizante?':'Actividad financiada', (hasFert?fert.html+why:'') + (act ? act : ''),
+  const useCard = hasFert||act ? segCard(6, hasFert&&act?'Uso del crédito':hasFert?'Uso del crédito: ¿ya aplicó el fertilizante?':'Actividad financiada', (hasFert?(act?'<p class="chart-note"><strong>¿Ya aplicó el fertilizante?</strong></p>':'')+fert.html+why:'') + (act ? act : ''),
     '') : '';
 
   // Cuaderno

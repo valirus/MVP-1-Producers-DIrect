@@ -1,5 +1,22 @@
 /* Resúmenes de la selección y del contrato. */
 'use strict';
+/* Ajusta el nombre completo y la cantidad al recuadro: reduce la letra hasta que entren, sin recortar. */
+function tileText(name,count,w,h){
+  const pad=8,maxW=Math.max(10,w-2*pad),maxH=Math.max(10,h-2*pad),cw=.58;
+  const wrap=(size)=>{
+    const limit=Math.max(1,Math.floor(maxW/(size*cw))),lines=[];let cur='';
+    name.split(' ').forEach(word=>{const next=cur?cur+' '+word:word;if(!cur||next.length<=limit)cur=next;else{lines.push(cur);cur=word;}});
+    if(cur)lines.push(cur);return lines;
+  };
+  const fits=(lines,size)=>Math.max(...lines.map(l=>l.length))*size*cw<=maxW;
+  for(let size=15;size>=5;size-=.5){
+    const lines=wrap(size),countSize=Math.min(22,size*1.5);
+    if(fits(lines,size)&&lines.length*size*1.2+countSize*1.25<=maxH)return {size,countSize,lines,inline:false};
+    const one=name+' · '+count;
+    if(one.length*size*cw<=maxW&&size*1.3<=maxH)return {size,countSize:size,lines:[one],inline:true};
+  }
+  return {size:5,countSize:5,lines:[name+' · '+count],inline:true};
+}
 function renderOverview(rows,available,total){
   const model=PDResumen.overview(rows),groups=model.groups;
   $('territory-title').textContent=model.title;
@@ -9,8 +26,11 @@ function renderOverview(rows,available,total){
   map.hidden=groups.length<2;
   const tiles=PDResumen.tiles(shown);
   map.innerHTML=groups.length>1?`<svg viewBox="0 0 900 280" role="img" aria-label="${H.esc(title)}">${tiles.map(t=>{
-    const count=t.n+' '+(t.n===1?'productora':'productoras'),label=t.name.length>Math.floor(t.w/8)?t.name.slice(0,Math.max(4,Math.floor(t.w/8)-1))+'…':t.name;
-    return `<g><title>${H.esc(t.name)}: ${count}</title><rect x="${t.x+1}" y="${t.y+1}" width="${Math.max(0,t.w-2)}" height="${Math.max(0,t.h-2)}" rx="5" fill="#245547"/>${t.w>75&&t.h>55?`<text x="${t.x+14}" y="${t.y+t.h/2-5}" fill="white" font-size="15">${H.esc(label)}</text><text x="${t.x+14}" y="${t.y+t.h/2+23}" fill="white" font-size="22" font-weight="700">${t.n}</text>`:''}</g>`;
+    const count=t.n+' '+(t.n===1?'productora':'productoras'),f=tileText(t.name,t.n,t.w,t.h);
+    const block=f.inline?f.size*1.2:f.lines.length*f.size*1.2+f.countSize*1.25,top=t.y+(t.h-block)/2;
+    const lines=f.lines.map((line,i)=>`<text x="${t.x+8}" y="${top+f.size*1.05+i*f.size*1.2}" fill="white" font-size="${f.size}">${H.esc(line)}</text>`).join('');
+    const num=f.inline?'':`<text x="${t.x+8}" y="${top+f.lines.length*f.size*1.2+f.countSize*1.05}" fill="white" font-size="${f.countSize}" font-weight="700">${t.n}</text>`;
+    return `<g><title>${H.esc(t.name)}: ${count}</title><rect x="${t.x+1}" y="${t.y+1}" width="${Math.max(0,t.w-2)}" height="${Math.max(0,t.h-2)}" rx="5" fill="#245547"/>${lines}${num}</g>`;
   }).join('')}</svg>`:'';
   const heading=model.level==='territory'?'Distrito y provincia':model.level==='base'?'Grupo local':model.level==='coop'?'Cooperativa':'Selección';
   $('overview-table').innerHTML=groups.length?H.table([heading,'Productoras',...available.map(([,label])=>label)],groups.map(g=>[g.name,g.n,...available.map(([key,,digits])=>total(g.records,key,digits))])):'<p class="empty-state">No hay registros en esta selección.</p>';

@@ -15,8 +15,11 @@ function renderCross(data) {
   function text(s) {
     return s.pct==null?'—':`${H.fmt(s.pct,1)} % · ${Math.round(s.pct*s.n/100)} de ${s.n}`;
   }
-  function table(rows) {
-    return H.table(['Indicador',...groups.map(([g])=>groupLabel(g))],rows.map(r=>[r.label,...r.values.map(text)]));
+  function pctText(s) {
+    return s.pct==null?'—':`${H.fmt(s.pct,1)} %`;
+  }
+  function table(rows,fmtCell=text) {
+    return H.table(['Indicador',...groups.map(([g])=>groupLabel(g))],rows.map(r=>[r.label,...r.values.map(fmtCell)]));
   }
   function card(title, html) {
     const node=document.createElement('article');
@@ -55,9 +58,9 @@ function renderCross(data) {
   if (training) {
     const rows=groups.flatMap(([g],i)=>{
       const s=training.values[i];
-      return s.pct==null?[]:[`<div class="meter-row"><div><strong>${H.esc(groupLabel(g))}</strong><span>${H.esc(text(s))}</span></div><div class="meter-track" aria-hidden="true"><span style="width:${s.pct}%;background:${coopColor(g)}"></span></div></div>`];
+      return s.pct==null?[]:[`<div class="meter-row"><div><strong>${H.esc(groupLabel(g))}</strong><span>${H.esc(pctText(s))}</span></div><div class="meter-track" aria-hidden="true"><span style="width:${s.pct}%;background:${coopColor(g)}"></span></div></div>`];
     });
-    card('Capacitación reportada',`<div class="meter-list">${rows.join('')}</div>`);
+    card('Capacitación reportada',`<div class="meter-list">${rows.join('')}</div><details><summary>Ver cifras</summary><div class="table-scroll">${H.table(['Cooperativa','Reportó capacitación'],groups.flatMap(([g],i)=>training.values[i].pct==null?[]:[[groupLabel(g),text(training.values[i])]]))}</div></details>`);
   }
 
   const edu={label:'Cursó secundaria o superior',f:r=>{
@@ -74,7 +77,7 @@ function renderCross(data) {
     {label:'Sin ahorros ni aportes de capital en su cooperativa',f:r=>r.savingsCoop==null?null:1-r.savingsCoop}
   ]);
   if (finance.length) {
-    const node=card('Acceso a servicios financieros',`<div class="table-scroll">${table(finance)}</div>`);
+    const node=card('Acceso a servicios financieros',`<div class="table-scroll cross-pct">${table(finance,pctText)}</div><details><summary>Ver cifras</summary><div class="table-scroll">${table(finance)}</div></details>`);
     if(!household.length) node.classList.replace('col-6','col-12');
   }
   return !!root.childElementCount;

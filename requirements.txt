@@ -1,4 +1,18 @@
-# Flujo validado con Python 3.12.14 y Node.js 24.22.1.
-# Python: solo biblioteca estándar; pip no instala paquetes para este flujo.
-# Node/browser: SheetJS CE 0.20.3 y Chart.js 4.4.0 en vendor/ (sin npm).
-# Jupyter es opcional; ejecutor incluido: python scripts/ejecutar_notebooks.py
+# Producers Direct - Tablero del Fondo Rotatorio
+# Versiones con las que se validó la ejecución completa (notebooks 01 a 04, 38 pruebas).
+# Las líneas con # son informativas: no hay paquetes que instalar con pip.
+
+# Lenguajes
+# python==3.13.1   (también probado con 3.12.14); solo biblioteca estándar
+# node==24.11.1    (también probado con 24.22.1); sin npm install
+
+# Librerías del navegador (incluidas en vendor/, no se descargan)
+# SheetJS CE==0.20.3
+# Chart.js==4.4.0
+
+# Opcional: abrir los notebooks en Jupyter (si no, usa scripts/ejecutar_notebooks.py)
+# jupyterlab>=4
+
+# Datos de entrada (fuera del repositorio; ver README, sección "Entradas"):
+# data/raw/Base de Datos Nor-BG anónima.xlsx
+# data/processed/Base_Nor_BG_limpia.xlsx

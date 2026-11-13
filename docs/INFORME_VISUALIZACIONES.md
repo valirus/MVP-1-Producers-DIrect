@@ -1,6 +1,6 @@
 # Informe de visualizaciones
 
-Cada visual del tablero con su propósito, la forma de leerlo y la decisión que apoya, agrupado por pantalla. Los visuales usan los filtros de cooperativa, distrito y grupo local y se recalculan al cargar un Excel o al cambiar un filtro. Los porcentajes usan las respuestas disponibles de cada grupo y las cantidades exactas están en «Ver cifras». Las capturas usan datos ficticios. Para el detalle técnico de cada medida, consulta el [informe técnico](INFORME_TECNICO.md).
+Cada visual del tablero con su propósito, la forma de leerlo y la decisión que apoya, agrupado por pantalla. Los visuales usan los filtros de cooperativa, distrito y grupo local y se recalculan al cargar un Excel o al cambiar un filtro. Los porcentajes usan las respuestas disponibles de cada grupo y las cantidades exactas están en «Ver cifras». Las capturas son de los datos de Norandino y Bagua Grande. Para el detalle técnico de cada medida, consulta el [informe técnico](INFORME_TECNICO.md).
 
 ## Panorama del fondo
 
@@ -15,6 +15,8 @@ Cada visual del tablero con su propósito, la forma de leerlo y la decisión que
 | **Productoras por distrito y provincia** | Mostrar cuántas productoras hay en cada distrito y provincia. | Mapa de rectángulos: el área es proporcional al número de productoras y cada uno lleva el nombre completo y la cantidad exacta. Debajo, una tabla con productoras, monto, área y café. | Ver si la muestra depende de un solo distrito antes de generalizar conclusiones. |
 
 ## Área y café entregado
+
+![Área y café entregado](capturas/produccion.jpg)
 
 | Visual | Propósito | Cómo leerlo | Decisión que apoya |
 |---|---|---|---|

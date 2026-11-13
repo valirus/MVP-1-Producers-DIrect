@@ -20,7 +20,7 @@ Cada visual del tablero con su propósito, la forma de leerlo y la decisión que
 
 | Visual | Propósito | Cómo leerlo | Decisión que apoya |
 |---|---|---|---|
-| **Mediana de café entregado por productora** | Saber cuánto café entrega una productora típica de cada cooperativa. | Una barra por cooperativa con la mediana: la mitad de las productoras entrega menos y la otra mitad más. | Comparar cooperativas sin que valores muy altos distorsionen el promedio y fijar expectativas de entrega. |
+| **Mediana de café entregado por productora** | Saber cuánto café entrega una productora típica de cada cooperativa. | Una barra por cooperativa con la mediana: al menos la mitad tiene una entrega menor o igual a la mediana y al menos la mitad, mayor o igual. | Comparar cooperativas sin que valores muy altos distorsionen el promedio y fijar expectativas de entrega. |
 | **Área de café frente a café entregado** | Ver si más área de café se acompaña de más café entregado. | Cada punto es una productora con ambos datos; la forma y el color indican la cooperativa. Si los puntos suben hacia la derecha, más área suele ir con más café. | Detectar productoras con mucha área y poca entrega para consultarlas en campo. No mide productividad ni causa. |
 
 ## Participación y acceso
@@ -29,8 +29,8 @@ Cada visual del tablero con su propósito, la forma de leerlo y la decisión que
 
 | Visual | Propósito | Cómo leerlo | Decisión que apoya |
 |---|---|---|---|
-| **Celular propio por cooperativa** | Conocer qué tipo de celular tienen las productoras. | Barras apiladas al 100 %, una por cooperativa (celular de teclas y smartphone). Solo porcentajes; las cantidades están en «Ver cifras». | Elegir el formato de los avisos: mensajes de aplicación solo si la mayoría tiene smartphone. |
-| **Dificultad para leer o escribir por cooperativa** | Saber qué parte de las productoras tiene dificultad de lectoescritura. | Barras apiladas al 100 % por cooperativa («Dificultad para leer» frente a «Sin dificultad»), con porcentajes. | Decidir si la comunicación debe ser escrita o hablada (llamadas, audios o visitas). |
+| **Celular propio por cooperativa** | Conocer qué tipo de celular tienen las productoras. | Barras apiladas al 100 %, una por cooperativa (sin celular, celular de teclas y smartphone; otras respuestas cuando existan). Solo porcentajes; las cantidades están en «Ver cifras». | Elegir el formato de los avisos: mensajes de aplicación solo si la mayoría tiene smartphone. |
+| **Dificultad para leer o escribir por cooperativa** | Saber qué parte de las productoras tiene dificultad de lectoescritura. | Barras apiladas al 100 % por cooperativa (sin dificultad, dificultad de lectura, de escritura o de ambas), con porcentajes. | Decidir si la comunicación debe ser escrita o hablada (llamadas, audios o visitas). |
 | **Canales preferidos de contacto** | Saber por qué canal prefieren ser contactadas. | Barras horizontales por canal (llamadas, WhatsApp, SMS), una por cooperativa. Una productora puede elegir varios canales, por eso los porcentajes no suman 100 %. | Elegir el canal principal y si el SMS aporta cobertura adicional. |
 | **Capacitación reportada** | Medir qué parte de las productoras dice haber participado en capacitaciones. | Un medidor por cooperativa con el porcentaje que respondió «Sí». Las cantidades están en «Ver cifras». | Decidir dónde reforzar las capacitaciones. |
 | **Educación y servicios del hogar** | Comparar nivel educativo, internet y desagüe entre cooperativas. | Barras por cooperativa con el porcentaje que cursó secundaria o más, tiene internet en casa y tiene desagüe. | Decidir si el seguimiento puede apoyarse en medios digitales o requiere pasos presenciales. |
@@ -56,7 +56,7 @@ Cada visual del tablero con su propósito, la forma de leerlo y la decisión que
 | **Cuaderno de registros: ¿anota sus ingresos y gastos?** | Ver si las productoras llevan un registro de ingresos y gastos. | Barras por cooperativa con el porcentaje que respondió «Sí»; las cantidades están en «Ver cifras». Una tabla por cooperativa muestra si les parece útil el cuaderno. | Decidir dónde reforzar la capacitación en registros y si el cuaderno necesita simplificarse. |
 | **Ventas por mes: ¿cuántas vendieron?** | Seguir cada mes qué porcentaje de las que respondieron vendió. | Barras por mes y cooperativa con el % que vendió. Cada barra usa solo a quienes respondieron ese mes. «Ver tabla» muestra el detalle. | Detectar meses de poca venta y planificar los recordatorios de pago. |
 | **Venta de café: ¿lo llevó a la cooperativa?** | Saber si las productoras llevaron su café a la cooperativa y por qué no. | Barras por cooperativa con el % que sí lo llevó; «Ver cifras» incluye cuántas de las que aún no lo llevaron dicen que lo llevarán pronto. Debajo, la tabla de motivos escritos por cooperativa, con «Sin motivo indicado». | Atender los motivos más frecuentes (precio bajo, transporte) para asegurar el acopio. |
-| **Ingresos y gastos por mes (S/)** | Comparar lo vendido con los gastos de la finca o emprendimiento cada mes. | Barras por mes y cooperativa (ventas y gasto de la actividad) y una tabla con los importes y, entre paréntesis, cuántas productoras dieron ese dato. El gasto de la familia se muestra solo sumado. | Estimar la capacidad de pago y la estacionalidad de ingresos antes de definir cuotas. |
+| **Ingresos y gastos por mes (S/)** | Comparar lo vendido con los gastos de la finca o emprendimiento cada mes. | Barras por mes y cooperativa (ventas y gasto de la actividad) y una tabla con los importes y, entre paréntesis, cuántas productoras dieron ese dato. El gasto de la familia se muestra solo sumado. | Observar estacionalidad de importes declarados y preparar preguntas de seguimiento. Estos agregados no bastan para evaluar capacidad individual de pago ni definir cuotas. |
 
 ## Equipo de campo
 
@@ -79,7 +79,7 @@ Cada visual del tablero con su propósito, la forma de leerlo y la decisión que
 
 ## Criterios de diseño
 
-- **Solo porcentajes en los gráficos.** Las cantidades exactas van en «Ver cifras», para no mezclar dos tipos de dato en una misma etiqueta.
+- **Etiquetas según la medida.** En las barras porcentuales se muestran porcentajes y las cantidades van en «Ver cifras». Los gráficos de montos, quintales y frecuencias usan sus unidades, no porcentajes.
 - **Unidades explícitas.** Área en hectáreas, café en quintales y montos en soles.
 - **Sin mezclar ausencia y cero.** Un dato faltante no se dibuja como cero; las tarjetas indican cuántas productoras aportan al total.
 - **Color con respaldo.** Las categorías no dependen solo del color: llevan etiquetas, porcentajes o una tabla. Las pruebas de contraste y de daltonismo están en el [informe técnico](INFORME_TECNICO.md#5-límites-devolución-y-continuidad).

@@ -13,6 +13,8 @@ paths = [
     "vendor/LICENSE-Chartjs.md", "vendor/LICENSE-SheetJS.txt",
     "docs/manual.html", "docs/diccionario.html", "docs/seguimiento.html",
     "docs/capturas/inicio.jpg", "docs/capturas/consulta.jpg", "docs/capturas/datos.jpg", "docs/capturas/ficha.jpg", "docs/capturas/cobertura.jpg", "docs/capturas/grafico.jpg",
+    "docs/capturas/produccion.jpg", "docs/capturas/participacion.jpg", "docs/capturas/credito.jpg",
+    "docs/capturas/seguimiento_revision.jpg", "docs/capturas/seguimiento.jpg", "docs/capturas/reporte.jpg",
 ]
 if site.is_symlink():
     raise SystemExit("Quita el enlace _site antes de generar la copia pública.")

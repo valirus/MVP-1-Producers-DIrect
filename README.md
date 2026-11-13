@@ -62,7 +62,7 @@ python -m http.server 8000 --bind 127.0.0.1 --directory _site
 
 En Windows, puedes usar `py` en lugar de `python`. Abre [localhost:8000](http://localhost:8000). Pulsa **Abrir Excel** y elige un Excel compatible con el contrato. Para practicar, ejecuta antes `node scripts/crear_demo.cjs` y abre `data/processed/demo_ficticia.xlsx` desde el selector. No se copia ese archivo a `_site`.
 
-**Consulta del fondo** incluye indicadores, resumen territorial, café entregado, participación, solicitudes y seguimiento del crédito. **Equipo de campo** contiene la ficha de visita y el reporte para la cooperativa. **Equipo de datos** contiene **Resumen del Excel** (revisión del contrato y estadísticas por columna) y **Registros** (búsqueda, filas vacías o no válidas y CSV). Volver a cargar la página borra el Excel y las visitas de la sesión; exporta las visitas antes de cerrar.
+**Consulta del fondo** incluye indicadores, resumen territorial, café entregado, participación, solicitudes y seguimiento del crédito. **Equipo de campo** contiene la ficha de visita y el reporte para la productora. **Equipo de datos** contiene **Resumen del Excel** (revisión del contrato y estadísticas por columna) y **Registros** (búsqueda, filas vacías o no válidas y CSV). Volver a cargar la página borra el Excel y las visitas de la sesión; exporta las visitas antes de cerrar.
 
 ## Reproducir el proyecto
 
@@ -131,13 +131,13 @@ python -m http.server 8000 --bind 127.0.0.1 --directory _site
 | | `data/processed/comparacion.json`, `antes_despues.csv` | Conciliación por campo y PCA |
 | 02 exploración | — (consola) | Registros por cooperativa, faltantes, atípicos y diferencias por campo |
 | 03 indicadores | — (consola) | Productoras, quintales, mediana, monto solicitado, participación y varianza del PCA |
-| 04 dashboard | `_site/` (30 archivos) | Pruebas `node --test` y sitio público, sin Excel, CSV ni notebooks |
+| 04 dashboard | `_site/` (36 archivos) | Pruebas `node --test` y sitio público, sin Excel, CSV ni notebooks |
 
 Todas las salidas quedan ignoradas por git. Para ver el tablero con la base generada, abre [localhost:8000](http://localhost:8000), pulsa **Abrir Excel** y elige `data/processed/base_operativa_desde_raw.xlsx`.
 
 Valores esperados con los Excel de referencia (sirven para comprobar la ejecución):
 - 138 productoras: Norandino 113 y Bagua Grande 25;
-- 0 diferencias entre el original y la limpia en 25 campos, sin imputaciones;
+- 3,449 coincidencias y 1 discrepancia en 3,450 comparaciones de 25 campos; sin imputaciones. Véase [auditoría de entrega](docs/AUDITORIA_ENTREGA_13NOV.md);
 - S/ 190,175 solicitados, 310.36 ha y 5,444 quintales;
 - PCA con 138 filas completas, donde los primeros tres ejes explican el 78.28 %;
 - 38 de 38 pruebas pasan y `sources.test.cjs` hace 3,450 comparaciones.
@@ -153,7 +153,7 @@ Para regenerar solo el Excel operativo: `node scripts/preparar.cjs --raw "ruta-a
 - Única incidencia: las tildes salen mal en la consola si no se usa `-X utf8`.
 - Pendiente: probar en macOS.
 
-**13/11/2026:** verificación en Linux con Node.js 22.23.4. Los notebooks 01 a 04 corren en orden con `scripts/ejecutar_notebooks.py` y también ejecutados con Jupyter (`jupyter nbconvert --execute`), sin errores. Las 38 pruebas pasan y el sitio se genera con 30 archivos.
+**13/11/2026:** verificación en Linux con Node.js 22.23.4. Los notebooks 01 a 04 corren en orden con `scripts/ejecutar_notebooks.py` y también ejecutados con Jupyter (`jupyter nbconvert --execute`), sin errores. Las 38 pruebas pasan y el sitio se genera con 36 archivos.
 
 ## Integración y publicación
 
@@ -162,3 +162,9 @@ La entrega final ya está integrada en `main` (PR #22). [Integrar la entrega en 
 El workflow ejecuta las pruebas y usa el mismo generador de `_site` que la prueba local. GitHub Pages publica solo ese directorio. Conserva **Settings → Pages → GitHub Actions**. El tablero publicado está en [GitHub Pages del proyecto](https://valirus.github.io/MVP-1-Producers-DIrect/).
 
 No añadas Excel, CSV de personas ni auditorías al repositorio. Revisa el diff contra la rama de destino; si el repositorio avanzó, integra en una rama de trabajo. El [reporte del equipo](docs/REPORTE_EQUIPO.md) indica qué revisar antes de compartir el tablero.
+
+## Auditoría de documentación del 13/11/2026
+
+La verificación sobre `aef3c46` con los Excel adjuntos de esta entrega detectó una discrepancia en `usa_yape` (Bagua Grande, fila original 11). Los notebooks completan y las 38 pruebas generales pasan; la prueba estricta `sources.test.cjs` falla por esa discrepancia. No se modificó la respuesta ni se relajó la prueba. Los totales principales coinciden. El [informe de auditoría](docs/AUDITORIA_ENTREGA_13NOV.md) detalla la evidencia y la decisión pendiente.
+
+La generación pública incorpora ahora las seis capturas del manual que faltaban y contiene 36 archivos. El ZIP académico incluye los datos de entrada y evidencia ejecutada por separado; no se añaden a GitHub Pages.

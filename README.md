@@ -10,6 +10,46 @@ Consulta operativa para la coordinación de ROTA, el equipo de campo y el equipo
 | Entender cada visual, sus medidas y límites | [Informe técnico](docs/INFORME_TECNICO.md) |
 | Mantener, integrar y comprobar la entrega | [Guía de mantenimiento](docs/COMO_EXTENDER.md) y [reporte para el equipo](docs/REPORTE_EQUIPO.md) |
 | Revisar el alcance acordado y las observaciones anteriores | [Cierre de requisitos](docs/CIERRE_FINAL.md) |
+| Ver qué problema tenía cada variable y qué se decidió | [Informe de limpieza](docs/INFORME_LIMPIEZA.md) |
+| Entender para qué sirve cada visual y cómo leerlo | [Informe de visualizaciones](docs/INFORME_VISUALIZACIONES.md) |
+
+## Propósito
+
+Producers Direct (PD) otorga financiamiento en insumos y acompañamiento a mujeres productoras de café de dos cooperativas, Norandino y Bagua Grande, mediante el fondo rotatorio ROTA. Este proyecto del curso Introducción a Business Analytics (UTEC) entrega a PD un tablero para consultar el fondo, preparar las visitas de campo y revisar la calidad de los datos. Las decisiones que apoya son a quién visitar, cómo comunicarse con las productoras y cómo dar seguimiento al crédito.
+
+## Estructura de carpetas
+
+```text
+.
+├── README.md                 Este archivo: propósito, estructura y cómo reproducir
+├── index.html                Tablero web (se abre con un Excel; no guarda datos)
+├── requirements.txt          Versiones de Python, Node.js y librerías
+├── css/  js/  vendor/        Estilos, código del tablero y librerías incluidas (SheetJS, Chart.js)
+├── notebooks/                Pipeline: un notebook por etapa (ver el orden abajo)
+│   ├── 01_limpieza.ipynb
+│   ├── 02_exploracion.ipynb
+│   ├── 03_indicadores.ipynb
+│   └── 04_dashboard.ipynb
+├── scripts/                  preparar.cjs (limpieza), ejecutar_notebooks.py, preparar_sitio.py, crear_demo.cjs
+├── data/
+│   ├── raw/                  Entrada: Excel original anónimo (no se sube a git)
+│   ├── processed/            Entrada de referencia y salidas del pipeline (no se suben a git)
+│   ├── data_contract.md      Contrato de datos
+│   └── contrato_seguimiento.md
+├── tests/                    Pruebas automáticas (node --test)
+└── docs/                     Diccionario, manual, informes de limpieza y visualizaciones y capturas
+```
+
+## Orden de ejecución de los notebooks
+
+Ejecuta los notebooks en este orden. `python -X utf8 scripts/ejecutar_notebooks.py` los corre uno tras otro sin intervención manual.
+
+| Orden | Notebook | Qué hace | Lee | Escribe |
+|---|---|---|---|---|
+| 1 | `01_limpieza.ipynb` | Reconstruye los 25 campos desde el original y los concilia con la base limpia | `data/raw/`, `data/processed/` | `data/processed/` |
+| 2 | `02_exploracion.ipynb` | Cobertura, faltantes y valores atípicos | Salidas de 01 | Consola |
+| 3 | `03_indicadores.ipynb` | Productoras, quintales, mediana, monto solicitado, participación y PCA | Salidas de 01 | Consola |
+| 4 | `04_dashboard.ipynb` | Ejecuta las pruebas y genera el sitio público | `index.html`, `js/`, `css/` | `_site/` |
 
 ## Arranque local
 
@@ -91,7 +131,7 @@ python -m http.server 8000 --bind 127.0.0.1 --directory _site
 | | `data/processed/comparacion.json`, `antes_despues.csv` | Conciliación por campo y PCA |
 | 02 exploración | — (consola) | Registros por cooperativa, faltantes, atípicos y diferencias por campo |
 | 03 indicadores | — (consola) | Productoras, quintales, mediana, monto solicitado, participación y varianza del PCA |
-| 04 dashboard | `_site/` (25 archivos) | Pruebas `node --test` y sitio público, sin Excel, CSV ni notebooks |
+| 04 dashboard | `_site/` (30 archivos) | Pruebas `node --test` y sitio público, sin Excel, CSV ni notebooks |
 
 Todas las salidas quedan ignoradas por git. Para ver el tablero con la base generada, abre [localhost:8000](http://localhost:8000), pulsa **Abrir Excel** y elige `data/processed/base_operativa_desde_raw.xlsx`.
 
@@ -100,7 +140,7 @@ Valores esperados con los Excel de referencia (sirven para comprobar la ejecuci�
 - 0 diferencias entre el original y la limpia en 25 campos, sin imputaciones;
 - S/ 190,175 solicitados, 310.36 ha y 5,444 quintales;
 - PCA con 138 filas completas, donde los primeros tres ejes explican el 78.28 %;
-- 10 de 10 pruebas pasan y `sources.test.cjs` hace 3,450 comparaciones.
+- 38 de 38 pruebas pasan y `sources.test.cjs` hace 3,450 comparaciones.
 
 Para regenerar solo el Excel operativo: `node scripts/preparar.cjs --raw "ruta-al-original.xlsx" --out data/processed`. Agrega `--clean "ruta-a-la-base-limpia.xlsx"` para conciliarlo con la referencia. No reconstruye las 77 columnas del libro histórico.
 

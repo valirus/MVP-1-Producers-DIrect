@@ -86,7 +86,7 @@ Se necesitan dos Excel de referencia. **No se suben al repositorio**: `.gitignor
 | `PD_RAW` | Original anónimo, hojas `Productoras Norandino` y `Productoras Bagua Grande` (nombre que empieza con `Base de Datos Nor-BG`) | `data/raw/` |
 | `PD_CLEAN` | Base limpia de referencia (nombre que empieza con `Base_Nor_BG_limpia`) | `data/processed/` |
 
-Hay dos maneras de indicarlos:
+Los dos Excel, que son anónimos, se entregan aparte en `datos_de_entrada.zip`. Hay dos maneras de indicarlos:
 
 - **Opción A, copiar los archivos:** deja un solo archivo de cada tipo en su carpeta por defecto.
 - **Opción B, dejarlos donde están (recomendada):** define las variables con rutas absolutas.
@@ -151,7 +151,9 @@ Para regenerar solo el Excel operativo: `node scripts/preparar.cjs --raw "ruta-a
 - El tablero local abre con `base_operativa_desde_raw.xlsx`, muestra las mismas cifras y no da errores en la consola.
 - Ningún Excel ni ninguna salida aparece en `git status`.
 - Única incidencia: las tildes salen mal en la consola si no se usa `-X utf8`.
-- Pendiente: probar en macOS/Linux y con Jupyter.
+- Pendiente: probar en macOS.
+
+**13/11/2026:** verificación en Linux con Node.js 22.23.4. Los notebooks 01 a 04 corren en orden con `scripts/ejecutar_notebooks.py` y también ejecutados con Jupyter (`jupyter nbconvert --execute`), sin errores. Las 38 pruebas pasan y el sitio se genera con 30 archivos.
 
 ## Integración y publicación
 

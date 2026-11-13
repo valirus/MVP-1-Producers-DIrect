@@ -1,25 +1,79 @@
 # Informe de visualizaciones
 
-Cada visual del tablero con su propósito, la forma de leerlo y la decisión que apoya. Los visuales usan los filtros de cooperativa, distrito y grupo local y se recalculan al cargar un Excel o al cambiar un filtro. Los porcentajes usan las respuestas disponibles de cada grupo y las cantidades exactas están en «Ver cifras». Para el detalle técnico de cada medida, consulta el [informe técnico](INFORME_TECNICO.md).
+Cada visual del tablero con su propósito, la forma de leerlo y la decisión que apoya, agrupado por pantalla. Los visuales usan los filtros de cooperativa, distrito y grupo local y se recalculan al cargar un Excel o al cambiar un filtro. Los porcentajes usan las respuestas disponibles de cada grupo y las cantidades exactas están en «Ver cifras». Las capturas usan datos ficticios. Para el detalle técnico de cada medida, consulta el [informe técnico](INFORME_TECNICO.md).
+
+## Panorama del fondo
+
+![Panorama del fondo](capturas/consulta.jpg)
 
 | Visual | Propósito | Cómo leerlo | Decisión que apoya |
 |---|---|---|---|
-| **Panorama: productoras, monto, área y café entregado** | Dimensionar el fondo: cuántas productoras hay, cuánto se solicitó y cuánta superficie y café se reportó. | Cuatro tarjetas con la suma de la selección. «29 de 30 con dato» indica cuántas productoras aportan al total. Un dato faltante no cuenta como cero. | Decidir si el volumen de la selección justifica una visita o un ajuste del presupuesto del fondo; confirmar que un total sea comparable antes de citarlo. |
-| **Panorama: gráficos por distrito (monto, área y café)** | Comparar dónde se concentra el dinero solicitado, la superficie y el café entregado. | Barras horizontales, una por distrito. Cada nombre se muestra en dos líneas: distrito y provincia. «Ver cifras» abre la tabla con los valores exactos. | Priorizar los distritos donde se concentra la solicitud para planificar la ruta del equipo de campo. |
-| **Panorama: mapa de rectángulos de productoras por distrito** | Mostrar cuántas productoras hay en cada distrito y provincia. | Cada rectángulo es proporcional al número de productoras; dentro está el nombre completo y la cantidad exacta. Debajo, una tabla con los totales. | Ver si la muestra depende de un solo distrito antes de generalizar conclusiones. |
-| **Área y café entregado: mediana por cooperativa** | Saber cuánto café entrega una productora típica de cada cooperativa. | Una barra por cooperativa con la mediana: la mitad de las productoras entrega menos y la otra mitad más. El total de quintales está en Panorama. | Comparar cooperativas sin que las muy grandes o muy pequeñas distorsionen el promedio; fijar expectativas de entrega por cooperativa. |
-| **Área y café entregado: dispersión área frente a café** | Ver si más área de café se acompaña de más café entregado. | Cada punto es una productora con ambos datos; el color y la forma indican su cooperativa. Si los puntos suben hacia la derecha, más área suele ir con más café. | Detectar productoras con mucha área y poca entrega para consultarlas en campo. No mide productividad ni demuestra causa. |
-| **Participación y acceso: celular y lectoescritura** | Conocer qué tipo de celular tienen las productoras y si tienen dificultad para leer o escribir. | Dos gráficos de barras apiladas al 100 %, una barra por cooperativa (celular propio y dificultad para leer o escribir). Solo se muestran porcentajes; las cantidades exactas están en «Ver cifras». Cada porcentaje usa las respuestas disponibles de ese grupo. | Elegir el canal y el formato de comunicación: mensajes escritos solo si la mayoría lee, llamadas o audios si no. |
-| **Participación y acceso: capacitación reportada** | Medir qué parte de las productoras dice haber participado en capacitaciones. | Un medidor con el porcentaje que respondió «Sí» por cooperativa. Las cantidades están en «Ver cifras». | Decidir dónde reforzar las capacitaciones y qué cooperativa necesita más acompañamiento formativo. |
-| **Participación y acceso: canales de contacto** | Saber por qué canal prefieren ser contactadas. | Barras horizontales por canal (llamadas, WhatsApp, SMS), una por cooperativa; una productora puede elegir varios canales, por eso los porcentajes no suman 100 %. | Elegir el canal principal (llamada o WhatsApp) y si el SMS aporta cobertura adicional. |
-| **Participación y acceso: acceso a servicios financieros, educación y hogar** | Comparar acceso a servicios financieros, nivel educativo, internet y servicios del hogar entre cooperativas. | Dos vistas: «Educación y servicios del hogar» (curso secundaria o superior, internet en casa, desagüe) en barras por cooperativa, y «Acceso a servicios financieros» (sin servicios financieros, sin Yape, sin ahorros ni aportes de capital) en una tabla. Todo en porcentajes; las cantidades están en «Ver cifras». | Decidir si el seguimiento puede apoyarse en Yape y la banca digital o requiere pasos presenciales. |
-| **Solicitudes de crédito: destino** | Mostrar para qué actividad se solicita el crédito. | Barras apiladas al 100 % por cooperativa con las categorías Fertilización, Crianza de animales y Emprendimiento u otros; «Ver cifras» da las cantidades exactas. Es el destino declarado, no un gasto verificado. | Planificar el seguimiento según la actividad: insumos agrícolas frente a crianza o emprendimientos. |
-| **Solicitudes de crédito: monto** | Ver qué montos se solicitaron con más frecuencia. | Barras agrupadas por cooperativa con el número de solicitudes en cada monto exacto (hasta diez montos distintos) o en intervalos iguales. «Ver cifras» incluye la mediana y el monto más repetido. | Evaluar si los montos de los productos del fondo se ajustan a lo que piden las productoras. |
-| **Seguimiento del crédito: fertilizante, cuaderno y café a la cooperativa** | Saber si las productoras usaron el fertilizante, llevan su cuaderno y llevaron café a la cooperativa. | Barras por cooperativa con porcentajes de las que respondieron «Sí». «Ver cifras» muestra cuántas respondieron y cuántas dijeron Sí o No; las tablas de motivos reproducen las respuestas escritas. | Priorizar visitas a quienes no aplicaron el fertilizante o aún no llevan café, según sus motivos (precio bajo, transporte, tiempo). |
-| **Seguimiento del crédito: venta de café** | Ver cuánto café vendieron las productoras en el periodo y cuántas respondieron. | Resultados con «X de Y respondieron», sin imputar a quienes no respondieron; los montos suman solo valores válidos. | Estimar la capacidad de pago y la estacionalidad de ingresos antes de definir cuotas. |
-| **Equipo de campo: ficha de visita** | Preparar la visita con los datos de la productora, su finca y su solicitud. | Resumen de una página con actividad solicitada, monto, café, área, ingreso, celular, antigüedad y estado de ahorros y créditos. «Registrar una visita» guarda responsable, fecha y evidencia de cada paso. | Preparar la conversación de la visita y dejar evidencia de qué se hizo. |
-| **Equipo de campo: reporte para la productora** | Devolver a la productora sus datos y compararlos con una productora típica de su cooperativa. | Tres tarjetas (área, café, ingreso) con su valor y el de una productora típica. «Típica» es el valor del medio: la mitad de las productoras tiene menos y la otra mitad más. Se imprime o se guarda como PDF. | Entregar una devolución comprensible y abrir la conversación sobre cómo mejorar su producción y su ingreso. |
-| **Equipo de datos: resumen del Excel y registros** | Comprobar qué contiene el archivo cargado y si cumple el contrato antes de usarlo. | Seis comprobaciones (columnas obligatorias, códigos completos y únicos, encabezados, tipos) y una tabla por campo con válidos, vacíos y no válidos. «Registros» lista las filas aceptadas y permite descargarlas. | Decidir si un archivo nuevo se puede cargar o si debe corregirse en origen. |
+| **Tarjetas: productoras, monto solicitado, área de café y café entregado** | Dimensionar el fondo: cuántas productoras hay, cuánto se solicitó y cuánta superficie y café se reportó. | Cuatro tarjetas con la suma de la selección actual. «29 de 30 con dato» indica cuántas productoras aportan al total; un dato faltante no cuenta como cero. | Decidir si el volumen justifica una visita o un ajuste del presupuesto; confirmar que un total sea comparable antes de citarlo. |
+| **Monto solicitado por distrito** | Comparar dónde se concentra el dinero solicitado. | Una barra horizontal por distrito (nombre en dos líneas: distrito y provincia), en soles. «Ver cifras» abre la tabla con los valores exactos. | Priorizar los distritos con más solicitud al planificar la ruta de campo. |
+| **Área de café por distrito** | Comparar la superficie de café reportada por distrito. | Una barra por distrito en hectáreas; «Ver cifras» muestra cuántas productoras aportan al total. | Estimar el tamaño productivo de cada zona antes de definir apoyos técnicos. |
+| **Café entregado por distrito** | Comparar el café entregado a la cooperativa por distrito. | Una barra por distrito en quintales; «Ver cifras» da los valores exactos. | Identificar las zonas que más aportan a la cooperativa y las que necesitan acompañamiento. |
+| **Productoras por distrito y provincia** | Mostrar cuántas productoras hay en cada distrito y provincia. | Mapa de rectángulos: el área es proporcional al número de productoras y cada uno lleva el nombre completo y la cantidad exacta. Debajo, una tabla con productoras, monto, área y café. | Ver si la muestra depende de un solo distrito antes de generalizar conclusiones. |
+
+## Área y café entregado
+
+| Visual | Propósito | Cómo leerlo | Decisión que apoya |
+|---|---|---|---|
+| **Mediana de café entregado por productora** | Saber cuánto café entrega una productora típica de cada cooperativa. | Una barra por cooperativa con la mediana: la mitad de las productoras entrega menos y la otra mitad más. | Comparar cooperativas sin que valores muy altos distorsionen el promedio y fijar expectativas de entrega. |
+| **Área de café frente a café entregado** | Ver si más área de café se acompaña de más café entregado. | Cada punto es una productora con ambos datos; la forma y el color indican la cooperativa. Si los puntos suben hacia la derecha, más área suele ir con más café. | Detectar productoras con mucha área y poca entrega para consultarlas en campo. No mide productividad ni causa. |
+
+## Participación y acceso
+
+![Participación y acceso](capturas/participacion.jpg)
+
+| Visual | Propósito | Cómo leerlo | Decisión que apoya |
+|---|---|---|---|
+| **Celular propio por cooperativa** | Conocer qué tipo de celular tienen las productoras. | Barras apiladas al 100 %, una por cooperativa (celular de teclas y smartphone). Solo porcentajes; las cantidades están en «Ver cifras». | Elegir el formato de los avisos: mensajes de aplicación solo si la mayoría tiene smartphone. |
+| **Dificultad para leer o escribir por cooperativa** | Saber qué parte de las productoras tiene dificultad de lectoescritura. | Barras apiladas al 100 % por cooperativa («Dificultad para leer» frente a «Sin dificultad»), con porcentajes. | Decidir si la comunicación debe ser escrita o hablada (llamadas, audios o visitas). |
+| **Canales preferidos de contacto** | Saber por qué canal prefieren ser contactadas. | Barras horizontales por canal (llamadas, WhatsApp, SMS), una por cooperativa. Una productora puede elegir varios canales, por eso los porcentajes no suman 100 %. | Elegir el canal principal y si el SMS aporta cobertura adicional. |
+| **Capacitación reportada** | Medir qué parte de las productoras dice haber participado en capacitaciones. | Un medidor por cooperativa con el porcentaje que respondió «Sí». Las cantidades están en «Ver cifras». | Decidir dónde reforzar las capacitaciones. |
+| **Educación y servicios del hogar** | Comparar nivel educativo, internet y desagüe entre cooperativas. | Barras por cooperativa con el porcentaje que cursó secundaria o más, tiene internet en casa y tiene desagüe. | Decidir si el seguimiento puede apoyarse en medios digitales o requiere pasos presenciales. |
+| **Acceso a servicios financieros** | Medir la falta de acceso financiero: sin servicios, sin Yape y sin ahorros. | Tabla con un porcentaje por indicador y cooperativa. Se distinguen el cero y la ausencia de respuesta. | Decidir si los pagos pueden hacerse por Yape o banca digital o requieren puntos de pago presenciales. |
+
+## Solicitudes de crédito
+
+![Solicitudes de crédito](capturas/credito.jpg)
+
+| Visual | Propósito | Cómo leerlo | Decisión que apoya |
+|---|---|---|---|
+| **Distribución de montos solicitados** | Ver qué montos se solicitaron con más frecuencia. | Barras agrupadas por cooperativa con el número de solicitudes en cada monto exacto (hasta diez montos) o en intervalos iguales. «Ver cifras» incluye la mediana y el monto más repetido. | Evaluar si los montos de los productos del fondo se ajustan a lo que piden las productoras. |
+| **Destino de las solicitudes por cooperativa** | Mostrar para qué actividad se solicita el crédito. | Barras apiladas al 100 % por cooperativa con las categorías Fertilización, Crianza de animales y Emprendimiento u otros. Es el destino declarado, no un gasto verificado. | Planificar el seguimiento según la actividad: insumos agrícolas frente a crianza o emprendimientos. |
+
+## Seguimiento del crédito
+
+![Seguimiento del crédito](capturas/seguimiento.jpg)
+
+| Visual | Propósito | Cómo leerlo | Decisión que apoya |
+|---|---|---|---|
+| **Archivos de seguimiento y Contrato del archivo** | Cargar un archivo por vez, revisar sus columnas y confirmar antes de añadir otro. | Tabla con archivo, hoja, meses y productoras vinculadas; botón «Quitar archivo» por cada uno. El contrato resume el formato aceptado. | Comprobar que el archivo se vinculó con la base antes de leer los resultados. |
+| **Uso del crédito: ¿ya aplicó el fertilizante?** | Saber si las productoras aplicaron el fertilizante financiado. | Barras por cooperativa con el porcentaje que respondió «Sí». «Ver cifras» muestra cuántas respondieron y cuántas dijeron Sí o No. Debajo, una tabla por cooperativa con los motivos escritos de quienes no lo aplicaron, incluida la fila «Sin motivo indicado». | Priorizar visitas a quienes no aplicaron el fertilizante, según sus motivos. |
+| **Cuaderno de registros: ¿anota sus ingresos y gastos?** | Ver si las productoras llevan un registro de ingresos y gastos. | Barras por cooperativa con el porcentaje que respondió «Sí»; las cantidades están en «Ver cifras». Una tabla por cooperativa muestra si les parece útil el cuaderno. | Decidir dónde reforzar la capacitación en registros y si el cuaderno necesita simplificarse. |
+| **Ventas por mes: ¿cuántas vendieron?** | Seguir cada mes qué porcentaje de las que respondieron vendió. | Barras por mes y cooperativa con el % que vendió. Cada barra usa solo a quienes respondieron ese mes. «Ver tabla» muestra el detalle. | Detectar meses de poca venta y planificar los recordatorios de pago. |
+| **Venta de café: ¿lo llevó a la cooperativa?** | Saber si las productoras llevaron su café a la cooperativa y por qué no. | Barras por cooperativa con el % que sí lo llevó; «Ver cifras» incluye cuántas de las que aún no lo llevaron dicen que lo llevarán pronto. Debajo, la tabla de motivos escritos por cooperativa, con «Sin motivo indicado». | Atender los motivos más frecuentes (precio bajo, transporte) para asegurar el acopio. |
+| **Ingresos y gastos por mes (S/)** | Comparar lo vendido con los gastos de la finca o emprendimiento cada mes. | Barras por mes y cooperativa (ventas y gasto de la actividad) y una tabla con los importes y, entre paréntesis, cuántas productoras dieron ese dato. El gasto de la familia se muestra solo sumado. | Estimar la capacidad de pago y la estacionalidad de ingresos antes de definir cuotas. |
+
+## Equipo de campo
+
+![Equipo de campo](capturas/ficha.jpg)
+
+| Visual | Propósito | Cómo leerlo | Decisión que apoya |
+|---|---|---|---|
+| **Ficha de visita** | Preparar la visita con los datos de la productora, su finca y su solicitud. | Resumen con actividad solicitada, monto, café, área, ingreso, celular, antigüedad y estado de ahorros y créditos. «Registrar una visita» guarda responsable, fecha y evidencia de cada paso. | Preparar la conversación de la visita y dejar evidencia de qué se hizo. |
+| **Reporte para la productora** | Devolver a la productora sus datos y compararlos con una productora típica de su cooperativa. | Tres tarjetas (área, café, ingreso) con su valor y el de una productora típica: el valor del medio, con la mitad de las productoras por debajo. Se imprime o se guarda como PDF. | Entregar una devolución comprensible y abrir la conversación sobre cómo mejorar su producción. |
+
+## Equipo de datos
+
+![Equipo de datos](capturas/cobertura.jpg)
+
+| Visual | Propósito | Cómo leerlo | Decisión que apoya |
+|---|---|---|---|
+| **Revisión del archivo** | Comprobar si el archivo cumple el contrato antes de usarlo. | Seis comprobaciones (columnas obligatorias, códigos completos y únicos, encabezados, tipos) con su resultado y las filas excluidas. | Decidir si el archivo se puede usar o debe corregirse en origen. |
+| **Campos del tablero** | Ver, campo por campo, qué hay en el archivo cargado. | Una fila por campo con valores válidos, vacíos y no válidos, y promedio, mínimo y máximo (o moda). Pulsar un conteo abre los registros afectados. | Priorizar qué campos corregir. |
+| **Registros** | Consultar y descargar las filas aceptadas. | Tabla paginada con búsqueda por código o cooperativa y descarga de la carga completa en CSV. | Verificar una productora concreta y compartir la base revisada. |
 
 ## Criterios de diseño
 

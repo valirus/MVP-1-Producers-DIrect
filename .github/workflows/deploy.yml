@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Probar el contrato y preparar solo el sitio público
         run: |
-          node --test tests/core.test.cjs tests/carga.test.cjs tests/cross.test.cjs tests/feedback.test.cjs tests/filtros.test.cjs tests/indicadores.test.cjs tests/ficha.test.cjs tests/graficos.test.cjs tests/periodo.test.cjs tests/seguimiento.test.cjs tests/flexibilidad.test.cjs
+          node --test tests/core.test.cjs tests/carga.test.cjs tests/cross.test.cjs tests/feedback.test.cjs tests/filtros.test.cjs tests/indicadores.test.cjs tests/ficha.test.cjs tests/graficos.test.cjs tests/periodo.test.cjs tests/seguimiento.test.cjs tests/flexibilidad.test.cjs tests/resumen.test.cjs
           python3 scripts/preparar_sitio.py
       - name: Setup Pages
         uses: actions/configure-pages@v4

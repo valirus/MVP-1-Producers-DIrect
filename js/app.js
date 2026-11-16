@@ -109,12 +109,7 @@ function applyFilters(reset = false) {
     const holders=kinRows.filter(isHolder).length;
     kinEl.textContent=holders;
     const unit=document.createElement('span');unit.className='kpi-unit';
-    unit.textContent=' de '+kinRows.length+' ('+Math.round(100*holders/kinRows.length)+' %)';kinEl.append(unit);
-    const byCoop=[...new Set(kinRows.map(r=>r.coop))].sort((a,b)=>groupLabel(a).localeCompare(groupLabel(b),'es'));
-    if(byCoop.length>1){
-      const split=document.createElement('div');split.className='kpi-coverage';
-      split.textContent=byCoop.map(c=>{const g=kinRows.filter(r=>r.coop===c);return groupLabel(c)+' '+g.filter(isHolder).length+' de '+g.length;}).join(' · ');kinEl.append(split);
-    }
+    unit.textContent=' de '+kinRows.length;kinEl.append(unit);
     if(kinRows.length<n){const note=document.createElement('div');note.className='kpi-coverage';note.textContent=kinRows.length+' de '+n+' con dato';kinEl.append(note);}
   }
   renderOverview(filteredData,available,total);

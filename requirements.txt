@@ -1,5 +1,5 @@
 # Producers Direct - Tablero del Fondo Rotatorio
-# Versiones con las que se validó la ejecución completa (notebooks 01 a 04, 38 pruebas).
+# Versiones con las que se validó la ejecución completa (notebooks 01 a 04, 39 pruebas).
 # Las líneas con # son informativas: no hay paquetes que instalar con pip.
 
 # Lenguajes

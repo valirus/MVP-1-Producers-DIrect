@@ -80,4 +80,4 @@ Matriz contrastada con el Excel adjunto **Anotaciones IBA - Prioridades** (conte
 - No se incluyen la matriz duplicada, la burbuja de montos, el radar, las alertas de rendimiento ni el checklist antiguo sin respaldo. Se conserva el registro de visitas por etapa y su CSV, separados de la ficha impresa.
 - Se conserva el PCA como análisis técnico exploratorio, fuera de Consulta del fondo.
 - No se publica el Excel limpio ni el original. No se prometen pagos, asistencia, cifras 2026, seguridad por rol ni verificación de créditos.
-- La base limpia de 77 columnas se conserva intacta. La preparación reproducida cubre los 25 campos operativos y su trazabilidad.
+- La base limpia de 77 columnas se conserva intacta. La preparación reproducida cubre los 26 campos operativos y su trazabilidad.

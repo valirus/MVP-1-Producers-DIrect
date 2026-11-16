@@ -8,7 +8,7 @@ Producers Direct necesita consultar la caracterización del fondo sin rehacer cr
 
 ## 2. Datos, metadatos y exactitud
 
-- Fuentes de conciliación: original anónimo, hojas `Productoras Norandino` y `Productoras Bagua Grande` (títulos en fila 3), y Excel limpio con 77 columnas. El [diccionario](diccionario.html) documenta los 25 campos operativos, unidades, población y origen. Las hojas auxiliares de la base limpia no se cuentan como productoras.
+- Fuentes de conciliación: original anónimo, hojas `Productoras Norandino` y `Productoras Bagua Grande` (títulos en fila 3), y Excel limpio con 77 columnas. El [diccionario](diccionario.html) documenta las 29 variables (26 operativas y 3 de trazabilidad), unidades, población y origen. Las hojas auxiliares de la base limpia no se cuentan como productoras.
 - Una observación por código y cooperativa; 113 Norandino, 25 Bagua Grande. Se confirmó identidad y fila de origen para las 138 filas. No hay altas, bajas ni duplicados en estos archivos de referencia.
 - Totales: **S/ 190,175 solicitados; 5,444 quintales entregados; 310.36 de área de café**. El tablero muestra “ha” por convención de la entrega. La unidad en Nor-BG no está confirmada por escrito; no se convierte el dato ni se adopta un peso del quintal en kg.
 - No se conoce una fecha única de levantamiento. Se usa la etiqueta encuesta 2025 para los campos del corte y la edad al 31/12/2025. El seguimiento se abre aparte y no altera los indicadores de encuesta.
@@ -29,12 +29,12 @@ Esta organización sigue el enfoque de documentación por fases solicitado en cl
 
 ### Resultado de la conciliación
 
-[Tabla antes/después por campo](limpieza_por_variable.csv): columnas disponibles en origen, celdas vacías, números vs texto, nulos normalizados, diferencias y extremos. El script guarda valores exactos y referencias afectadas solo en `data/processed/`. Se compararon **3,450 celdas normalizadas** (25 campos × 138 filas) sin diferencias. Los cuatro campos sin columna directa son cooperativa (hoja), provincia (texto territorial), edad (nacimiento al corte) y Yape (opción de servicio).
+[Tabla antes/después por campo](limpieza_por_variable.csv): columnas disponibles en origen, celdas vacías, números vs texto, nulos normalizados, diferencias y extremos. El script guarda valores exactos y referencias afectadas solo en `data/processed/`. Se compararon **3,588 celdas normalizadas** (26 campos × 138 filas): 3,587 coinciden y 1 tiene una diferencia explicada, el dato de Yape de una productora con respuesta contradictoria en servicios financieros. Los cuatro campos sin columna directa son cooperativa (hoja), provincia (texto territorial), edad (nacimiento al corte) y Yape (opción de servicio).
 
 | Verificación | Resultado |
 |---|---|
 | Integridad de las llaves | 138 coincidencias; 0 filas apartadas en estas dos cargas. |
-| Completitud de los 25 campos operativos | 0 nulos tras normalizar en los dos archivos de referencia. No implica completitud en las otras columnas. |
+| Completitud de los 26 campos operativos | 0 nulos en la referencia limpia. En la base reconstruida solo falta el dato de Yape de una productora con respuesta contradictoria. No implica completitud en las otras columnas. |
 | Antigüedad | 138 coincidencias. Columna J en ambos originales, sin deducirla de edad o parentesco. |
 | Datos ausentes | 0 imputaciones en este proceso. `0` o «No» explícitos se conservan. |
 | Contradicción | Una respuesta simultánea «Ninguno» y «Yape». Se conserva en la fuente; se excluye del indicador «ningún servicio». |
@@ -59,7 +59,7 @@ Fuente común de todos los visuales: hoja Productoras o la hoja compatible elegi
 | Crédito: destino | ¿Para qué se solicitó? | Productoras por categoría / respuestas válidas de la cooperativa; tabla con cantidades exactas. No es participación en soles ni gasto verificado. |
 | Crédito: monto | ¿Qué montos se solicitaron más? | Barras con número de solicitudes por monto exacto (hasta diez montos distintos) o por intervalos iguales. Los intervalos se definen con la carga y se mantienen al filtrar. Las cifras incluyen mediana y monto más repetido. Un monto concentrado no demuestra su motivo. |
 | Ficha de visita / Reporte para la cooperativa | ¿Qué se registró sobre esta productora? | Fila elegida por código de la selección; comparativos de Reporte para la cooperativa sobre la cooperativa cargada si hay al menos 2 valores. La ficha no verifica uso ni acredita solvencia. El registro de visitas separado captura etapa, responsable, fecha y evidencia de pasos y exporta CSV de sesión con archivo, hoja y periodo; no se sincroniza. |
-| Datos: Registros | ¿Qué filas y campos se usan en el tablero? | Vista paginada de los registros aceptados y los 25 campos operativos. Búsqueda por código o cooperativa y filtro por campos vacíos o no válidos. El CSV incluye la carga completa y su trazabilidad. |
+| Datos: Registros | ¿Qué filas y campos se usan en el tablero? | Vista paginada de los registros aceptados y los 26 campos operativos. Búsqueda por código o cooperativa y filtro por campos vacíos o no válidos. El CSV incluye la carga completa y su trazabilidad. |
 | Datos: Resumen del Excel | ¿Qué contiene el archivo y qué cumple el contrato? | Número de hojas y columnas; registros incluidos y excluidos; seis comprobaciones de identificación, encabezados y tipos. Por campo: válidos, vacíos, no válidos, promedio/mínimo/máximo numéricos o moda categórica. Una columna opcional ausente se distingue de las celdas vacías. Las columnas fuera del tablero se resumen aparte. |
 | Seguimiento del crédito | ¿Cómo avanzan las ventas, los gastos y el uso del crédito? | Excel mensual independiente, vinculado a la base activa. Los porcentajes usan respuestas válidas y los montos se agregan sobre valores válidos. No se calculan mora ni utilidades. Ver [contrato de seguimiento](../data/contrato_seguimiento.md). |
 

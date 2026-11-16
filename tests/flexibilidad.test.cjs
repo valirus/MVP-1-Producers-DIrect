@@ -6,9 +6,17 @@ const tracking=(matrix,base,period=2027)=>S.readFile('seguimiento.xlsx',[{name:'
 test('un campo que no viene en Excel permanece visible como columna ausente',()=>{
  const result=main([['Código de productora','Cooperativa','Área de café'],['A','Nueva',0],['B','Nueva',null]]);
  const coverage=D.coverage(result.records,result.audit);
- assert.equal(coverage.length,25);
+ assert.equal(coverage.length,26);
  const area=coverage.find(f=>f.key==='area');assert.equal(area.filled,1);assert.equal(area.missing,1);assert.equal(area.status,'mapped');
  const income=coverage.find(f=>f.key==='income');assert.equal(income.status,'absent');assert.equal(income.missing,2);
+});
+test('el parentesco con el socio titular se lee de los dos formularios y de la base limpia',()=>{
+ const q='5. En caso de ser familiar socio titular (padre o conyugue) marque el parentesco con la Beneficiaria';
+ const raw=main([['1. Código/Productora','Cooperativa',q],['A','Nueva','Conyugue'],['B','Nueva','No tengo parentesco, soy la titular'],['C','Nueva','Ninguno, soy socia titular en la cooperativa'],['D','Nueva','Padre'],['E','Nueva',null],['F','Nueva','Hermano']]);
+ assert.deepEqual(raw.records.map(r=>r.kinship),['CONYUGE','TITULAR','TITULAR','PADRE',null,'OTRO / REVISAR']);
+ assert.equal(raw.audit.issues.filter(i=>i.field==='kinship').length,1);assert.equal(raw.audit.imputed,0);
+ const clean=main([['codigo_productora','cooperativa','parentesco_socio_titular'],['A','Nueva','CONYUGE'],['B','Nueva','TITULAR'],['C','Nueva','PADRE']]);
+ assert.deepEqual(clean.records.map(r=>r.kinship),['CONYUGE','TITULAR','PADRE']);
 });
 test('no válidos, vacíos y ceros se distinguen sin imputar',()=>{
  const result=main([['codigo_productora','cooperativa','monto_solicitado_pen'],['A','Nueva',0],['B','Nueva','1,500'],['C','Nueva',null],['D','Nueva',-5]]);

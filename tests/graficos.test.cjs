@@ -2,7 +2,7 @@
 // Gráficos accesibles: color fijo por cooperativa, niveles educativos agrupados y temas de indicadores.
 const assert = require('node:assert/strict'), fs = require('node:fs'), vm = require('node:vm');
 const ctx = {}; vm.createContext(ctx);
-vm.runInContext(fs.readFileSync(__dirname + '/../js/coops.js', 'utf8') + ';this.api={VIZ,setCoopColors,coopColor,seriesColor,educationGroup,EDU_GROUPS,INDICATORS,INDICATOR_THEMES,THEME_ORDER};', ctx);
+vm.runInContext(fs.readFileSync(__dirname + '/../js/coops.js', 'utf8') + ';this.api={VIZ,setCoopColors,coopColor,seriesColor,educationGroup,kinshipText,EDU_GROUPS,INDICATORS,INDICATOR_THEMES,THEME_ORDER};', ctx);
 const A = ctx.api;
 
 // El color sigue a la cooperativa, no a su posición en la lista filtrada.
@@ -30,6 +30,11 @@ assert.equal(A.educationGroup('SECUNDARIA_INCOMPLETA'), A.educationGroup('SECUND
 assert.equal(A.educationGroup('TECNICO_COMPLETO'), 'Técnico o superior');
 assert.equal(A.educationGroup('POSGRADO'), 'Otro');
 assert.equal(A.educationGroup(null), null);
+assert.equal(A.kinshipText('TITULAR'), 'Socia titular');
+assert.equal(A.kinshipText('CONYUGE'), 'Su cónyuge es el socio titular');
+assert.equal(A.kinshipText('PADRE'), 'Su padre es el socio titular');
+assert.equal(A.kinshipText(null), null);
+assert.equal(A.kinshipText('OTRO / REVISAR'), null);
 assert.equal(A.EDU_GROUPS.length, A.VIZ.seq.length, 'un tono por grupo');
 
 // Todo indicador tiene un tema conocido.

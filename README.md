@@ -46,7 +46,7 @@ Ejecuta los notebooks en este orden. `python -X utf8 scripts/ejecutar_notebooks.
 
 | Orden | Notebook | Qué hace | Lee | Escribe |
 |---|---|---|---|---|
-| 1 | `01_limpieza.ipynb` | Reconstruye los 25 campos desde el original y los concilia con la base limpia | `data/raw/`, `data/processed/` | `data/processed/` |
+| 1 | `01_limpieza.ipynb` | Reconstruye los 26 campos desde el original y los concilia con la base limpia | `data/raw/`, `data/processed/` | `data/processed/` |
 | 2 | `02_exploracion.ipynb` | Cobertura, faltantes y valores atípicos | Salidas de 01 | Consola |
 | 3 | `03_indicadores.ipynb` | Productoras, quintales, mediana, monto solicitado, participación y PCA | Salidas de 01 | Consola |
 | 4 | `04_dashboard.ipynb` | Ejecuta las pruebas y genera el sitio público | `index.html`, `js/`, `css/` | `_site/` |
@@ -137,10 +137,10 @@ Todas las salidas quedan ignoradas por git. Para ver el tablero con la base gene
 
 Valores esperados con los Excel de referencia (sirven para comprobar la ejecución):
 - 138 productoras: Norandino 113 y Bagua Grande 25;
-- 3,449 coincidencias y 1 discrepancia en 3,450 comparaciones de 25 campos; sin imputaciones. Véase [auditoría de entrega](docs/AUDITORIA_ENTREGA_13NOV.md);
+- 3,587 coincidencias y 1 discrepancia en 3,588 comparaciones de 26 campos (el dato de Yape de una productora con respuesta contradictoria); sin imputaciones. Véase [auditoría de entrega](docs/AUDITORIA_ENTREGA_13NOV.md);
 - S/ 190,175 solicitados, 310.36 ha y 5,444 quintales;
 - PCA con 138 filas completas, donde los primeros tres ejes explican el 78.28 %;
-- 38 de 38 pruebas pasan y `sources.test.cjs` hace 3,450 comparaciones.
+- 39 pruebas generales pasan; `sources.test.cjs` hace 3,588 comparaciones y falla mientras exista la discrepancia de Yape.
 
 Para regenerar solo el Excel operativo: `node scripts/preparar.cjs --raw "ruta-al-original.xlsx" --out data/processed`. Agrega `--clean "ruta-a-la-base-limpia.xlsx"` para conciliarlo con la referencia. No reconstruye las 77 columnas del libro histórico.
 
@@ -153,7 +153,7 @@ Para regenerar solo el Excel operativo: `node scripts/preparar.cjs --raw "ruta-a
 - Única incidencia: las tildes salen mal en la consola si no se usa `-X utf8`.
 - Pendiente: probar en macOS.
 
-**13/11/2026:** verificación en Linux con Node.js 22.23.4. Los notebooks 01 a 04 corren en orden con `scripts/ejecutar_notebooks.py` y también ejecutados con Jupyter (`jupyter nbconvert --execute`), sin errores. Las 38 pruebas pasan y el sitio se genera con 36 archivos.
+**16/11/2026:** verificación en Linux con Node.js 22.23.4. Los notebooks 01 a 04 corren en orden con `scripts/ejecutar_notebooks.py` y también ejecutados con Jupyter (`jupyter nbconvert --execute`), sin errores. Las 39 pruebas generales pasan y el sitio se genera con 36 archivos.
 
 ## Integración y publicación
 
@@ -165,6 +165,6 @@ No añadas Excel, CSV de personas ni auditorías al repositorio. Revisa el diff 
 
 ## Auditoría de documentación del 13/11/2026
 
-La verificación sobre `aef3c46` con los Excel adjuntos de esta entrega detectó una discrepancia en `usa_yape` (Bagua Grande, fila original 11). Los notebooks completan y las 38 pruebas generales pasan; la prueba estricta `sources.test.cjs` falla por esa discrepancia. No se modificó la respuesta ni se relajó la prueba. Los totales principales coinciden. El [informe de auditoría](docs/AUDITORIA_ENTREGA_13NOV.md) detalla la evidencia y la decisión pendiente.
+La verificación sobre `aef3c46` con los Excel adjuntos de esta entrega detectó una discrepancia en `usa_yape` (Bagua Grande, fila original 11). Los notebooks completan y las 39 pruebas generales pasan; la prueba estricta `sources.test.cjs` falla por esa discrepancia. No se modificó la respuesta ni se relajó la prueba. Los totales principales coinciden. El [informe de auditoría](docs/AUDITORIA_ENTREGA_13NOV.md) detalla la evidencia y la decisión pendiente.
 
 La generación pública incorpora ahora las seis capturas del manual que faltaban y contiene 36 archivos. El ZIP académico incluye los datos de entrada y evidencia ejecutada por separado; no se añaden a GitHub Pages.

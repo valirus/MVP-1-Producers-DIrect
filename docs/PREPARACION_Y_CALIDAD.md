@@ -5,10 +5,10 @@
 | Elemento | Ubicación o formato | Uso |
 |---|---|---|
 | Exportación anónima original | `data/raw/` o `PD_RAW`; hojas `Productoras Norandino` y `Productoras Bagua Grande` | Entrada de la reconstrucción. Se conserva intacta. |
-| Base limpia de referencia | `data/processed/` o `PD_CLEAN`; hoja `Productoras` | Referencia para conciliar los 25 campos operativos. |
+| Base limpia de referencia | `data/processed/` o `PD_CLEAN`; hoja `Productoras` | Referencia para conciliar los 26 campos operativos. |
 | Base operativa reconstruida | `data/processed/base_operativa_desde_raw.xlsx` y CSV equivalente | Excel compatible con el sitio, generado desde el original. |
 | Auditoría local | `comparacion.json`, `antes_despues.csv`, `auditoria_raw.json`, `auditoria_limpia.json`, `base_operativa_limpia.csv` | Salidas de conciliación; el JSON detallado puede contener códigos. |
-| Evidencia compartible | [limpieza_por_variable.csv](limpieza_por_variable.csv) | Resumen agregado de los 25 campos, sin registros individuales. |
+| Evidencia compartible | [limpieza_por_variable.csv](limpieza_por_variable.csv) | Resumen agregado de los 26 campos, sin registros individuales. |
 
 El Excel web puede tener otro nombre y otras cooperativas. Requiere encabezados compatibles, una columna de código y una de cooperativa. El script local de reconstrucción conoce los dos formularios de la entrega; una nueva estructura requiere revisar el mapeo con ROTA. La web y el script comparten `js/data_core.js`.
 
@@ -33,7 +33,7 @@ El Excel web puede tener otro nombre y otras cooperativas. Requiere encabezados 
 
 El CSV tiene una fila por campo. `raw_column_rows` cuenta filas conciliadas con una columna directa en el original; cuando es cero, puede existir una derivación (cooperativa, edad, provincia, Yape). `raw_cell_blanks`, `raw_numbers` y `raw_text_or_other` describen esas celdas de origen. `raw_normalized_missing` y `clean_missing` cuentan ausencias después de normalizar las dos entradas. `clean_number`, `clean_text` y `clean_list` muestran el tipo de los valores normalizados de la referencia. `raw_issues` y `clean_issues` cuentan incidencias por campo, no necesariamente filas únicas. `rawOutliers` y `cleanOutliers` son banderas locales. `changes` compara valores de ambas entradas **ya normalizadas**; no cuenta cuántas tildes o etiquetas cambiaron al limpiar.
 
-En la referencia: 138 filas por lado, 138 llaves y ubicaciones de origen conciliadas, 25 campos y **3,450 comparaciones: 3,449 coincidencias y una discrepancia en Usa Yape con la referencia adjunta de esta entrega**. No hubo filas apartadas ni imputaciones. Una respuesta contradictoria de servicios se conserva como incidencia. Que coincidan las dos bases bajo el mismo contrato no valida por sí solo lo declarado en campo. Los hashes SHA-256 quedan en `comparacion.json` local.
+En la referencia: 138 filas por lado, 138 llaves y ubicaciones de origen conciliadas, 26 campos y **3,588 comparaciones: 3,587 coincidencias y una discrepancia en Usa Yape con la referencia adjunta de esta entrega**. No hubo filas apartadas ni imputaciones. Una respuesta contradictoria de servicios se conserva como incidencia. Que coincidan las dos bases bajo el mismo contrato no valida por sí solo lo declarado en campo. Los hashes SHA-256 quedan en `comparacion.json` local.
 
 ## Ejecución y mantenimiento
 

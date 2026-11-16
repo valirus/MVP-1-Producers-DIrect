@@ -64,6 +64,10 @@ const INDICATOR_THEMES = { smart: 'Acceso digital', net: 'Acceso digital', yape:
 const THEME_ORDER = ['Acceso digital', 'Lectoescritura', 'Hogar', 'Vínculo con la cooperativa', 'Comunicación'];
 const MULTI_INDICATORS = ['wa', 'call'];
 
+// Parentesco con el socio titular de la cooperativa: texto para la ficha y la tarjeta del panorama.
+const KINSHIP_TEXT = { TITULAR: 'Socia titular', CONYUGE: 'Su cónyuge es el socio titular', PADRE: 'Su padre es el socio titular' };
+function kinshipText(v) { return KINSHIP_TEXT[String(v || '').toUpperCase()] || null; }
+
 // Nivel educativo en 5 grupos (AC1): ocho niveles en tonos casi iguales no se podían distinguir.
 const EDU_GROUPS = ['Sin estudios', 'Primaria incompleta', 'Primaria completa', 'Secundaria (completa o no)', 'Técnico o superior'];
 function educationGroup(v) {

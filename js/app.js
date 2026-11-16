@@ -103,6 +103,20 @@ function applyFilters(reset = false) {
       }
     }
   }
+  const kinRows=filteredData.filter(r=>r.kinship&&r.kinship!=='OTRO / REVISAR'),isHolder=r=>r.kinship==='TITULAR',kinEl=$('kpi-kin');
+  kinEl.closest('.kpi-card').hidden=!kinRows.length;
+  if(kinRows.length){
+    const holders=kinRows.filter(isHolder).length;
+    kinEl.textContent=holders;
+    const unit=document.createElement('span');unit.className='kpi-unit';
+    unit.textContent=' de '+kinRows.length+' ('+Math.round(100*holders/kinRows.length)+' %)';kinEl.append(unit);
+    const byCoop=[...new Set(kinRows.map(r=>r.coop))].sort((a,b)=>groupLabel(a).localeCompare(groupLabel(b),'es'));
+    if(byCoop.length>1){
+      const split=document.createElement('div');split.className='kpi-coverage';
+      split.textContent=byCoop.map(c=>{const g=kinRows.filter(r=>r.coop===c);return groupLabel(c)+' '+g.filter(isHolder).length+' de '+g.length;}).join(' · ');kinEl.append(split);
+    }
+    if(kinRows.length<n){const note=document.createElement('div');note.className='kpi-coverage';note.textContent=kinRows.length+' de '+n+' con dato';kinEl.append(note);}
+  }
   renderOverview(filteredData,available,total);
   if (page === 'seguimiento' && audit) renderSeguimiento(filteredData);
   const cross=renderCross(filteredData);
@@ -162,7 +176,7 @@ function renderProducerBrowser() {
 function showProducer() {
   const r = selectedProducer();
   if (!r) return clearProducer();
-  $('rep-code-coop').textContent = [r.code,groupLabel(r.coop),region(r)].filter(Boolean).join(' · ');
+  $('rep-code-coop').textContent = [r.code,groupLabel(r.coop),region(r),kinshipText(r.kinship)].filter(Boolean).join(' · ');
   const num = (k, suffix = '', prefix = '') => D.finite(r[k]) ? prefix+H.fmt(r[k],Number.isInteger(r[k])?0:2)+suffix : null;
   const yes = x => x === 1 ? 'Sí' : x === 0 ? 'No' : null;
   const fields = [['Actividad solicitada',r.activity ? prettyLabel(r.activity) : null],['Monto solicitado',num('amount','','S/ ')],['Café entregado',num('qq',' quintales')],['Área de café',num('area',' hectáreas')],['Ingreso principal declarado',num('income','','S/ ')],['Celular propio',({SMARTPHONE:'Smartphone',BASICO:'Celular de teclas',NINGUNO:'Sin celular'})[r.phone]||r.phone],['Antigüedad de la socia titular',num('years',' años')],['¿La productora tiene ahorros o aportes de capital en su cooperativa?',yes(r.savingsCoop)],['¿La socia titular tiene un crédito vigente con la cooperativa?',yes(r.coopCredit)]];

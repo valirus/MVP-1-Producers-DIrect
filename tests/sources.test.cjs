@@ -9,7 +9,7 @@ try {
  const s=JSON.parse(fs.readFileSync(path.join(out,'comparacion.json')));
  assert.equal(s.rawN,138);assert.equal(s.cleanN,138);assert.equal(s.originMatch,138);
  assert.equal(s.cleanOnly+s.rawOnly+s.cleanQuarantine+s.rawQuarantine,0);
- assert.equal(s.table.length,25);
+ assert.equal(s.table.length,26);
  assert.ok(s.table.every(x=>x.compared===138&&x.changes===0));
  assert.equal(s.sums.amount,190175);assert.equal(s.sums.qq,5444);assert.ok(Math.abs(s.sums.area-310.36)<1e-8);
  const X=require('../vendor/xlsx.full.min.js'),D=require('../js/data_core.js');
@@ -21,10 +21,10 @@ try {
  const fields=D.fields.map(([k])=>k).filter(k=>!['birth','infocorp'].includes(k));
  const select=rows=>Object.fromEntries(rows.map(row=>[JSON.stringify([row.coop,D.norm(row.code)]),
    fields.map(k=>Array.isArray(row[k])?[...row[k]].sort():row[k])]));
- assert.deepEqual(select(generated),select(reference),'el Excel reconstruido conserva los 25 campos al volver a cargarlo');
+ assert.deepEqual(select(generated),select(reference),'el Excel reconstruido conserva los 26 campos al volver a cargarlo');
  const audit=JSON.parse(fs.readFileSync(path.join(out,'auditoria_limpia.json')));
  assert.equal(audit.imputed,0);assert.equal(audit.issues.length,1);assert.equal(audit.issues[0].field,'services');
  assert.ok(audit.outliers.some(r=>r.field==='age'&&r.value===89));
  [39.135471284,23.13138807,16.017022522].forEach((v,i)=>assert.ok(Math.abs(s.pca.variance[i]-v)<1e-8));
- console.log('OK: 3,450 comparaciones, trazabilidad, totales, PCA y reglas de calidad de la entrega.');
+ console.log('OK: 3,588 comparaciones, trazabilidad, totales, PCA y reglas de calidad de la entrega.');
 } finally { fs.rmSync(out,{recursive:true,force:true}); }

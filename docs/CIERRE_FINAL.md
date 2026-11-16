@@ -7,7 +7,7 @@ Esta tabla describe la versión actual. La [matriz anterior](CIERRE_UX_Y_PD.md) 
 | Requisito | Evidencia | Estado |
 |---|---|---|
 | Otra persona puede usar, auditar y mantener el producto | [README](../README.md), [manual](manual.html), [contrato](../data/data_contract.md) y [mantenimiento](COMO_EXTENDER.md). El demo permite practicar sin datos operativos. | Verificado en la entrega local; falta prueba con usuarios de ROTA. |
-| Diccionario y significado para negocio | [Diccionario operativo](diccionario.html) de 25 campos y [catálogo de visuales](INFORME_TECNICO.md). | Entregado. Confirmar en campo las unidades y el alcance de las preguntas si cambia el formulario. |
+| Diccionario y significado para negocio | [Diccionario operativo](diccionario.html) de 29 variables y [catálogo de visuales](INFORME_TECNICO.md). | Entregado. Confirmar en campo las unidades y el alcance de las preguntas si cambia el formulario. |
 | Exactitud, completitud y trazabilidad | [Preparación y calidad](PREPARACION_Y_CALIDAD.md), [antes/después por variable](limpieza_por_variable.csv), conciliación de llaves y origen. | Verificada la concordancia técnica, no la exactitud de lo declarado. |
 | Preparación repetible y original intacto | `data/raw` y `data/processed` separados, [cuatro notebooks numerados](../notebooks/), [versiones](../requirements.txt) y [scripts](../scripts/). | Ejecutado de punta a punta con los archivos autorizados. |
 | Manual: acceso, filtros, periodos, visuales, casos, errores y soporte | [Manual](manual.html) con capturas ficticias y rutas para consulta, ficha y equipo de datos. | Entregado. Falta que Producers Direct confirme su canal oficial de soporte. |

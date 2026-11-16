@@ -41,7 +41,7 @@ Si recibiste este informe por separado, los enlaces relativos corresponden a la 
 |---|---|
 | Reglas en Node.js | 10 archivos de pruebas: importación, ausencias, periodo, filtros, indicadores, gráficos y fichas. |
 | Cuatro notebooks | Ejecutados en orden con Python 3.12.14 y Node.js 24.22.1. Se generaron el Excel operativo, CSV, resumen por variable y auditorías locales. |
-| Conciliación del original y la referencia limpia | 138 filas y 25 campos; 3,450 comparaciones sin discrepancias, 138 ubicaciones de origen coincidentes, 0 imputaciones. Una incidencia contradictoria de servicios se mantuvo. |
+| Conciliación del original y la referencia limpia | 138 filas y 26 campos; 3,588 comparaciones, de las que 3,587 coinciden y 1 tiene una diferencia explicada (Yape de la productora con respuesta contradictoria), 138 ubicaciones de origen coincidentes, 0 imputaciones. Una incidencia contradictoria de servicios se mantuvo. |
 | Navegador Chromium | Carga real y reconstruida, filtros, montos exactos y por intervalos, periodos futuros o ausentes, rechazo de periodos mezclados, elección de hoja, búsqueda, cobertura con un cero y un faltante, navegación desde cobertura y CSV. Se cargó y reinició un seguimiento ficticio. Vista de escritorio y móvil de 390 px. No hubo solicitudes externas durante la prueba. |
 | Campo e impresión | Dos visitas de cargas distintas se exportaron juntas y separadas por origen; «Ficha para la visita» y «Mi finca» generaron una página A4 cada una con datos ficticios. |
 | Carpeta pública | Generada desde lista explícita; contiene sitio y guías. Sin Excel, registros, auditorías ni notebooks. |

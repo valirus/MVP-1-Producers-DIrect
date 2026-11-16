@@ -72,7 +72,7 @@ const PDCharts=(()=>{
   });
   el('overview-charts').hidden=!visible;
  }
- const NICE={SMARTPHONE:'Smartphone',BASICO:'Celular de teclas','SIN DATO':'Vacío','OTRO / REVISAR':'Otra respuesta',LECTURA:'Dificultad para leer',ESCRITURA:'Dificultad para escribir',AMBAS:'Dificultad para leer y escribir','FERTILIZACIÓN':'Fertilización','CRIANZA DE ANIMALES':'Crianza de animales','EMPRENDIMIENTO / OTROS':'Emprendimiento u otros'};
+ const NICE={SMARTPHONE:'Smartphone',BASICO:'Celular de teclas','SIN DATO':'Vacío','OTRO / REVISAR':'Otra respuesta',LECTURA:'Dificultad para leer',ESCRITURA:'Dificultad para escribir',AMBAS:'Dificultad para leer y escribir','FERTILIZACIÓN':'Fertilización','CRIANZA DE ANIMALES':'Crianza de animales','EMPRENDIMIENTO / OTROS':'Emprendimiento u otros',TITULAR:'Ella es la socia titular',CONYUGE:'Su cónyuge es el socio titular',PADRE:'Su padre es el socio titular'};
  const nice=(cat,key)=>cat==='NINGUNO'&&key==='phone'?'Sin celular':cat==='NINGUNA'?'Sin dificultad':NICE[cat]||prettyLabel(cat);
  function stacked(id,rows,key,coops,allRows){
   const visible=showChart(id,rows.some(r=>r[key]!=null)&&coops.some(c=>rows.filter(r=>r.coop===c&&r[key]!=null).length>=MIN_N));
@@ -129,6 +129,13 @@ const PDCharts=(()=>{
   }
   const activities=stacked('chart-activities',rows,'activity',coops,allRows);
   const phone=stacked('chart-phone',rows,'phone',coops,allRows),literacy=stacked('chart-literacy',rows,'literacy',coops,allRows);
+  const kinship=stacked('chart-kinship',rows,'kinship',coops,allRows);
+  if(kinship){
+   const zones=new Map();
+   rows.filter(r=>r.kinship!=null).forEach(r=>{const z=PDResumen.place(r)||'Ubicación vacía';if(!zones.has(z))zones.set(z,[]);zones.get(z).push(r);});
+   el('chart-kinship-table').insertAdjacentHTML('beforeend','<h4>Por distrito y provincia</h4>'+table(['Distrito y provincia','Productoras','Socias titulares'],
+    [...zones].sort((a,b)=>b[1].length-a[1].length||a[0].localeCompare(b[0],'es')).map(([z,g])=>[z,g.length,g.filter(r=>r.kinship==='TITULAR').length+' de '+g.length])));
+  }
   const frequent = new Map(D.commonAmounts(rows,{top:Infinity,minN:MIN_N}).map(g=>[g.coop,g]));
   const amountGroups=groups.map(([coop,group])=>[coop,group.map(r=>r.amount).filter(D.finite)]).filter(([,v])=>v.length>=MIN_N);
   const amounts=!!amountGroups.length;
@@ -164,7 +171,7 @@ const PDCharts=(()=>{
     labels.map((label,i)=>[label,...by.map(g=>g.values[i])]));
   }
   requestAnimationFrame(()=>Object.values(charts).forEach(c=>c.resize()));
-  return {production:coffee||yieldPlot,inclusion:phone||literacy,credit:activities||amounts};
+  return {production:coffee||yieldPlot,inclusion:phone||literacy||kinship,credit:activities||amounts};
  }
  return {render,resize:()=>Object.values(charts).forEach(c=>c.resize()),table,esc,fmt,charts};
 })();

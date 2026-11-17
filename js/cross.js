@@ -45,7 +45,7 @@ function renderCross(data) {
         label:groupLabel(g),groupIndex:i,data:rows.map(r=>r.values[i].pct),backgroundColor:coopColor(g),maxBarThickness:22,borderRadius:4
       })).filter(d=>d.data.some(v=>v!=null))},
       options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:false,
-        plugins:{legend:{display:true,position:'bottom',onClick:()=>{},labels:{boxWidth:12}},
+        plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:12}},
           tooltip:{callbacks:{label:c=>c.dataset.label+': '+text(rows[c.dataIndex].values[c.dataset.groupIndex])}}},
         scales:{x:{min:0,max:100,ticks:{callback:v=>v+'%',stepSize:25}},y:{grid:{display:false}}}}
     }));

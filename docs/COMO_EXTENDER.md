@@ -6,6 +6,7 @@ El sitio es estático, con cálculo local: HTML/CSS para la interfaz; SheetJS pa
 |---|---|
 | Texto, navegación y modos | `index.html`, `js/roles.js`, `js/app.js` |
 | Contrato, columna nueva o formato | `js/data_core.js`, `js/app.js`, diccionario y pruebas |
+| Leyendas de gráficos | `PDLegend` en `js/filtros.js`, estilos `.chart-legend` en `css/style.css`; las leyendas nativas se sustituyen por botones con `aria-pressed`. |
 | Selectores con búsqueda y dependencias | `js/filtros.js`, `js/app.js`, `index.html`, `css/style.css` |
 | Mapa, cuartiles y coordenadas coincidentes | `js/resumen_core.js`, `js/resumen.js`, `js/charts.js`, `tests/ux.test.cjs` |
 | Comparación descriptiva | `js/charts.js`, `js/cross.js`, `js/coops.js` |

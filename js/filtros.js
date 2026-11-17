@@ -87,23 +87,65 @@ document.querySelectorAll('details[data-table-toggle]').forEach(details=>{
   details.addEventListener('toggle',()=>{summary.textContent=details.open?'Ocultar tabla':'Ver tabla';});
 });
 
-/* ---------- B9: leyendas interactivas ---------- */
-
-if (typeof Chart !== 'undefined') {
-  const legend = Chart.defaults.plugins.legend;
-  const defaultClick = legend.onClick;
-  legend.onHover = (event) => { if (event.native?.target) event.native.target.style.cursor = 'pointer'; };
-  legend.onLeave = (event) => { if (event.native?.target) event.native.target.style.cursor = 'default'; };
-  legend.onClick = function onLegendClick(event, item, legendObj) {
-    const chart = legendObj.chart;
-    if (item.datasetIndex !== undefined) {
-      const visible = chart.data.datasets.filter((d, i) => chart.isDatasetVisible(i)).length;
-      // No se deja ocultar la última serie: el gráfico vacío parecería «sin datos».
-      if (visible === 1 && chart.isDatasetVisible(item.datasetIndex)) return;
-    }
-    defaultClick.call(this, event, item, legendObj);
-  };
-}
+/* Leyendas compartidas: botones con estado, tachado y transición de las series. */
+const PDLegend = (()=>{
+  const duration=()=>typeof window!=='undefined'&&window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?0:180;
+  function toggle(chart,index){
+    if(!Number.isInteger(index)||!chart.data.datasets[index])return;
+    const ms=duration(),visible=chart.isDatasetVisible(index);
+    chart.options.animation=ms?{duration:ms}:false;
+    for(const mode of ['show','hide'])chart.options.transitions[mode].animation={duration:ms};
+    if(visible)chart.hide(index);else chart.show(index);
+    chart.config.options.pdLegendChange?.(chart);
+  }
+  function sync(chart){
+    const root=chart.$pdLegend;if(!root)return;
+    const items=Chart.defaults.plugins.legend.labels.generateLabels(chart);
+    const labels=new Set(items.map(item=>String(item.datasetIndex)));
+    root.querySelectorAll('button').forEach(button=>{if(!labels.has(button.dataset.datasetIndex))button.remove();});
+    items.forEach(item=>{
+      let button=root.querySelector(`[data-dataset-index="${item.datasetIndex}"]`);
+      if(!button){
+        button=document.createElement('button');button.type='button';button.className='legend-toggle';
+        button.dataset.datasetIndex=item.datasetIndex;
+        const swatch=document.createElement('b');swatch.className='legend-swatch';swatch.setAttribute('aria-hidden','true');
+        const text=document.createElement('span');text.className='legend-label';
+        button.append(swatch,text);button.onclick=()=>toggle(chart,item.datasetIndex);root.append(button);
+      }
+      const visible=chart.isDatasetVisible(item.datasetIndex),swatch=button.querySelector('b');
+      const background=chart.data.datasets[item.datasetIndex].backgroundColor;
+      const color=typeof background==='string'?background:item.fillStyle;
+      button.setAttribute('aria-pressed',String(visible));
+      button.setAttribute('aria-label',(visible?'Ocultar ':'Mostrar ')+item.text);
+      button.querySelector('span').textContent=item.text;
+      if(chart.config.options.pdLegendPoints){
+        swatch.classList.add('legend-symbol');
+        swatch.textContent=({circle:'●',triangle:'▲',rect:'■',rectRot:'◆',crossRot:'×'})[chart.data.datasets[item.datasetIndex].pointStyle]||'●';
+        swatch.style.color=color;
+      }else swatch.style.backgroundColor=color;
+    });
+    chart.$pdLegendEmpty.hidden=chart.data.datasets.some((_,i)=>chart.isDatasetVisible(i));
+  }
+  const plugin={id:'pdInteractiveLegend',beforeInit(chart){
+    const config=chart.config.options,legend=chart.options.plugins.legend;
+    if(!config.pdLegendContainer&&!legend.display)return;
+    const box=chart.canvas.parentElement;
+    let root=config.pdLegendContainer?document.getElementById(config.pdLegendContainer):null;
+    chart.$pdLegendOwned=!root;
+    if(!root){root=document.createElement('div');if(legend.position==='top')box.before(root);else box.after(root);}
+    root.classList.add('chart-legend');root.setAttribute('role','group');
+    root.setAttribute('aria-label','Leyenda de '+(chart.canvas.getAttribute('aria-label')||'gráfico'));
+    const empty=document.createElement('p');empty.className='chart-note';empty.hidden=true;empty.textContent='Todas las series están ocultas.';
+    empty.setAttribute('role','status');root.after(empty);
+    chart.$pdLegend=root;chart.$pdLegendEmpty=empty;
+    legend.display=false;
+  },afterUpdate:sync,afterDestroy(chart){
+    if(chart.$pdLegendOwned)chart.$pdLegend?.remove();else chart.$pdLegend?.replaceChildren();
+    chart.$pdLegendEmpty?.remove();
+  }};
+  return {toggle,sync,plugin};
+})();
+if(typeof Chart!=='undefined')Chart.register(PDLegend.plugin);
 
 /* ---------- Enlaces entre pantallas (por ejemplo, de Cruces a Relaciones) ---------- */
 document.addEventListener('click', (event) => {

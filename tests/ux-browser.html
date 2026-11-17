@@ -12,8 +12,8 @@ frame.onload=async()=>{
   const w=frame.contentWindow,d=w.document,D=w.PDData,errors=[];
   w.addEventListener('error',event=>{if(!event.filename.startsWith('chrome-extension://'))errors.push(event.message);});
   w.addEventListener('unhandledrejection',event=>errors.push(String(event.reason)));
-  const columns=['codigo_productora','cooperativa','area_cafe_reportada','quintales_acopiados','distrito','provincia','base_sector','monto_solicitado_pen','actividad_a_financiar'];
-  const rows=Array.from({length:60},(_,i)=>[String(i+1).padStart(4,'0'),i<30?'NORANDINO':'BAGUA GRANDE',i<20?2:(i%6)/2,i<20?10:i*3,i===59?'Distrito pequeño':'Distrito '+i%4,'Provincia Demo','Grupo '+i%10,1000,'Fertilización']);
+  const columns=['codigo_productora','cooperativa','area_cafe_reportada','quintales_acopiados','distrito','provincia','base_sector','monto_solicitado_pen','actividad_a_financiar','tipo_celular_beneficiaria','dificultad_lectoescritura','parentesco_socio_titular','nivel_educativo','acceso_internet','agua_desague','canales_preferidos','capacitacion_cooperativa'];
+  const rows=Array.from({length:60},(_,i)=>[String(i+1).padStart(4,'0'),i<30?'NORANDINO':'BAGUA GRANDE',i<20||i===30?2:(i%6)/2,i<20||i===30?10:i*3,i===59?'Distrito pequeño':'Distrito '+i%4,'Provincia Demo','Grupo '+i%10,1000,['Fertilización','Crianza de animales','Emprendimiento'][i%3],['BASICO','NINGUNO','SMARTPHONE'][i%3],['AMBAS','ESCRITURA','LECTURA','NINGUNA'][i%4],['TITULAR','CONYUGE','PADRE'][i%3],'SECUNDARIA_COMPLETA','EN_CASA','AMBOS','WHATSAPP; LLAMADAS',i%2]);
   const load=values=>w.loadProfile(D.sheetProfile('Prueba',[columns,...values]),'Datos ficticios',null);
   load(rows);await next();
   check(d.getElementById('kpi-n').textContent==='60','Carga de 60 productoras');
@@ -39,13 +39,63 @@ frame.onload=async()=>{
   const chart=w.Chart.getChart(d.getElementById('chart-yield')),point=chart.getDatasetMeta(1).data.find((_,i)=>chart.data.datasets[1].data[i].x===2&&chart.data.datasets[1].data[i].y===10);
   const rect=chart.canvas.getBoundingClientRect();
   chart.canvas.dispatchEvent(new w.MouseEvent('mousemove',{clientX:rect.left+point.x,clientY:rect.top+point.y,bubbles:true}));await next();
-  check(d.getElementById('yield-point-title').textContent==='20 productoras coincidentes','Hover reúne los 20 códigos coincidentes');
-  check(d.querySelectorAll('#yield-point-records tbody tr').length===20,'No se pierde ningún código');
+  check(d.getElementById('yield-point-title').textContent==='21 productoras coincidentes','Hover reúne los 21 códigos coincidentes');
+  check(d.querySelectorAll('#yield-point-records tbody tr').length===21,'No se pierde ningún código');
   check(d.querySelector('#yield-point-records td').textContent==='0001','Conserva ceros iniciales');
   chart.canvas.dispatchEvent(new w.MouseEvent('click',{clientX:rect.left+point.x,clientY:rect.top+point.y,bubbles:true}));await next();
   check(!d.getElementById('yield-point-panel').hidden,'Clic muestra el panel');
   d.getElementById('yield-point-close').click();await next();check(d.getElementById('yield-point-panel').hidden,'Cerrar detalle funciona');
   d.querySelector('#yield-point-list').closest('details').open=true;d.querySelector('#yield-point-list button').click();await next();check(!d.getElementById('yield-point-panel').hidden,'Alternativa por botón para teclado y toque');
+  // Todas las leyendas de consulta y seguimiento comparten la misma interacción.
+  const verifyLegend=async chart=>{
+   check(!!chart.$pdLegend,'Leyenda disponible: '+(chart.canvas.id||chart.canvas.getAttribute('aria-label')));
+   const buttons=[...chart.$pdLegend.querySelectorAll('button')];
+   for(const button of buttons){
+    const i=Number(button.dataset.datasetIndex),label=chart.data.datasets[i].label;
+    button.click();
+    check(!chart.isDatasetVisible(i)&&button.getAttribute('aria-pressed')==='false','Ocultar y tachar: '+label);
+    button.click();
+    check(chart.isDatasetVisible(i)&&button.getAttribute('aria-pressed')==='true','Volver a mostrar: '+label);
+    const sample=d.createElement('b'),property=chart.config.options.pdLegendPoints?'color':'backgroundColor';
+    sample.style[property]=chart.data.datasets[i].backgroundColor;
+    check(button.querySelector('b').style[property]===sample.style[property],'Color conservado: '+label);
+   }
+   await next();
+  };
+  // La coincidencia consulta solo las series que permanecen visibles.
+  const baguaButton=chart.$pdLegend.querySelector('[data-dataset-index="0"]');
+  baguaButton.click();await next();
+  check(d.getElementById('yield-point-panel').hidden,'Cambiar la leyenda cierra el detalle anterior');
+  const overlap=[...d.querySelectorAll('#yield-point-list button')].find(b=>b.textContent.startsWith('2 ha · 10 quintales'));
+  overlap.click();await next();check(d.querySelectorAll('#yield-point-records tbody tr').length===20,'Coincidencias excluyen la cooperativa oculta');
+  baguaButton.click();await next();
+  for(const page of ['production','inclusion','credit']){
+   w.nav(page);await next();
+   for(const canvas of d.querySelectorAll('#'+page+'-page canvas')){
+    const c=w.Chart.getChart(canvas);if(c?.$pdLegend)await verifyLegend(c);
+   }
+  }
+  w.nav('production');await next();
+  chart.$pdLegend.querySelectorAll('button').forEach(button=>button.click());await next();
+  check(!chart.data.datasets.some((_,i)=>chart.isDatasetVisible(i))&&!chart.$pdLegendEmpty.hidden,'Todas ocultas: estado claro y leyenda recuperable');
+  check(d.getElementById('kpi-n').textContent==='60','Las leyendas no cambian los filtros ni los totales');
+  chart.$pdLegend.querySelectorAll('button').forEach(button=>button.click());await next();
+  const nativeMatchMedia=w.matchMedia;
+  w.matchMedia=query=>query==='(prefers-reduced-motion: reduce)'?{matches:true}:nativeMatchMedia.call(w,query);
+  baguaButton.click();await next();
+  check(chart.options.animation===false&&chart.options.transitions.hide.animation.duration===0,'Movimiento reducido desactiva la transición del gráfico');
+  w.matchMedia=nativeMatchMedia;baguaButton.click();await next();
+  // Usar el lector mensual real para las dos cooperativas.
+  const tracking=[['codigo_productora','cooperativa','mes','vendio','ventas_pen','gasto_actividad_pen','periodo'],
+   ...rows.slice(0,35).map(row=>[row[0],row[1],'enero','Sí',100,20,2027])];
+  const profile=w.PDSeguimiento.readFile('Ficticio.xlsx',[{name:'Mensual',matrix:tracking}],w.segBaseIndex(D.importProfiles([D.sheetProfile('Prueba',[columns,...rows])]).records),{period:2027});
+  check(!profile.error,'Seguimiento ficticio compatible con el contrato');
+  // Añadir el perfil mediante la confirmación que utiliza la pantalla.
+  const bridge=d.createElement('script');bridge.textContent='window.loadLegendTrackingFixture = profile => { segState.pending=[profile]; segConfirm(); };';d.body.append(bridge);w.loadLegendTrackingFixture(profile);bridge.remove();delete w.loadLegendTrackingFixture;
+  w.nav('seguimiento');await next();
+  for(const canvas of d.querySelectorAll('#seguimiento-page canvas')){
+   const c=w.Chart.getChart(canvas);if(c?.$pdLegend)await verifyLegend(c);
+  }
   // Grupo sin dato, una observación cero y caja colapsada a un valor.
   load([['0001','NORANDINO',1,null,'A','P','X',1000],['0002','BAGUA GRANDE',1,0,'B','P','Y',1000]]);w.nav('production');await next();
   check(d.getElementById('coffee-group-totals').textContent.includes('Sin entregas con dato'),'Grupo sin dato explícito');

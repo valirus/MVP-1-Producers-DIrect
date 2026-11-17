@@ -54,12 +54,13 @@ const PDCharts=(()=>{
  }
  let pointBuckets=[],pinnedPoint=false,lastPointEvent=null,currentPoint=-1,dismissedPoint=-1;
  function pointDetail(index,focus=false){
-  const point=pointBuckets[index];if(!point)return;currentPoint=index;
+  const point=pointBuckets[index];if(!point)return;
+  const records=visiblePointRecords(point);if(!records.length)return;currentPoint=index;
   const panel=el('yield-point-panel');panel.hidden=false;
-  el('yield-point-title').textContent=point.records.length+' '+(point.records.length===1?'productora en este punto':'productoras coincidentes');
+  el('yield-point-title').textContent=records.length+' '+(records.length===1?'productora en este punto':'productoras coincidentes');
   // Sin redondear las coordenadas para no confundir puntos cercanos y coincidencias exactas.
   el('yield-point-values').textContent=point.x.toLocaleString('es-PE',{maximumFractionDigits:20})+' hectáreas · '+point.y.toLocaleString('es-PE',{maximumFractionDigits:20})+' quintales';
-  el('yield-point-records').innerHTML=table(['Código','Cooperativa (símbolo)','Grupo local','Distrito y provincia'],point.records.map(r=>[
+  el('yield-point-records').innerHTML=table(['Código','Cooperativa (símbolo)','Grupo local','Distrito y provincia'],records.map(r=>[
    r.code==null||String(r.code).trim()===''?'Código no disponible':String(r.code),
    coopMark(r.coop).symbol+' '+groupLabel(r.coop),r.base||'Sin dato',PDResumen.place(r)||'Sin dato'
   ]));
@@ -70,8 +71,7 @@ const PDCharts=(()=>{
   const pairs=pointBuckets.flatMap(p=>p.records),visibleCoops=coops.filter(c=>pairs.some(r=>r.coop===c));
   const visible=showChart('chart-yield',pairs.length);
   if(!visible)return false;
-  el('yield-legend').innerHTML=visibleCoops.map(coop=>`<span><b style="color:${coopColor(coop)}" aria-hidden="true">${coopMark(coop).symbol}</b> ${esc(groupLabel(coop))}</span>`).join('');
-  const datasets=visibleCoops.map(coop=>({label:groupLabel(coop),data:pairs.filter(r=>r.coop===coop).map(r=>({x:r.area,y:r.qq})),backgroundColor:coopColor(coop),pointStyle:coopMark(coop).style,pointRadius:5,pointHoverRadius:7,pointHitRadius:5}));
+  const datasets=visibleCoops.map(coop=>({label:groupLabel(coop),coop,data:pairs.filter(r=>r.coop===coop).map(r=>({x:r.area,y:r.qq})),backgroundColor:coopColor(coop),pointStyle:coopMark(coop).style,pointRadius:5,pointHoverRadius:7,pointHitRadius:5}));
   const inspect=(c,elements,focus=false)=>{
    if(!elements.length){dismissedPoint=-1;return;}
    const hit=elements[0],p=c.data.datasets[hit.datasetIndex].data[hit.index];
@@ -80,6 +80,8 @@ const PDCharts=(()=>{
    dismissedPoint=-1;pointDetail(index,focus);
   };
   chart('chart-yield','scatter',{datasets},{
+   pdLegendContainer:'yield-legend',pdLegendPoints:true,
+   pdLegendChange:()=>{el('yield-point-panel').hidden=true;pinnedPoint=false;lastPointEvent=null;currentPoint=-1;dismissedPoint=-1;refreshPointChoices();},
    interaction:{mode:'nearest',intersect:true},
    onHover:(event,elements,c)=>{if(event.native===lastPointEvent)return;lastPointEvent=event.native;if(!pinnedPoint)inspect(c,elements);},
    onClick:(_event,elements,c)=>{if(elements.length){pinnedPoint=true;inspect(c,elements,true);}},
@@ -87,14 +89,22 @@ const PDCharts=(()=>{
    scales:{x:{title:{display:true,text:'Área de café (hectáreas)'}},y:{title:{display:true,text:'Café entregado (quintales)'}}}
   });
   el('yield-point-close').onclick=()=>{el('yield-point-panel').hidden=true;pinnedPoint=false;dismissedPoint=currentPoint;el('yield-point-list').closest('details').querySelector('summary').focus({preventScroll:true});};
-  const list=el('yield-point-list');list.replaceChildren();
-  pointBuckets.forEach((p,index)=>{
-   const button=document.createElement('button');button.type='button';button.className='point-choice';
-   button.textContent=p.x.toLocaleString('es-PE',{maximumFractionDigits:20})+' ha · '+p.y.toLocaleString('es-PE',{maximumFractionDigits:20})+' quintales · '+p.records.length+' '+(p.records.length===1?'productora':'productoras');
-   button.onclick=()=>{pinnedPoint=true;pointDetail(index,true);};list.append(button);
-  });
+  refreshPointChoices();
   el('chart-yield-table').innerHTML=table(['Código','Cooperativa','Área de café (hectáreas)','Café entregado (quintales)','Grupo local'],pairs.map(r=>[r.code==null||String(r.code).trim()===''?'Código no disponible':String(r.code),groupLabel(r.coop),r.area,r.qq,r.base||'Sin dato']));
   return true;
+ }
+ function visiblePointRecords(point){
+  const chart=charts['chart-yield'];
+  return point.records.filter(r=>!chart||chart.data.datasets.some((dataset,i)=>dataset.coop===r.coop&&chart.isDatasetVisible(i)));
+ }
+ function refreshPointChoices(){
+  const list=el('yield-point-list');list.replaceChildren();
+  pointBuckets.forEach((p,index)=>{
+   const records=visiblePointRecords(p);if(!records.length)return;
+   const button=document.createElement('button');button.type='button';button.className='point-choice';
+   button.textContent=p.x.toLocaleString('es-PE',{maximumFractionDigits:20})+' ha · '+p.y.toLocaleString('es-PE',{maximumFractionDigits:20})+' quintales · '+records.length+' '+(records.length===1?'productora':'productoras');
+   button.onclick=()=>{pinnedPoint=true;pointDetail(index,true);};list.append(button);
+  });
  }
  function renderOverview(rows){
   const model=PDResumen.overview(rows),level={territory:'distrito',base:'grupo local',coop:'cooperativa',selection:'selección'}[model.level];
@@ -166,7 +176,7 @@ const PDCharts=(()=>{
    }));
    chart(id,'bar',{labels:groups.map(g=>groupLabel(g.coop)),datasets},{
     indexAxis:'y',pdPercent:true,
-    plugins:{legend:{display:true,position:'bottom',onClick:()=>{},labels:{boxWidth:12,padding:14}},
+    plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:12,padding:14}},
      tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmt(c.raw,1)}% (${counts[c.datasetIndex][c.dataIndex]} de ${ns[c.dataIndex]})`}}},
     scales:{x:{stacked:true,min:0,max:100,grid:{color:'#E8EEE9'},ticks:{callback:v=>v+'%',stepSize:25}},y:{stacked:true,grid:{display:false}}}
    });
@@ -218,7 +228,7 @@ const PDCharts=(()=>{
    const visible=by.length<=4&&new Set(by.map(g=>g.color)).size===by.length?by:[{name:'Total',values:counts(amountGroups.flatMap(([,values])=>values)),color:VIZ.cat[0]}];
    chart('chart-amounts','bar',{labels,datasets:visible.map(g=>({label:g.name,data:g.values.map(n=>n||null),skipNull:true,backgroundColor:g.color,maxBarThickness:36,borderRadius:3}))},{
     interaction:{mode:'index',intersect:false},
-    plugins:{legend:{display:true,position:'top',onClick:()=>{},labels:{boxWidth:12,
+    plugins:{legend:{display:true,position:'top',labels:{boxWidth:12,
     }}},
     scales:{x:{title:{display:true,text:scale.exact?'Monto exacto (S/)':'Rango de monto (S/)'},grid:{display:false},ticks:{maxRotation:45}},
      y:{beginAtZero:true,title:{display:true,text:'Solicitudes'},ticks:{precision:0}}}

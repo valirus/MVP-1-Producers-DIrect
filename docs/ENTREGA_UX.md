@@ -2,6 +2,12 @@
 
 Revisión de interfaz del 16/11/2026, basada en `899212a04e299ea280fd5dfaff8c2b5f0438186a`. Se conservan la importación y la arquitectura estática. Las mejoras no requieren dependencias nuevas.
 
+## Actualización del 17/11/2026: leyendas
+
+Las leyendas de dispersión, categorías, comparaciones por cooperativa, montos y seguimiento mensual permiten ocultar y mostrar cada serie. La opción oculta queda tachada con una transición de 180 ms. Los controles funcionan con clic, teclado y toque; la transición se omite cuando está activa la preferencia de movimiento reducido.
+
+La indicación de uso aparece una sola vez al inicio de Panorama del fondo. Las leyendas actúan sobre su gráfico; las tablas y los totales conservan la selección de los filtros superiores. En la dispersión, los detalles y el listado de coordenadas incluyen únicamente las cooperativas visibles. Si se ocultan todas las series, se muestra un estado explícito y la leyenda permanece disponible para recuperarlas. Cambiar los filtros o cargar otra base restablece las series. La verificación obtuvo 123 comprobaciones de interfaz correctas a 1320 px y otras 123 a 390 px, incluidas las leyendas de las diez visualizaciones con series. Se comprobó además la activación con Enter y Espacio en navegador. Las 45 pruebas generales permanecen correctas.
+
 ## Cambios
 
 | Sección | Implementación |

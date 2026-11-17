@@ -20,6 +20,258 @@ function setProducerNote(text) {
   note.textContent = text;
 }
 
+/* ---------- Searchable Select Component ---------- */
+
+function createSearchableSelect(selectId, options = {}) {
+  const select = byIdF(selectId);
+  if (!select || select.dataset.searchableInit === 'true') return;
+
+  const placeholder = options.placeholder || 'Buscar…';
+  const allowClear = options.allowClear !== false;
+  const minOptionsForSearch = options.minOptionsForSearch || 8;
+
+  // Create wrapper
+  const wrapper = document.createElement('div');
+  wrapper.className = 'searchable-select-wrapper';
+  select.parentNode.insertBefore(wrapper, select);
+  wrapper.appendChild(select);
+
+  // Create search input
+  const searchInput = document.createElement('input');
+  searchInput.type = 'search';
+  searchInput.className = 'searchable-select-input';
+  searchInput.placeholder = placeholder;
+  searchInput.setAttribute('aria-label', placeholder);
+  searchInput.setAttribute('autocomplete', 'off');
+  searchInput.setAttribute('role', 'combobox');
+  searchInput.setAttribute('aria-autocomplete', 'list');
+  searchInput.setAttribute('aria-controls', selectId + '-listbox');
+  searchInput.setAttribute('aria-expanded', 'false');
+  wrapper.appendChild(searchInput);
+
+  // Create dropdown listbox
+  const listbox = document.createElement('div');
+  listbox.id = selectId + '-listbox';
+  listbox.className = 'searchable-select-listbox';
+  listbox.setAttribute('role', 'listbox');
+  listbox.setAttribute('tabindex', '-1');
+  wrapper.appendChild(listbox);
+
+  // Clear button
+  let clearBtn = null;
+  if (allowClear) {
+    clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.className = 'searchable-select-clear';
+    clearBtn.innerHTML = '✕';
+    clearBtn.setAttribute('aria-label', 'Limpiar selección');
+    clearBtn.hidden = select.value === 'all';
+    wrapper.appendChild(clearBtn);
+  }
+
+  let highlightedIndex = -1;
+  let optionsCache = [];
+
+  function rebuildOptionsCache() {
+    optionsCache = [...select.options].map((opt, i) => ({
+      index: i,
+      value: opt.value,
+      text: opt.textContent,
+      selected: opt.selected,
+      disabled: opt.disabled,
+      hidden: opt.hidden
+    })).filter((opt, i) => i === 0 || opt.value !== 'all'); // Keep "all" option but don't show in list
+  }
+
+  function renderListbox(filter = '') {
+    const q = D.norm(filter);
+    let shown = 0;
+    listbox.innerHTML = '';
+
+    optionsCache.forEach((opt, cacheIndex) => {
+      if (opt.index === 0) return; // Skip "all" option in listbox
+      const keep = !q || D.norm(opt.text).includes(q);
+      if (!keep) return;
+
+      shown++;
+      const optionEl = document.createElement('div');
+      optionEl.className = 'searchable-select-option' + (opt.selected ? ' selected' : '');
+      optionEl.setAttribute('role', 'option');
+      optionEl.setAttribute('aria-selected', opt.selected ? 'true' : 'false');
+      optionEl.setAttribute('data-value', opt.value);
+      optionEl.setAttribute('data-index', opt.index);
+      optionEl.textContent = opt.text;
+
+      optionEl.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        selectOption(opt.index);
+      });
+
+      listbox.appendChild(optionEl);
+    });
+
+    // No results message
+    if (q && shown === 0) {
+      const noResults = document.createElement('div');
+      noResults.className = 'searchable-select-no-results';
+      noResults.textContent = 'Sin coincidencias';
+      listbox.appendChild(noResults);
+    }
+
+    highlightedIndex = -1;
+    updateClearButton();
+  }
+
+  function updateClearButton() {
+    if (clearBtn) {
+      clearBtn.hidden = select.value === 'all';
+    }
+  }
+
+  function selectOption(index) {
+    select.value = select.options[index].value;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    closeListbox();
+    searchInput.focus();
+  }
+
+  function highlightOption(index) {
+    const options = listbox.querySelectorAll('.searchable-select-option');
+    options.forEach((opt, i) => {
+      opt.classList.toggle('highlighted', i === index);
+    });
+    highlightedIndex = index;
+    if (index >= 0) {
+      options[index].scrollIntoView({ block: 'nearest' });
+    }
+  }
+
+  function openListbox() {
+    rebuildOptionsCache();
+    renderListbox(searchInput.value);
+    listbox.hidden = false;
+    searchInput.setAttribute('aria-expanded', 'true');
+    wrapper.classList.add('open');
+  }
+
+  function closeListbox() {
+    listbox.hidden = true;
+    searchInput.setAttribute('aria-expanded', 'false');
+    wrapper.classList.remove('open');
+    highlightedIndex = -1;
+  }
+
+  function handleKeydown(e) {
+    const options = listbox.querySelectorAll('.searchable-select-option');
+    const maxIndex = options.length - 1;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        if (listbox.hidden) {
+          openListbox();
+        } else {
+          highlightOption(Math.min(highlightedIndex + 1, maxIndex));
+        }
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        if (!listbox.hidden) {
+          highlightOption(Math.max(highlightedIndex - 1, 0));
+        }
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (!listbox.hidden && highlightedIndex >= 0) {
+          const opt = options[highlightedIndex];
+          selectOption(parseInt(opt.dataset.index, 10));
+        } else if (listbox.hidden) {
+          openListbox();
+        }
+        break;
+      case 'Escape':
+        closeListbox();
+        searchInput.focus();
+        break;
+      case 'Tab':
+        closeListbox();
+        break;
+    }
+  }
+
+  function handleInput() {
+    openListbox();
+    renderListbox(searchInput.value);
+  }
+
+  function handleClickOutside(e) {
+    if (!wrapper.contains(e.target)) {
+      closeListbox();
+    }
+  }
+
+  function handleClear() {
+    select.value = 'all';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    searchInput.value = '';
+    updateClearButton();
+    closeListbox();
+    searchInput.focus();
+  }
+
+  // Sync select value to UI
+  function syncFromSelect() {
+    const selectedOpt = select.options[select.selectedIndex];
+    searchInput.value = selectedOpt.value === 'all' ? '' : selectedOpt.textContent;
+    updateClearButton();
+
+    // Update listbox selection
+    listbox.querySelectorAll('.searchable-select-option').forEach(opt => {
+      opt.classList.toggle('selected', opt.dataset.value === select.value);
+      opt.setAttribute('aria-selected', opt.dataset.value === select.value ? 'true' : 'false');
+    });
+  }
+
+  // Event listeners
+  searchInput.addEventListener('focus', openListbox);
+  searchInput.addEventListener('input', handleInput);
+  searchInput.addEventListener('keydown', handleKeydown);
+  searchInput.addEventListener('click', (e) => e.stopPropagation());
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handleClear();
+    });
+  }
+
+  // Click on select opens dropdown
+  select.addEventListener('click', (e) => {
+    e.stopPropagation();
+    searchInput.focus();
+  });
+
+  select.addEventListener('change', syncFromSelect);
+
+  document.addEventListener('click', handleClickOutside);
+
+  // Initial sync
+  syncFromSelect();
+
+  // Mark as initialized
+  select.dataset.searchableInit = 'true';
+
+  // Return API
+  return {
+    refresh: () => {
+      rebuildOptionsCache();
+      syncFromSelect();
+    },
+    open: openListbox,
+    close: closeListbox
+  };
+}
+
 /* ---------- B4 y B6: conteos y búsqueda en listas ---------- */
 
 function applySearch(selectId) {
@@ -40,30 +292,25 @@ function applySearch(selectId) {
 }
 
 // app.js la llama cada vez que se reconstruyen las listas de filtros.
-const baseSearch=byIdF('base-search'), baseSearchToggle=byIdF('base-search-toggle');
-function setBaseSearch(open) {
-  baseSearch.hidden=!open;
-  baseSearchToggle.setAttribute('aria-expanded',String(open));
-}
 function afterFiltersBuilt() {
-  baseSearchToggle.hidden=byIdF('filter-base').options.length<9 && !baseSearch.value;
-  if(baseSearchToggle.hidden) setBaseSearch(false);
+  // Initialize searchable selects for categorical filters with many options
+  ['filter-coop', 'filter-territory', 'filter-base'].forEach(id => {
+    const select = byIdF(id);
+    if (select && select.options.length > 8) {
+      createSearchableSelect(id, {
+        placeholder: id === 'filter-base' ? 'Buscar grupo local…' : 'Buscar…',
+        minOptionsForSearch: 8
+      });
+    }
+  });
+
+  // Keep legacy search for backward compat
+  const baseSearch = byIdF('base-search');
+  const baseSearchToggle = byIdF('base-search-toggle');
+  if (baseSearchToggle) baseSearchToggle.hidden = true;
+  if (baseSearch) baseSearch.hidden = true;
   applySearch('filter-base');
 }
-baseSearchToggle.addEventListener('click',()=>{
-  if(baseSearch.hidden){
-    setBaseSearch(true);
-    baseSearch.focus();
-  }else{
-    baseSearch.value='';
-    setBaseSearch(false);
-    applySearch('filter-base');
-  }
-});
-
-document.querySelectorAll('.filter-search').forEach((input) => {
-  input.addEventListener('input', () => applySearch(input.dataset.for));
-});
 
 /* ---------- B9: leyendas interactivas ---------- */
 

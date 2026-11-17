@@ -13,16 +13,16 @@ Cada visual del tablero con su propósito, la forma de leerlo y la decisión que
 | **Monto solicitado por distrito** | Comparar dónde se concentra el dinero solicitado. | Una barra horizontal por distrito (nombre en dos líneas: distrito y provincia), en soles. «Ver cifras» abre la tabla con los valores exactos. | Priorizar los distritos con más solicitud al planificar la ruta de campo. |
 | **Área de café por distrito** | Comparar la superficie de café reportada por distrito. | Una barra por distrito en hectáreas; «Ver cifras» muestra cuántas productoras aportan al total. | Estimar el tamaño productivo de cada zona antes de definir apoyos técnicos. |
 | **Café entregado por distrito** | Comparar el café entregado a la cooperativa por distrito. | Una barra por distrito en quintales; «Ver cifras» da los valores exactos. | Identificar las zonas que más aportan a la cooperativa y las que necesitan acompañamiento. |
-| **Productoras por distrito y provincia** | Mostrar cuántas productoras hay en cada distrito y provincia. | Mapa de rectángulos: el área es proporcional al número de productoras y cada uno lleva el nombre completo y la cantidad exacta. Debajo, una tabla con productoras, monto, área y café. | Ver si la muestra depende de un solo distrito antes de generalizar conclusiones. |
+| **Productoras por distrito y provincia** | Mostrar cuántas productoras hay en cada distrito y provincia. | Mapa de rectángulos: el área es proporcional al número de productoras. Las etiquetas se adaptan sin bajar de 12 px; los bloques pequeños ofrecen nombre y cantidad mediante cursor, foco o toque. «Ver tabla» despliega los mismos grupos, con productoras, monto, área y café. | Ver si la muestra depende de un solo distrito antes de generalizar conclusiones. |
 
 ## Área y café entregado
 
-![Área y café entregado](capturas/produccion.jpg)
+Las cajas comparan el intervalo central de las entregas individuales de cada cooperativa.
 
 | Visual | Propósito | Cómo leerlo | Decisión que apoya |
 |---|---|---|---|
-| **Mediana de café entregado por productora** | Saber cuánto café entrega una productora típica de cada cooperativa. | Una barra por cooperativa con la mediana: al menos la mitad tiene una entrega menor o igual a la mediana y al menos la mitad, mayor o igual. | Comparar cooperativas sin que valores muy altos distorsionen el promedio y fijar expectativas de entrega. |
-| **Área de café frente a café entregado** | Ver si más área de café se acompaña de más café entregado. | Cada punto es una productora con ambos datos; la forma y el color indican la cooperativa. Si los puntos suben hacia la derecha, más área suele ir con más café. | Detectar productoras con mucha área y poca entrega para consultarlas en campo. No mide productividad ni causa. |
+| **Distribución del café entregado por productora** | Comparar la entrega central y su dispersión entre cooperativas. | Caja Q1–Q3 sin bigotes, línea de mediana y rombo blanco de media, con escala común en quintales. Total y productoras con dato sobre cada caja; faltantes aparte. Cuartiles interpolados desde las observaciones individuales válidas. | Comparar la mitad central de las entregas sin confundirla con el total del grupo. |
+| **Área de café frente a café entregado** | Ver si más área de café se acompaña de más café entregado. | Cada punto es una productora con ambos datos; la forma y el color indican la cooperativa y permanecen estables al filtrar. Cursor o clic abre códigos, ambos valores y unidades; los puntos coincidentes reúnen todos los códigos. El listado de coordenadas ofrece acceso por teclado o toque. | Detectar productoras con mucha área y poca entrega para consultarlas en campo. No mide productividad ni causa. |
 
 ## Participación y acceso
 

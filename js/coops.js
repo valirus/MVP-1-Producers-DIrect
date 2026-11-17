@@ -56,6 +56,14 @@ function coopColor(coop) {
   const i=COOP_ORDER.indexOf(coop);
   return VIZ.cat[i]||VIZ.gray;
 }
+// La forma, igual que el color, conserva la identidad al filtrar.
+function coopMark(coop) {
+  const styles=['circle','triangle','rect','rectRot','crossRot'];
+  const symbols=['●','▲','■','◆','×'];
+  const i=Math.max(0,COOP_ORDER.indexOf(coop))%styles.length;
+  return {style:styles[i],symbol:symbols[i]};
+}
+
 // Series que no son cooperativas (por ejemplo, zonas): orden fijo y gris desde la quinta.
 const seriesColor = (key, group, i) => (key === 'coop' ? coopColor(group) : i < VIZ.cat.length ? VIZ.cat[i] : VIZ.gray);
 

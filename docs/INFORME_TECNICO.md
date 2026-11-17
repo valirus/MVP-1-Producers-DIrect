@@ -1,10 +1,12 @@
 # Informe técnico | Tablero del Fondo Rotatorio
 
-**Alcance:** plataforma de visualización para Excel compatibles con el contrato. La encuesta 2025 es la referencia de conciliación, no un límite de uso. Revisión de carga, navegación y resumen territorial sobre `ddb65cf`, incluyendo los PR #23 y #24. Base de trabajo: `Base_Nor_BG_limpia(4).xlsx`, hoja **Productoras**. Punto de partida del código: `9c94c96fb2c489c99b6290b68992111df64e3e14` (main posterior al ZIP adjunto). La matriz [CIERRE_UX_Y_PD](CIERRE_UX_Y_PD.md) ubica cada observación y sus límites.
+**Alcance:** plataforma de visualización para Excel compatibles con el contrato. La encuesta 2025 es la referencia de conciliación, no un límite de uso. Revisión de carga, navegación y resumen territorial sobre `ddb65cf`, incluyendo los PR #23 y #24. Base de trabajo: `Base_Nor_BG_limpia(4).xlsx`, hoja **Productoras**. Punto de partida del código: `9c94c96fb2c489c99b6290b68992111df64e3e14` (base de la revisión histórica). La matriz [CIERRE_UX_Y_PD](CIERRE_UX_Y_PD.md) ubica cada observación y sus límites.
+
+**Actualización UX del 16/11/2026:** cambios de interfaz sobre `899212a04e299ea280fd5dfaff8c2b5f0438186a`; ver [alcance y verificación](ENTREGA_UX.md). Las cifras históricas de conciliación de este informe no se volvieron a comprobar con los Excel de referencia en esta iteración.
 
 ## 1. Contexto y objetivo
 
-Producers Direct necesita consultar la caracterización del fondo sin rehacer cruces en Excel. El tablero separa la consulta de Eunice, el trabajo de campo y las tareas del responsable de datos. La ficha y «Reporte para la cooperativa» devuelven información en lenguaje sencillo. El histórico de IDENTI y los procesos de desembolso, seguimiento y pagos permanecen en los sistemas de Producers Direct.
+Producers Direct necesita consultar la caracterización del fondo sin rehacer cruces en Excel. El tablero separa la consulta de coordinación, el trabajo de campo y las tareas del responsable de datos. La ficha y «Reporte para la cooperativa» devuelven información en lenguaje sencillo. El histórico de IDENTI y los procesos de desembolso, seguimiento y pagos permanecen en los sistemas de Producers Direct.
 
 ## 2. Datos, metadatos y exactitud
 
@@ -50,9 +52,9 @@ Fuente común de todos los visuales: hoja Productoras o la hoja compatible elegi
 | Panorama: productoras | ¿Cuántos registros incluye la selección? | Conteo de llaves válidas. No es conteo de créditos desembolsados. |
 | Panorama: monto | ¿Cuánto se solicitó? | Suma de montos válidos en soles; si es parcial, se indica el número con dato. No es saldo ni presupuesto. |
 | Panorama: área y café | ¿Cuánto se reportó de superficie y entrega? | Sumas sobre valores válidos. Área rotulada en ha y café en quintales. El dato faltante no es cero. |
-| Panorama: resumen territorial | ¿Dónde se concentran los registros, montos y entregas? | Rectángulos proporcionales al número de productoras y tabla de totales. Compara distritos; dentro de un distrito compara grupos locales. Si solo existe un grupo, mantiene sus cifras. |
-| Área y café: mediana | ¿Cuál es la entrega central por productora? | Mediana de quintales válidos por cooperativa. El total de quintales queda en Panorama. |
-| Área y café: dispersión | ¿Cómo varía la entrega frente al área? | Puntos con ambos datos, agrupados por cooperativa. No mide productividad ni demuestra una causa. |
+| Panorama: resumen territorial | ¿Dónde se concentran los registros, montos y entregas? | Rectángulos proporcionales al número de productoras y tabla de totales cerrada inicialmente. El contenedor adapta dimensiones reales, sin un mínimo artificial para el área; nombres pequeños se consultan por cursor, foco o toque. Mapa y tabla usan la misma agrupación completa, sin «Otros» en el mapa. Compara distritos; dentro de un distrito compara grupos locales. Si solo existe un grupo, mantiene sus cifras. |
+| Área y café: distribución | ¿Cómo se distribuyen las entregas individuales por cooperativa? | Caja Q1–Q3, mediana y media, sin bigotes. Cuantiles tipo 7: interpolación lineal en `(n−1)p` sobre quintales válidos ordenados. Total y n de productoras con dato junto a cada caja. Ausentes excluidos, cero incluido. Un grupo sin dato no se dibuja como cero; n=1 colapsa la caja a su valor. |
+| Área y café: dispersión | ¿Cómo varía la entrega frente al área? | Puntos con ambos datos, agrupados por cooperativa; color y símbolo estables. Las coincidencias se agrupan por par numérico exacto, sin jitter ni redondeo de la clave. Hover/clic y listado de coordenadas permiten consultar todos los códigos y su contexto; tabla alternativa con observaciones. No mide productividad ni demuestra una causa. |
 | Participación: celular / lectoescritura | ¿Qué respuestas aparecen en cada cooperativa? | Conteo / respuestas válidas del grupo, desde una respuesta válida. El eje indica respuestas válidas sobre el total del grupo. |
 | Participación: capacitación | ¿Qué fracción declaró participación? | Sí / respuestas válidas de cada grupo, desde una respuesta válida. No hay asistencia por sesión ni comprobación de quién asistió. |
 | Participación: canales, acceso financiero, educación y hogar | ¿En qué se diferencian las cooperativas? | Sí o categoría / respuestas válidas por indicador. Canales son de selección múltiple. La comparación por tema distingue cero y ausencia. No hay índice compuesto ni recomendación automática. |

@@ -33,6 +33,25 @@
     }
     split(groups.filter(g=>g.n>0),0,0,width,height);return out;
   }
+  // Cuantiles tipo 7: interpolación lineal en (n - 1) * p; mismo criterio que el IQR de limpieza.
+  function coffeeDistribution(rows){
+    return [...new Set(rows.map(r=>r.coop))].sort().map(coop=>{
+      const values=rows.filter(r=>r.coop===coop).map(r=>r.qq).filter(D.finite).sort((a,b)=>a-b);
+      const quantile=p=>{const i=(values.length-1)*p,lo=Math.floor(i);return values.length?values[lo]+(values[Math.ceil(i)]-values[lo])*(i-lo):null;};
+      return {coop,n:values.length,missing:rows.filter(r=>r.coop===coop).length-values.length,
+        total:values.length?values.reduce((a,b)=>a+b,0):null,q1:quantile(.25),median:quantile(.5),q3:quantile(.75),mean:values.length?D.mean(values):null};
+    });
+  }
+  // La clave incluye los valores exactos: no se redondean ni se desplazan puntos coincidentes.
+  function coffeePoints(rows){
+    const points=new Map();
+    rows.filter(r=>D.finite(r.area)&&D.finite(r.qq)).forEach(r=>{
+      const key=JSON.stringify([r.area,r.qq]);
+      if(!points.has(key))points.set(key,{x:r.area,y:r.qq,records:[]});
+      points.get(key).records.push(r);
+    });
+    return [...points.values()].sort((a,b)=>a.x-b.x||a.y-b.y);
+  }
   function describe(values,kind){
     const present=values.filter(v=>v!=null&&String(v).trim()!=='');
     if(!present.length)return {kind,valid:0,empty:values.length,unique:0,mean:null,min:null,max:null,mode:[],modeN:0};
@@ -85,5 +104,5 @@
     });
     return {columns,checks,extras,inputRows:input.length,repeated,missingKeys};
   }
-  const api={place,overview,metricGroups,tiles,describe,dataset};root.PDResumen=api;if(typeof module!=='undefined')module.exports=api;
+  const api={place,overview,metricGroups,tiles,coffeeDistribution,coffeePoints,describe,dataset};root.PDResumen=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

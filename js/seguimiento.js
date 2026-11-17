@@ -209,7 +209,6 @@ function renderSeguimiento(rows) {
     soon.answered >= MIN_N ? `<p class="chart-note">De las que aún no lo llevaron: ${soon.yes} de ${soon.answered} dicen que lo llevarán pronto.</p>` : '');
   draws.push(deliver.draw);
   const coffeeCard = recs.some(r=>r.statics.coopDelivered!=null) ? segCard(6, 'Venta de café: ¿lo llevó a la cooperativa?', deliver.html
-    + (soon.answered>=MIN_N ? `<p class="chart-note">${segPct(soon.yes, soon.answered)} de las que aún no lo llevaron dicen que lo llevarán pronto.</p>` : '')
     + segTallyTable(recs, 'coopWhyNot', (r) => r.statics.coopDelivered === 0, 'Motivo para no llevarlo', 'Sin motivo indicado'),
     '') : '';
 

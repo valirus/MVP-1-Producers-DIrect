@@ -2,6 +2,8 @@
 
 Esta tabla describe la versión actual. La [matriz anterior](CIERRE_UX_Y_PD.md) conserva las observaciones y las decisiones de las iteraciones previas. Cuando una decisión cambió, rige este cierre.
 
+**Cierre UX del 16/11/2026:** [cambios, pruebas y límites](ENTREGA_UX.md). Actualiza la consulta de filtros, el mapa territorial y la visualización del café entregado; las auditorías anteriores conservan su fecha y alcance.
+
 ## Requisitos de la entrega
 
 | Requisito | Evidencia | Estado |

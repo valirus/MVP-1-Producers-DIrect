@@ -9,3 +9,6 @@ data/processed/*
 .ipynb_checkpoints/
 __pycache__/
 _site/
+
+# Configuración local del editor.
+.vscode/

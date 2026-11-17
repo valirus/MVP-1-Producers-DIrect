@@ -254,8 +254,6 @@ tr.ins td { color: var(--muted); }
 @media(max-width:760px) { .mapping-fields { grid-template-columns:1fr; } }
 /* Búsqueda y filtros (B4–B12). */
 .filters-bar .field-help { font-size:11.5px; }
-.filter-search { width:100%; margin-bottom:6px; padding:7px 10px; border:1px solid var(--line); border-radius:6px; background:#fff; font-size:13px; }
-.filter-search.no-results { border-color:#C3995D; background:#FFF8EE; }
 .filter-note { margin:0 0 12px; padding:10px 14px; border:1px solid #C3995D; border-radius:10px; background:#FFF4E1; color:#593912; font-size:13.5px; font-weight:600; }
 .back-btn { margin:0 0 14px; padding:8px 14px; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--green); font-size:13px; font-weight:700; }
 .back-btn:hover { background:var(--pale); }
@@ -442,7 +440,7 @@ details > summary { cursor:pointer; color:#213C32; font-weight:700; padding:7px 
 .start-panel .btn-upload, .producer-picker .btn-print { min-height:44px; }
 .field select, .field input[type=search] { border-color:#828578; min-height:44px; }
 #producer-query { background:var(--white); color:var(--ink); }
-#producer-query::placeholder, .filter-search::placeholder { color:var(--muted); }
+#producer-query::placeholder { color:var(--muted); }
 #producer-note, .producer-results-empty { margin:8px 0; color:var(--muted); }
 .producer-results { list-style:none; margin:12px 0 0; padding:0; }
 .producer-results li { border-top:1px solid var(--line); }
@@ -506,8 +504,6 @@ body { background:#F4F6F1; }
 }
 @media(max-width:760px) { .overview-chart-box { min-height:220px; } }
 .grid-12 { grid-template-columns:repeat(12,minmax(0,1fr)); }
-.filter-label { display:flex; align-items:baseline; justify-content:space-between; gap:6px; }
-#base-search-toggle { border:0; background:none; padding:0 2px; color:var(--green2); font-size:12px; font-weight:650; text-decoration:underline; text-underline-offset:2px; }
 .kpi-unit { margin-left:2px; }
 .compact-chart { position:relative; min-width:0; }
 
@@ -592,7 +588,7 @@ body { background:#F4F6F1; }
 
 /* Resumen territorial y revisión del archivo. */
 .territory-map { margin:12px 0 20px; }
-.territory-map svg { display:block; width:100%; max-height:330px; }
+.territory-map svg { display:block; width:100%; height:auto; }
 .territory-map text { font-family:inherit; }
 .overview-detail h2 { font-size:21px; margin:0 0 16px; }
 .contract-list { list-style:none; padding:0; margin:12px 0 22px; display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr)); gap:14px 24px; }
@@ -606,7 +602,7 @@ body { background:#F4F6F1; }
 #coverage-table table { min-width:850px; }
 #coverage-table td:nth-child(6) { min-width:170px; font-size:13px; }
 .kpi-card:has(#kpi-n) { border-top:3px solid #245547; }
-@media(max-width:760px) { .territory-map { overflow-x:auto; } .territory-map svg { min-width:600px; } }
+
 
 #coverage-table table { table-layout:auto; min-width:820px; }
 #coverage-table th:first-child { width:29%; min-width:200px; }
@@ -618,3 +614,41 @@ body { background:#F4F6F1; }
 
 /* Tabla de porcentajes: los nombres de cooperativa no se parten. */
 .cross-pct th:not(:first-child) { white-space:nowrap; }
+
+/* Cierre UX: controles compartidos y consultas accesibles, sin dependencias nuevas. */
+.sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
+.filter-combo { position:relative; display:flex; align-items:center; min-width:0; border:1px solid var(--line); border-radius:7px; background:var(--warm); }
+.filter-combo:focus-within { outline:3px solid #A15C1C; outline-offset:2px; z-index:6; }
+.filter-combo input { width:100%; min-width:0; padding:10px 8px 10px 11px; border:0; border-radius:7px; background:transparent; font:inherit; color:var(--ink); }
+.filter-combo input:focus-visible { outline:none; }
+.filter-combo button { background:transparent; color:var(--green); border:0; padding:6px; min-width:32px; min-height:38px; flex:none; border-radius:4px; }
+.combo-list { position:absolute; z-index:10; top:calc(100% + 6px); left:0; right:0; max-height:260px; overflow-y:auto; background:white; border:1px solid var(--line); box-shadow:0 5px 18px #12302526; border-radius:7px; }
+.combo-list [role=option], .combo-empty { padding:10px 12px; overflow-wrap:anywhere; }
+.combo-list [role=option] { cursor:pointer; }
+.combo-list [role=option]:hover, .combo-list [role=option].active { background:#E7F0EA; color:#152F27; }
+.combo-list [aria-selected=true] { font-weight:700; }
+.combo-empty { color:var(--muted); }
+.territory-map [role=button] { cursor:pointer; }
+.territory-map [role=button]:focus-visible { outline:none; }
+.territory-map [role=button]:focus-visible rect { stroke:#F1DCA7; stroke-width:5px; }
+.coffee-group-totals { display:grid; grid-template-columns:repeat(var(--coffee-groups,2),minmax(0,1fr)); gap:10px; margin:12px 0; }
+.coffee-group-totals div { display:grid; gap:4px; padding:10px; background:var(--warm); border-radius:7px; overflow-wrap:anywhere; }
+.coffee-group-totals small { color:var(--muted); }
+.point-legend { display:flex; flex-wrap:wrap; gap:8px 18px; font-size:13px; margin:10px 0; }
+.point-legend b { font-size:18px; vertical-align:middle; }
+.point-panel { padding:12px; border:1px solid var(--line); border-radius:8px; background:var(--warm); margin-bottom:12px; }
+.point-panel-heading { display:flex; gap:12px; align-items:start; justify-content:space-between; }
+.point-panel-heading h4 { margin:0; }
+.point-panel:focus-visible, .point-records:focus-visible { outline:3px solid #A15C1C; outline-offset:2px; }
+.point-records, .point-list { max-height:260px; overflow:auto; }
+.point-records table { font-size:13px; }
+.point-list { display:grid; gap:6px; padding:4px; }
+.point-choice { text-align:left; border:1px solid var(--line); border-radius:6px; padding:10px; color:var(--green); background:var(--warm); }
+@media(max-width:550px) {
+ .point-panel-heading { flex-wrap:wrap; }
+ .coffee-group-totals { gap:6px; font-size:13px; }
+ .filter-combo input { font-size:16px; }
+}
+@media(prefers-reduced-motion:reduce) {
+ *, *::before, *::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; }
+}

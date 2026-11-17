@@ -1,11 +1,10 @@
 /* Gráficos con denominadores explícitos. Se recalculan con la selección. */
 const PDCharts=(()=>{
- const D=PDData,charts={},palette=[...VIZ.cat,VIZ.gray],marks=['circle','triangle','rect','rectRot','crossRot'];
+ const D=PDData,charts={},palette=[...VIZ.cat,VIZ.gray];
  const fmt=(v,d=2)=>v==null?'No calculable':v.toLocaleString('es-PE',{maximumFractionDigits:d,minimumFractionDigits:d});
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const table=(headers,rows)=>`<table><thead><tr>${headers.map(h=>`<th scope="col">${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(x=>`<td>${esc(x)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
  const el=id=>document.getElementById(id);
- const measure=k=>k==='area'?'Área de café (hectáreas)':D.label(k);
  function chart(id,type,data,options={}){if(typeof Chart==='undefined')return;
   charts[id]=new Chart(el(id),{type,data,options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:false}},...options}});
  }
@@ -22,9 +21,80 @@ const PDCharts=(()=>{
   }));ctx.restore();
  }};
  if(typeof Chart!=='undefined'){Chart.defaults.font.family='Segoe UI, sans-serif';Chart.defaults.font.size=12;Chart.defaults.color='#46534A';Chart.register(lineLabels);}
- function scatter(id,rows,x,y,coops,opts={}){
-  const datasets=coops.map(coop=>({label:groupLabel(coop),data:rows.filter(r=>r.coop===coop&&D.finite(r[x])&&D.finite(r[y])).map(r=>({x:r[x],y:r[y],code:r.code,ref:r})),backgroundColor:coopColor(coop),pointStyle:marks[Math.max(0,coops.indexOf(coop))%marks.length],pointRadius:4,pointHoverRadius:6})).filter(d=>d.data.length);
-  chart(id,'scatter',{datasets},{plugins:{legend:{display:true,position:'top',labels:{usePointStyle:true}},tooltip:{callbacks:{label:c=>opts.tooltip?opts.tooltip(c.raw):`${c.raw.code}: ${fmt(c.raw.x)}; ${fmt(c.raw.y)}`}}},scales:{x:{title:{display:true,text:opts.xLabel||measure(x)}},y:{title:{display:true,text:opts.yLabel||measure(y)}}}});
+ // Cajas sin bigotes ni nube de puntos. La media y la mediana se dibujan en la misma escala.
+ const coffeeBoxes={id:'coffeeBoxes',afterDatasetsDraw(c){
+  if(!c.options.pdCoffeeStats)return;
+  const ctx=c.ctx,meta=c.getDatasetMeta(0);ctx.save();
+  c.options.pdCoffeeStats.forEach((s,i)=>{
+   if(!s.n)return;
+   const bar=meta.data[i],x=bar.x,w=Math.min(bar.width,62),y=c.scales.y;
+   const median=y.getPixelForValue(s.median),mean=y.getPixelForValue(s.mean);
+   ctx.strokeStyle='#152F27';ctx.lineWidth=3;
+   ctx.beginPath();ctx.moveTo(x-w/2,median);ctx.lineTo(x+w/2,median);ctx.stroke();
+   ctx.beginPath();ctx.moveTo(x,mean-5);ctx.lineTo(x+5,mean);ctx.lineTo(x,mean+5);ctx.lineTo(x-5,mean);ctx.closePath();
+   ctx.fillStyle='#fff';ctx.fill();ctx.lineWidth=1.5;ctx.stroke();
+  });ctx.restore();
+ }};
+ if(typeof Chart!=='undefined')Chart.register(coffeeBoxes);
+ function renderCoffee(rows){
+  const stats=PDResumen.coffeeDistribution(rows);
+  // Incluso un grupo sin entregas tiene un estado explícito, sin inventar un cero.
+  el('chart-qq-coop').closest('article').hidden=false;
+  el('coffee-group-totals').style.setProperty('--coffee-groups',Math.max(1,stats.length));
+  el('coffee-group-totals').innerHTML=stats.length?stats.map(s=>`<div><strong>${esc(groupLabel(s.coop))}</strong><span>${s.n?fmt(s.total)+' quintales':'Sin entregas con dato'}</span><small>${s.n} productoras con entrega válida${s.missing?' · '+s.missing+' sin dato':''}</small></div>`).join(''):'<p class="empty-state">No hay productoras en esta selección.</p>';
+  const wrap=el('chart-qq-coop').closest('.chart-box');wrap.hidden=!stats.some(s=>s.n);
+  if(stats.some(s=>s.n))chart('chart-qq-coop','bar',{labels:stats.map(s=>groupLabel(s.coop)),datasets:[{
+   label:'Cuartiles del café entregado',data:stats.map(s=>s.n?[s.q1,s.q3]:null),
+   backgroundColor:stats.map(s=>coopColor(s.coop)+'B3'),borderColor:stats.map(s=>coopColor(s.coop)),borderWidth:2,maxBarThickness:62
+  }]},{pdCoffeeStats:stats,layout:{padding:{top:10}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{
+   const s=stats[c.dataIndex];return ['Q1: '+fmt(s.q1)+' quintales','Mediana: '+fmt(s.median)+' quintales','Q3: '+fmt(s.q3)+' quintales','Media: '+fmt(s.mean)+' quintales',s.n+' productoras con dato'];
+  }}}},scales:{y:{beginAtZero:true,title:{display:true,text:'Quintales por productora'},suggestedMax:Math.max(1,...stats.filter(s=>s.n).map(s=>Math.max(s.q3,s.mean)))*1.1},x:{grid:{display:false}}}});
+  el('chart-qq-coop-table').innerHTML=table(['Cooperativa','Productoras con dato','Sin dato','Total (quintales)','Q1','Mediana','Q3','Media'],stats.map(s=>[groupLabel(s.coop),s.n,s.missing,...[s.total,s.q1,s.median,s.q3,s.mean].map(v=>v==null?'Sin dato':fmt(v))]));
+  return stats.some(s=>s.n);
+ }
+ let pointBuckets=[],pinnedPoint=false,lastPointEvent=null,currentPoint=-1,dismissedPoint=-1;
+ function pointDetail(index,focus=false){
+  const point=pointBuckets[index];if(!point)return;currentPoint=index;
+  const panel=el('yield-point-panel');panel.hidden=false;
+  el('yield-point-title').textContent=point.records.length+' '+(point.records.length===1?'productora en este punto':'productoras coincidentes');
+  // Sin redondear las coordenadas para no confundir puntos cercanos y coincidencias exactas.
+  el('yield-point-values').textContent=point.x.toLocaleString('es-PE',{maximumFractionDigits:20})+' hectáreas · '+point.y.toLocaleString('es-PE',{maximumFractionDigits:20})+' quintales';
+  el('yield-point-records').innerHTML=table(['Código','Cooperativa (símbolo)','Grupo local','Distrito y provincia'],point.records.map(r=>[
+   r.code==null||String(r.code).trim()===''?'Código no disponible':String(r.code),
+   coopMark(r.coop).symbol+' '+groupLabel(r.coop),r.base||'Sin dato',PDResumen.place(r)||'Sin dato'
+  ]));
+  if(focus)panel.focus({preventScroll:true});
+ }
+ function renderCoffeePoints(rows,coops){
+  pointBuckets=PDResumen.coffeePoints(rows);pinnedPoint=false;lastPointEvent=null;currentPoint=-1;dismissedPoint=-1;el('yield-point-panel').hidden=true;
+  const pairs=pointBuckets.flatMap(p=>p.records),visibleCoops=coops.filter(c=>pairs.some(r=>r.coop===c));
+  const visible=showChart('chart-yield',pairs.length);
+  if(!visible)return false;
+  el('yield-legend').innerHTML=visibleCoops.map(coop=>`<span><b style="color:${coopColor(coop)}" aria-hidden="true">${coopMark(coop).symbol}</b> ${esc(groupLabel(coop))}</span>`).join('');
+  const datasets=visibleCoops.map(coop=>({label:groupLabel(coop),data:pairs.filter(r=>r.coop===coop).map(r=>({x:r.area,y:r.qq})),backgroundColor:coopColor(coop),pointStyle:coopMark(coop).style,pointRadius:5,pointHoverRadius:7,pointHitRadius:5}));
+  const inspect=(c,elements,focus=false)=>{
+   if(!elements.length){dismissedPoint=-1;return;}
+   const hit=elements[0],p=c.data.datasets[hit.datasetIndex].data[hit.index];
+   const index=pointBuckets.findIndex(b=>b.x===p.x&&b.y===p.y);
+   if(!focus&&index===dismissedPoint)return;
+   dismissedPoint=-1;pointDetail(index,focus);
+  };
+  chart('chart-yield','scatter',{datasets},{
+   interaction:{mode:'nearest',intersect:true},
+   onHover:(event,elements,c)=>{if(event.native===lastPointEvent)return;lastPointEvent=event.native;if(!pinnedPoint)inspect(c,elements);},
+   onClick:(_event,elements,c)=>{if(elements.length){pinnedPoint=true;inspect(c,elements,true);}},
+   plugins:{legend:{display:false},tooltip:{enabled:false}},
+   scales:{x:{title:{display:true,text:'Área de café (hectáreas)'}},y:{title:{display:true,text:'Café entregado (quintales)'}}}
+  });
+  el('yield-point-close').onclick=()=>{el('yield-point-panel').hidden=true;pinnedPoint=false;dismissedPoint=currentPoint;el('yield-point-list').closest('details').querySelector('summary').focus({preventScroll:true});};
+  const list=el('yield-point-list');list.replaceChildren();
+  pointBuckets.forEach((p,index)=>{
+   const button=document.createElement('button');button.type='button';button.className='point-choice';
+   button.textContent=p.x.toLocaleString('es-PE',{maximumFractionDigits:20})+' ha · '+p.y.toLocaleString('es-PE',{maximumFractionDigits:20})+' quintales · '+p.records.length+' '+(p.records.length===1?'productora':'productoras');
+   button.onclick=()=>{pinnedPoint=true;pointDetail(index,true);};list.append(button);
+  });
+  el('chart-yield-table').innerHTML=table(['Código','Cooperativa','Área de café (hectáreas)','Café entregado (quintales)','Grupo local'],pairs.map(r=>[r.code==null||String(r.code).trim()===''?'Código no disponible':String(r.code),groupLabel(r.coop),r.area,r.qq,r.base||'Sin dato']));
+  return true;
  }
  function renderOverview(rows){
   const model=PDResumen.overview(rows),level={territory:'distrito',base:'grupo local',coop:'cooperativa',selection:'selección'}[model.level];
@@ -33,6 +103,7 @@ const PDCharts=(()=>{
    {key:'area',suffix:'area',label:'Área de café',unit:'hectáreas',digits:2,color:VIZ.cat[2]},
    {key:'qq',suffix:'qq',label:'Café entregado',unit:'quintales',digits:2,color:VIZ.cat[1]}
   ];
+  el('overview-note').textContent='Los totales suman solo valores disponibles; la tabla indica cuántas productoras tienen dato.'+(model.groups.length>10?' Las barras reúnen los grupos restantes en «Otros grupos».':'');
   let visible=false;
   metrics.forEach(metric=>{
    const id='overview-'+metric.suffix+'-chart',canvas=el(id),article=canvas.closest('article');
@@ -48,8 +119,6 @@ const PDCharts=(()=>{
        name:'Otros grupos',records:other.records+group.records,answered:other.answered+group.answered,total:other.total+group.total
       }),{name:'Otros grupos',records:0,answered:0,total:0})]
     : groups;
-   el('overview-'+metric.suffix+'-note').textContent=`Suma de los valores disponibles; cada barra incluye ${metric.label.toLowerCase()} con dato.`
-    +(groups.length>10?' Los grupos restantes se reúnen en «Otros grupos».':'');
    const formatTotal=total=>(metric.unit==='S/'?'S/ ':'')+fmt(total,metric.digits)+(metric.unit==='S/'?'':' '+metric.unit);
    el('overview-'+metric.suffix+'-table').innerHTML=table(
     ['Grupo','Con dato','Total'],
@@ -114,19 +183,7 @@ const PDCharts=(()=>{
   Object.values(charts).forEach(c=>c.destroy());for(const k of Object.keys(charts))delete charts[k];
   renderOverview(rows);
   const coops=[...new Set(rows.map(r=>r.coop))].sort(),groups=groupRows(rows,'coop');
-  const stats=groups.map(([c,rs])=>{const vals=rs.map(r=>r.qq).filter(D.finite);return {c,n:vals.length,median:D.median(vals)};}).filter(s=>s.n>=MIN_N);
-  const coffee=showChart('chart-qq-coop',stats.length);
-  if(coffee){
-   chart('chart-qq-coop','bar',{labels:stats.map(s=>groupLabel(s.c)),datasets:[{data:stats.map(s=>s.median),backgroundColor:stats.map(s=>coopColor(s.c)),maxBarThickness:58,borderRadius:5}]},{scales:{y:{beginAtZero:true,title:{display:true,text:'Quintales'}}}});
-   el('chart-qq-coop-table').innerHTML=table(['Cooperativa','Productoras con dato','Mediana (quintales)'],stats.map(s=>[groupLabel(s.c),s.n,fmt(s.median,1)]));
-  }
-  const pairGroups=groupRows(rows.filter(r=>D.finite(r.area)&&D.finite(r.qq)),'coop').filter(([,r])=>r.length>=MIN_N);
-  const pairs=pairGroups.flatMap(([,r])=>r);
-  const yieldPlot=showChart('chart-yield',pairs.length);
-  if(yieldPlot){
-   scatter('chart-yield',pairs,'area','qq',coops,{tooltip:p=>[fmt(p.x,2)+' hectáreas',fmt(p.y,1)+' quintales']});
-   el('chart-yield-table').innerHTML=table(['Cooperativa','Registros con ambos datos'],groupRows(pairs,'coop').map(([g,r])=>[groupLabel(g),r.length]));
-  }
+  const coffee=renderCoffee(rows),yieldPlot=renderCoffeePoints(rows,coops);
   const activities=stacked('chart-activities',rows,'activity',coops,allRows);
   const phone=stacked('chart-phone',rows,'phone',coops,allRows),literacy=stacked('chart-literacy',rows,'literacy',coops,allRows);
   const kinship=stacked('chart-kinship',rows,'kinship',coops,allRows);

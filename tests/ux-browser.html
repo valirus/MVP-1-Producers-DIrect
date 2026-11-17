@@ -1,0 +1,61 @@
+<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Prueba UX · datos ficticios</title>
+<style>body{font:14px system-ui;background:#eee;margin:12px}#result{white-space:pre-wrap}iframe{border:1px solid #999;display:block;background:white;height:1050px;width:1320px;max-width:none}body.mobile iframe{width:390px;height:1500px}</style>
+<h1>Verificación UX con datos ficticios</h1><p>Prueba local: no envía datos ni modifica archivos. El marco móvil mide 390 px.</p><pre id="result">Ejecutando…</pre><iframe id="app" title="Dashboard de prueba" src="../index.html"></iframe>
+<script>
+'use strict';
+const mobile=new URLSearchParams(location.search).has('mobile');document.body.classList.toggle('mobile',mobile);
+if(new URLSearchParams(location.search).has('view')){document.querySelector('h1').hidden=true;document.querySelector('p').hidden=true;document.getElementById('result').hidden=true;document.body.style.margin='0';}
+const frame=document.getElementById('app'),log=[],next=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+const check=(condition,message)=>{if(!condition)throw Error(message);log.push('OK: '+message);};
+frame.onload=async()=>{
+ try{
+  const w=frame.contentWindow,d=w.document,D=w.PDData,errors=[];
+  w.addEventListener('error',event=>{if(!event.filename.startsWith('chrome-extension://'))errors.push(event.message);});
+  w.addEventListener('unhandledrejection',event=>errors.push(String(event.reason)));
+  const columns=['codigo_productora','cooperativa','area_cafe_reportada','quintales_acopiados','distrito','provincia','base_sector','monto_solicitado_pen','actividad_a_financiar'];
+  const rows=Array.from({length:60},(_,i)=>[String(i+1).padStart(4,'0'),i<30?'NORANDINO':'BAGUA GRANDE',i<20?2:(i%6)/2,i<20?10:i*3,i===59?'Distrito pequeño':'Distrito '+i%4,'Provincia Demo','Grupo '+i%10,1000,'Fertilización']);
+  const load=values=>w.loadProfile(D.sheetProfile('Prueba',[columns,...values]),'Datos ficticios',null);
+  load(rows);await next();
+  check(d.getElementById('kpi-n').textContent==='60','Carga de 60 productoras');
+  const details=d.querySelector('.overview-detail details');
+  check(!details.open,'Tabla del mapa cerrada inicialmente');details.querySelector('summary').click();await next();
+  check(details.open&&details.querySelector('summary').textContent==='Ocultar tabla','Ver tabla abre y cambia a Ocultar tabla');
+  details.querySelector('summary').click();await next();check(!details.open&&details.querySelector('summary').textContent==='Ver tabla','Ocultar tabla cierra');
+  const input=d.getElementById('filter-base-input');input.value='inexistente';input.dispatchEvent(new w.Event('input',{bubbles:true}));
+  check(d.getElementById('filter-base-list').textContent==='No hay coincidencias','Búsqueda sin resultados');
+  check(d.getElementById('kpi-n').textContent==='60','Escribir no cambia los datos');
+  input.value='Grupo 1';input.dispatchEvent(new w.Event('input',{bubbles:true}));input.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Enter',bubbles:true}));await next();
+  check(d.getElementById('filter-base').value==='Grupo 1','Enter selecciona la opción');
+  check(d.getElementById('kpi-n').textContent==='6','Selección actualiza el total');
+  check(d.querySelectorAll('#overview-table tbody tr').length===2,'Tabla usa los mismos grupos filtrados');
+  d.querySelector('#filter-base-input + .combo-clear').click();await next();check(d.getElementById('kpi-n').textContent==='60','Limpiar selección recupera Todos');
+  // Dependencia: un distrito exclusivo de una cooperativa desaparece al elegir la otra.
+  const choose=(id,q)=>{const control=d.getElementById(id+'-input');control.value=q;control.dispatchEvent(new w.Event('input',{bubbles:true}));control.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Enter',bubbles:true}));};
+  choose('filter-territory','Distrito pequeño');await next();check(d.getElementById('kpi-n').textContent==='1','Distrito de una sola productora');
+  choose('filter-coop','Norandino');await next();check(d.getElementById('filter-territory').value==='all','Se limpia el distrito incompatible');
+  check(d.getElementById('kpi-n').textContent==='30','Selección dependiente consistente');
+  d.getElementById('reset-filters').click();w.nav('production');await next();
+  check(d.querySelectorAll('#yield-legend span').length===2,'Una entrada de leyenda por cooperativa');
+  const chart=w.Chart.getChart(d.getElementById('chart-yield')),point=chart.getDatasetMeta(1).data.find((_,i)=>chart.data.datasets[1].data[i].x===2&&chart.data.datasets[1].data[i].y===10);
+  const rect=chart.canvas.getBoundingClientRect();
+  chart.canvas.dispatchEvent(new w.MouseEvent('mousemove',{clientX:rect.left+point.x,clientY:rect.top+point.y,bubbles:true}));await next();
+  check(d.getElementById('yield-point-title').textContent==='20 productoras coincidentes','Hover reúne los 20 códigos coincidentes');
+  check(d.querySelectorAll('#yield-point-records tbody tr').length===20,'No se pierde ningún código');
+  check(d.querySelector('#yield-point-records td').textContent==='0001','Conserva ceros iniciales');
+  chart.canvas.dispatchEvent(new w.MouseEvent('click',{clientX:rect.left+point.x,clientY:rect.top+point.y,bubbles:true}));await next();
+  check(!d.getElementById('yield-point-panel').hidden,'Clic muestra el panel');
+  d.getElementById('yield-point-close').click();await next();check(d.getElementById('yield-point-panel').hidden,'Cerrar detalle funciona');
+  d.querySelector('#yield-point-list').closest('details').open=true;d.querySelector('#yield-point-list button').click();await next();check(!d.getElementById('yield-point-panel').hidden,'Alternativa por botón para teclado y toque');
+  // Grupo sin dato, una observación cero y caja colapsada a un valor.
+  load([['0001','NORANDINO',1,null,'A','P','X',1000],['0002','BAGUA GRANDE',1,0,'B','P','Y',1000]]);w.nav('production');await next();
+  check(d.getElementById('coffee-group-totals').textContent.includes('Sin entregas con dato'),'Grupo sin dato explícito');
+  check(d.getElementById('coffee-group-totals').textContent.includes('0.00 quintales'),'Dato único cero se conserva');
+  check(w.Chart.getChart(d.getElementById('chart-qq-coop')).data.datasets[0].data.some(v=>v&&v[0]===0&&v[1]===0),'Caja única cero sin error');
+  load(rows);w.nav('production');await next();
+  check(d.documentElement.scrollWidth<=w.innerWidth,'Sin desbordamiento horizontal ('+w.innerWidth+' px)');
+  check(d.querySelector('#chart-yield').getBoundingClientRect().width>200,'Gráfico legible en el marco');
+  check(errors.length===0,'Sin errores de aplicación ni promesas rechazadas'+(errors.length?': '+JSON.stringify(errors):''));
+  document.getElementById('result').textContent=log.join('\n')+'\nRESULTADO: '+log.length+' comprobaciones correctas.';
+ }catch(error){document.getElementById('result').textContent=log.join('\n')+'\nERROR: '+error.message;console.error(error);}
+};
+</script></html>

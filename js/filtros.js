@@ -1,13 +1,5 @@
-/*
- * Búsqueda y filtros (evaluación B4–B12):
- *  - B7: la ficha se abre desde «Ficha de productora» y se puede volver a la pantalla anterior.
- *  - B8: estado claro cuando la productora elegida sale de la selección.
- *  - B4/B6: cuántas opciones tiene cada filtro y búsqueda en listas largas.
- *  - B9: leyendas que dicen que son interactivas y nunca dejan el gráfico vacío.
- *  - B11: umbrales de alerta con mínimo 1 %.
- *  - B12: método de medida visible en «Qué muestra la selección».
- * Se carga antes de app.js; las funciones usan $, rawData y nav de app.js cuando se llaman.
- */
+/* Filtros categóricos con búsqueda integrada, estado de ficha y leyendas.
+ * Se carga antes de app.js y conserva los select como fuente de estado. */
 'use strict';
 
 const byIdF = (id) => document.getElementById(id);
@@ -20,49 +12,79 @@ function setProducerNote(text) {
   note.textContent = text;
 }
 
-/* ---------- B4 y B6: conteos y búsqueda en listas ---------- */
-
-function applySearch(selectId) {
-  const select = byIdF(selectId);
-  const input = document.querySelector(`.filter-search[data-for="${selectId}"]`);
-  if (!select || !input) return;
-  const q = D.norm(input.value);
-  let shown = 0;
-  [...select.options].forEach((opt, i) => {
-    const keep = i === 0 || !q || opt.selected || D.norm(opt.textContent).includes(q);
-    opt.hidden = !keep;
-    opt.disabled = !keep;
-    if (keep && i > 0) shown++;
-  });
-  input.classList.toggle('no-results', !!q && shown === 0);
-  input.title = q ? `${shown} coincidencias` : '';
-  if(selectId==='filter-base')byIdF('reset-filters').hidden=!q&&['filter-coop','filter-territory','filter-base'].every(id=>byIdF(id).value==='all');
-}
-
-// app.js la llama cada vez que se reconstruyen las listas de filtros.
-const baseSearch=byIdF('base-search'), baseSearchToggle=byIdF('base-search-toggle');
-function setBaseSearch(open) {
-  baseSearch.hidden=!open;
-  baseSearchToggle.setAttribute('aria-expanded',String(open));
-}
-function afterFiltersBuilt() {
-  baseSearchToggle.hidden=byIdF('filter-base').options.length<9 && !baseSearch.value;
-  if(baseSearchToggle.hidden) setBaseSearch(false);
-  applySearch('filter-base');
-}
-baseSearchToggle.addEventListener('click',()=>{
-  if(baseSearch.hidden){
-    setBaseSearch(true);
-    baseSearch.focus();
-  }else{
-    baseSearch.value='';
-    setBaseSearch(false);
-    applySearch('filter-base');
+/* Selectores con búsqueda: escribir solo filtra opciones; Enter o clic selecciona.
+ * Se conserva el select como fuente de estado para las dependencias de app.js.
+ */
+const filterCombos = new Map();
+function enhanceFilter(id) {
+  const select=byIdF(id), field=select.closest('.field'), label=field.querySelector('label');
+  const box=document.createElement('div'); box.className='filter-combo';
+  const input=document.createElement('input'); input.id=id+'-input'; input.type='text';
+  input.autocomplete='off'; input.spellcheck=false; input.setAttribute('role','combobox');
+  input.setAttribute('aria-autocomplete','list'); input.setAttribute('aria-expanded','false');
+  input.setAttribute('aria-controls',id+'-list');
+  label.htmlFor=input.id;
+  const clear=document.createElement('button'); clear.type='button'; clear.className='combo-clear';
+  clear.textContent='×'; clear.setAttribute('aria-label','Limpiar '+label.textContent.toLowerCase());
+  const toggle=document.createElement('button'); toggle.type='button'; toggle.className='combo-toggle';
+  toggle.textContent='▾'; toggle.setAttribute('aria-label','Abrir opciones de '+label.textContent.toLowerCase());
+  toggle.setAttribute('aria-controls',id+'-list'); toggle.setAttribute('aria-expanded','false');
+  const list=document.createElement('div'); list.id=id+'-list'; list.className='combo-list';
+  list.setAttribute('role','listbox'); list.setAttribute('aria-label',label.textContent); list.hidden=true;
+  const status=document.createElement('span'); status.className='sr-only'; status.setAttribute('role','status');
+  box.append(input,clear,toggle,list,status); select.after(box); select.hidden=true;
+  let options=[],active=-1,query='';
+  const selected=()=>select.selectedOptions[0]?.textContent||'';
+  function close(){list.hidden=true;input.value=selected();input.setAttribute('aria-expanded','false');toggle.setAttribute('aria-expanded','false');input.removeAttribute('aria-activedescendant');}
+  function highlight(index){
+    active=index;
+    [...list.querySelectorAll('[role=option]')].forEach((node,i)=>node.classList.toggle('active',i===active));
+    const node=list.children[active];
+    if(node?.getAttribute('role')==='option'){input.setAttribute('aria-activedescendant',node.id);node.scrollIntoView({block:'nearest'});}
+    else input.removeAttribute('aria-activedescendant');
   }
-});
+  function choose(value){select.value=value;close();input.focus();select.dispatchEvent(new Event('change',{bubbles:true}));}
+  function open(search=''){
+    query=search;
+    options=[...select.options].filter(o=>!o.disabled&&(!query||PDData.norm(o.textContent).includes(PDData.norm(query))));
+    list.replaceChildren();list.hidden=false;input.setAttribute('aria-expanded','true');toggle.setAttribute('aria-expanded','true');
+    options.forEach((option,i)=>{
+      const node=document.createElement('div');node.id=id+'-option-'+i;node.setAttribute('role','option');
+      node.setAttribute('aria-selected',String(option.selected));node.textContent=option.textContent;
+      node.addEventListener('pointerdown',event=>event.preventDefault());
+      node.addEventListener('click',()=>choose(option.value));list.append(node);
+    });
+    if(!options.length){const empty=document.createElement('div');empty.className='combo-empty';empty.textContent='No hay coincidencias';list.append(empty);}
+    status.textContent=options.length?options.length+' opciones disponibles':'No hay coincidencias';
+    highlight(options.length?Math.max(0,options.findIndex(o=>o.selected)):-1);
+  }
+  input.addEventListener('click',()=>{if(list.hidden)open();input.select();});
+  input.addEventListener('input',()=>open(input.value));
+  input.addEventListener('keydown',event=>{
+    if(['ArrowDown','ArrowUp','Home','End'].includes(event.key)){
+      if(list.hidden&&['Home','End'].includes(event.key))return;
+      event.preventDefault();
+      if(list.hidden){open();return;}
+      const next=event.key==='Home'?0:event.key==='End'?options.length-1:Math.max(0,Math.min(options.length-1,active+(event.key==='ArrowDown'?1:-1)));
+      highlight(next);
+    }else if(event.key==='Enter'&&!list.hidden){event.preventDefault();if(options[active])choose(options[active].value);}
+    else if(event.key==='Escape'){event.preventDefault();close();}
+    else if(event.key==='Tab')close();
+  });
+  toggle.addEventListener('click',()=>{if(list.hidden){input.focus();open();input.select();}else close();});
+  clear.addEventListener('click',()=>choose('all'));
+  box.addEventListener('focusout',event=>{if(!box.contains(event.relatedTarget))close();});
+  document.addEventListener('pointerdown',event=>{if(!box.contains(event.target))close();});
+  const sync=()=>{close();clear.hidden=select.value==='all';};
+  filterCombos.set(id,{sync,close});sync();
+}
+['filter-coop','filter-territory','filter-base'].forEach(enhanceFilter);
+function afterFiltersBuilt(){filterCombos.forEach(combo=>combo.sync());}
 
-document.querySelectorAll('.filter-search').forEach((input) => {
-  input.addEventListener('input', () => applySearch(input.dataset.for));
+// details mantiene su comportamiento nativo de teclado y comunica su estado al lector.
+document.querySelectorAll('details[data-table-toggle]').forEach(details=>{
+  const summary=details.querySelector('summary');
+  details.addEventListener('toggle',()=>{summary.textContent=details.open?'Ocultar tabla':'Ver tabla';});
 });
 
 /* ---------- B9: leyendas interactivas ---------- */

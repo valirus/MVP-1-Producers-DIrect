@@ -117,17 +117,13 @@ function applyFilters(reset = false) {
   const cross=renderCross(filteredData);
   const stats=H.render(filteredData, rawData);
   viewData={...stats,inclusion:stats.inclusion||cross};
-  $('reset-filters').hidden=['filter-coop','filter-territory','filter-base'].every(id=>$(id).value==='all') && !document.querySelector('[data-for="filter-base"]').value;
+  $('reset-filters').hidden=['filter-coop','filter-territory','filter-base'].every(id=>$(id).value==='all');
   syncControls();
 }
 for (const id of ['filter-coop','filter-territory','filter-base']) $(id).addEventListener('change', () => {
-  $('base-search').value='';
-  setBaseSearch(false);
   applyFilters();
 });
 $('reset-filters').addEventListener('click', () => {
-  $('base-search').value='';
-  setBaseSearch(false);
   applyFilters(true);
 });
 function clearProducer() {
@@ -212,8 +208,6 @@ function loadProfile(profile,fileName,session) {
   sessionVisits=[]; pendingDownload=false; updateVisitStatus();
   setCoopColors(rawData);
   resetSeguimiento();
-  $('base-search').value='';
-  setBaseSearch(false);
   $('producer-query').value='';
   resetDataset();
   applyFilters(true);

@@ -2,7 +2,7 @@
 const PDCharts=(()=>{
  const D=PDData,charts={},palette=[...VIZ.cat,VIZ.gray],marks=['circle','triangle','rect','rectRot','crossRot'];
  const fmt=(v,d=2)=>v==null?'No calculable':v.toLocaleString('es-PE',{maximumFractionDigits:d,minimumFractionDigits:d});
- const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&','<':'<','>':'>','"':'"',"'":'''}[c]));
  const table=(headers,rows)=>`<table><thead><tr>${headers.map(h=>`<th scope="col">${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(x=>`<td>${esc(x)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
  const el=id=>document.getElementById(id);
  const measure=k=>k==='area'?'Área de café (hectáreas)':D.label(k);
@@ -24,7 +24,45 @@ const PDCharts=(()=>{
  if(typeof Chart!=='undefined'){Chart.defaults.font.family='Segoe UI, sans-serif';Chart.defaults.font.size=12;Chart.defaults.color='#46534A';Chart.register(lineLabels);}
  function scatter(id,rows,x,y,coops,opts={}){
   const datasets=coops.map(coop=>({label:groupLabel(coop),data:rows.filter(r=>r.coop===coop&&D.finite(r[x])&&D.finite(r[y])).map(r=>({x:r[x],y:r[y],code:r.code,ref:r})),backgroundColor:coopColor(coop),pointStyle:marks[Math.max(0,coops.indexOf(coop))%marks.length],pointRadius:4,pointHoverRadius:6})).filter(d=>d.data.length);
-  chart(id,'scatter',{datasets},{plugins:{legend:{display:true,position:'top',labels:{usePointStyle:true}},tooltip:{callbacks:{label:c=>opts.tooltip?opts.tooltip(c.raw):`${c.raw.code}: ${fmt(c.raw.x)}; ${fmt(c.raw.y)}`}}},scales:{x:{title:{display:true,text:opts.xLabel||measure(x)}},y:{title:{display:true,text:opts.yLabel||measure(y)}}}});
+  // Group points by coordinates to handle overlapping points
+  const allPoints = datasets.flatMap(d => d.data);
+  const pointsByCoord = new Map();
+  allPoints.forEach(p => {
+    const key = `${p.x.toFixed(2)},${p.y.toFixed(2)}`;
+    if (!pointsByCoord.has(key)) pointsByCoord.set(key, []);
+    pointsByCoord.get(key).push(p);
+  });
+  const chartObj = chart(id,'scatter',{datasets},{
+    plugins:{
+      legend:{display:true,position:'top',labels:{usePointStyle:true}},
+      tooltip:{
+        callbacks:{
+          label: c => {
+            const raw = c.raw;
+            const key = `${raw.x.toFixed(2)},${raw.y.toFixed(2)}`;
+            const producers = pointsByCoord.get(key) || [raw];
+            if (producers.length === 1) {
+              return `${raw.code}: ${opts.xLabel||measure(x)} ${fmt(raw.x)}, ${opts.yLabel||measure(y)} ${fmt(raw.y)}${raw.ref?.coop?', '+groupLabel(raw.ref.coop):''}`;
+            } else {
+              const codes = producers.map(p => p.code).join(', ');
+              return `${producers.length} productoras en esta posición: ${codes} — ${opts.xLabel||measure(x)} ${fmt(raw.x)}, ${opts.yLabel||measure(y)} ${fmt(raw.y)}`;
+            }
+          }
+        }
+      }
+    },
+    scales:{x:{title:{display:true,text:opts.xLabel||measure(x)}},y:{title:{display:true,text:opts.yLabel||measure(y)}}},
+    onClick: (e, elements) => {
+      if (elements.length > 0) {
+        const element = elements[0];
+        const dataset = chartObj.data.datasets[element.datasetIndex];
+        const point = dataset.data[element.index];
+        const key = `${point.x.toFixed(2)},${point.y.toFixed(2)}`;
+        const producers = pointsByCoord.get(key) || [point];
+        showProducerList(producers, opts.xLabel||measure(x), opts.yLabel||measure(y), point.x, point.y);
+      }
+    }
+  });
  }
  function renderOverview(rows){
   const model=PDResumen.overview(rows),level={territory:'distrito',base:'grupo local',coop:'cooperativa',selection:'selección'}[model.level];
@@ -46,7 +84,7 @@ const PDCharts=(()=>{
    const plotted=groups.length>10
     ? [...groups.slice(0,9),groups.slice(9).reduce((other,group)=>({
        name:'Otros grupos',records:other.records+group.records,answered:other.answered+group.answered,total:other.total+group.total
-      }),{name:'Otros grupos',records:0,answered:0,total:0})]
+     }),{name:'Otros grupos',records:0,answered:0,total:0})]
     : groups;
    el('overview-'+metric.suffix+'-note').textContent=`Suma de los valores disponibles; cada barra incluye ${metric.label.toLowerCase()} con dato.`
     +(groups.length>10?' Los grupos restantes se reúnen en «Otros grupos».':'');
@@ -110,21 +148,188 @@ const PDCharts=(()=>{
   el(id).closest('article').hidden=!visible;
   return !!visible;
  }
+
+ /* ---------- Boxplot renderer ---------- */
+ function renderBoxplot(id, rows, coops, key, label, unit, digits, allRows) {
+  const groups = coops.map(coop => ({
+    coop,
+    values: rows.filter(r => r.coop === coop && D.finite(r[key])).map(r => r[key])
+  })).filter(g => g.values.length >= MIN_N);
+
+  if (!groups.length) {
+    el(id).closest('article').hidden = true;
+    return false;
+  }
+  el(id).closest('article').hidden = false;
+
+  // Calculate quartiles, median, mean, whiskers
+  const stats = groups.map(g => {
+    const sorted = [...g.values].sort((a,b)=>a-b);
+    const q1 = quantile(sorted, 0.25);
+    const q3 = quantile(sorted, 0.75);
+    const med = D.median(sorted);
+    const mean = D.mean(sorted);
+    const iqr = q3 - q1;
+    const lower = q1 - 1.5 * iqr;
+    const upper = q3 + 1.5 * iqr;
+    const min = sorted.find(v => v >= lower) ?? sorted[0];
+    const max = sorted.slice().reverse().find(v => v <= upper) ?? sorted[sorted.length-1];
+    return { ...g, q1, q3, median: med, mean, min, max, lower, upper, iqr };
+  });
+
+  const formatV = v => (unit === 'S/' ? 'S/ ' : '') + fmt(v, digits) + (unit === 'S/' ? '' : ' ' + unit);
+
+  // Build datasets for boxplot
+  const datasets = stats.map((s, i) => ({
+    label: groupLabel(s.coop),
+    data: [{
+      min: s.min,
+      q1: s.q1,
+      median: s.median,
+      q3: s.q3,
+      max: s.max,
+      mean: s.mean
+    }],
+    backgroundColor: coopColor(s.coop) + '40',
+    borderColor: coopColor(s.coop),
+    borderWidth: 2,
+    outlierColor: coopColor(s.coop),
+    outlierRadius: 3,
+    pointStyle: 'rect',
+    width: 0.5
+  }));
+
+  chart(id, 'boxplot', { labels: stats.map(s => groupLabel(s.coop)), datasets }, {
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const s = stats[ctx.dataIndex];
+            return [
+              `${groupLabel(s.coop)}`,
+              `Total: ${formatV(s.values.reduce((a,b)=>a+b,0))}`,
+              `Productoras: ${s.values.length}`,
+              `Mediana: ${formatV(s.median)}`,
+              `Media: ${formatV(s.mean)}`,
+              `Q1: ${formatV(s.q1)}`,
+              `Q3: ${formatV(s.q3)}`,
+              `Mín: ${formatV(s.min)}`,
+              `Máx: ${formatV(s.max)}`
+            ];
+          }
+        }
+      }
+    },
+    scales: {
+      y: { beginAtZero: true, title: { display: true, text: unit === 'S/' ? 'Soles' : unit } }
+    }
+  });
+
+  // Table
+  el(id+'-table').innerHTML = table(
+    ['Cooperativa', 'Productoras', 'Total ' + unit, 'Media', 'Mediana', 'Q1', 'Q3', 'Mín', 'Máx'],
+    stats.map(s => [
+      groupLabel(s.coop),
+      s.values.length,
+      formatV(s.values.reduce((a,b)=>a+b,0)),
+      formatV(s.mean),
+      formatV(s.median),
+      formatV(s.q1),
+      formatV(s.q3),
+      formatV(s.min),
+      formatV(s.max)
+    ])
+  );
+
+  return true;
+ }
+
+ function quantile(sorted, q) {
+  if (!sorted.length) return null;
+  const i = (sorted.length - 1) * q;
+  const j = Math.floor(i);
+  return sorted[j] + (sorted[Math.ceil(i)] - sorted[j]) * (i - j);
+ }
+
+ /* ---------- Producer list for overlapping points ---------- */
+ let producerListOverlay = null;
+
+ function showProducerList(producers, xLabel, yLabel, xVal, yVal) {
+  // Remove existing overlay
+  if (producerListOverlay) {
+    producerListOverlay.remove();
+  }
+
+  const overlay = document.createElement('div');
+  overlay.className = 'producer-list-overlay';
+  overlay.innerHTML = `
+    <div class="producer-list-panel">
+      <div class="producer-list-header">
+        <h4>Productoras en esta posición</h4>
+        <button type="button" class="producer-list-close" aria-label="Cerrar">✕</button>
+      </div>
+      <p class="producer-list-coords">${xLabel}: ${fmt(xVal,2)} | ${yLabel}: ${fmt(yVal,1)}</p>
+      <div class="producer-list-items">
+        ${producers.map((p, i) => `
+          <div class="producer-list-item" data-index="${i}">
+            <strong>${p.code}</strong>
+            <span>${p.ref?.coop ? groupLabel(p.ref.coop) : ''}</span>
+          </div>
+        `).join('')}
+      </div>
+      ${producers.length > 1 ? `<p class="producer-list-count">${producers.length} productoras comparten estas coordenadas</p>` : ''}
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  producerListOverlay = overlay;
+
+  // Close on click outside or close button
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay || e.target.classList.contains('producer-list-close')) {
+      overlay.remove();
+      producerListOverlay = null;
+    }
+  });
+
+  // Close on Escape
+  const handleEscape = (e) => {
+    if (e.key === 'Escape' && producerListOverlay) {
+      producerListOverlay.remove();
+      producerListOverlay = null;
+      document.removeEventListener('keydown', handleEscape);
+    }
+  };
+  document.addEventListener('keydown', handleEscape);
+
+  // Focus trap
+  const closeBtn = overlay.querySelector('.producer-list-close');
+  closeBtn.focus();
+ }
+
  function render(rows,allRows){
   Object.values(charts).forEach(c=>c.destroy());for(const k of Object.keys(charts))delete charts[k];
   renderOverview(rows);
   const coops=[...new Set(rows.map(r=>r.coop))].sort(),groups=groupRows(rows,'coop');
-  const stats=groups.map(([c,rs])=>{const vals=rs.map(r=>r.qq).filter(D.finite);return {c,n:vals.length,median:D.median(vals)};}).filter(s=>s.n>=MIN_N);
-  const coffee=showChart('chart-qq-coop',stats.length);
-  if(coffee){
-   chart('chart-qq-coop','bar',{labels:stats.map(s=>groupLabel(s.c)),datasets:[{data:stats.map(s=>s.median),backgroundColor:stats.map(s=>coopColor(s.c)),maxBarThickness:58,borderRadius:5}]},{scales:{y:{beginAtZero:true,title:{display:true,text:'Quintales'}}}});
-   el('chart-qq-coop-table').innerHTML=table(['Cooperativa','Productoras con dato','Mediana (quintales)'],stats.map(s=>[groupLabel(s.c),s.n,fmt(s.median,1)]));
+
+  // Production: Boxplot for café entregado instead of median bars
+  const coffee = renderBoxplot('chart-qq-coop', rows, coops, 'qq', 'Café entregado', 'quintales', 1, allRows);
+  if (coffee) {
+    const stats = groups.map(([c,rs])=>{const vals=rs.map(r=>r.qq).filter(D.finite);return {c,n:vals.length,median:D.median(vals)};}).filter(s=>s.n>=MIN_N);
+    // Update the note and title
+    const article = el('chart-qq-coop').closest('article');
+    const h3 = article.querySelector('h3');
+    h3.textContent = 'Distribución del café entregado por cooperativa';
+    const note = article.querySelector('.chart-note');
+    if (note) note.textContent = 'Cada caja va del primer al tercer cuartil; la línea central es la mediana. El rombo marca la media. Los bigotes llegan a 1,5 × IQR.';
   }
+
   const pairGroups=groupRows(rows.filter(r=>D.finite(r.area)&&D.finite(r.qq)),'coop').filter(([,r])=>r.length>=MIN_N);
   const pairs=pairGroups.flatMap(([,r])=>r);
   const yieldPlot=showChart('chart-yield',pairs.length);
   if(yieldPlot){
-   scatter('chart-yield',pairs,'area','qq',coops,{tooltip:p=>[fmt(p.x,2)+' hectáreas',fmt(p.y,1)+' quintales']});
+   scatter('chart-yield',pairs,'area','qq',coops,{tooltip:p=>[fmt(p.x,2)+' hectáreas',fmt(p.y,1)+' quintales', 'Código: '+p.code, 'Cooperativa: '+groupLabel(p.ref.coop)]});
    el('chart-yield-table').innerHTML=table(['Cooperativa','Registros con ambos datos'],groupRows(pairs,'coop').map(([g,r])=>[groupLabel(g),r.length]));
   }
   const activities=stacked('chart-activities',rows,'activity',coops,allRows);

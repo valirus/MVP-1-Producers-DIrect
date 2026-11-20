@@ -1,0 +1,12 @@
+﻿tema,prueba,valor p,¿diferencia clara?
+Edad (años),Mann-Whitney,0.02504831068254083,Sí
+Antigüedad como socio (años),Mann-Whitney,3.8754727796243964e-11,Sí
+Área de café (unidad por confirmar),Mann-Whitney,0.6248664731560456,No
+Quintales acopiados en 2025,Mann-Whitney,0.5813440061051387,No
+Ingreso principal anual (S/),Mann-Whitney,0.45896547687195555,No
+Tiene smartphone,Fisher,0.11409560502946511,No
+Tiene dificultad para leer o escribir,Fisher,0.004139978338713958,Sí
+Recibió capacitación de la cooperativa,Fisher,1.0,No
+No usa ningún servicio financiero,Fisher,1.885896412063297e-08,Sí
+Tiene internet en casa,Fisher,0.0777909019200843,No
+Tiene electricidad,Fisher,1.0,No

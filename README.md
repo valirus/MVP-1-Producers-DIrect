@@ -61,7 +61,7 @@ El Excel y las visitas de sesión se pierden al recargar o cerrar la página. La
 ```text
 index.html                 Dashboard
 css/ js/ vendor/           Estilos, lógica y librerías del navegador
-notebooks/                 Cuatro etapas reproducibles de análisis
+notebooks/                 Cuatro etapas reproducibles: limpieza, exploración, indicadores y gráficos
 scripts/                   Preparación de datos, pruebas y generación del sitio
 tests/                     Pruebas de importación, cálculos e interfaz
 data/                      Contratos y carpetas locales de entrada y salida
@@ -73,32 +73,40 @@ docs/                      Manual, informes, mantenimiento y auditorías
 
 ## Notebooks y datos de entrada
 
-| Orden | Notebook | Función |
-|---|---|---|
-| 1 | `01_limpieza.ipynb` | Reconstrucción de los campos operativos y conciliación entre original y referencia limpia. |
-| 2 | `02_exploracion.ipynb` | Cobertura, faltantes y valores atípicos. |
-| 3 | `03_indicadores.ipynb` | Indicadores descriptivos y análisis exploratorio PCA. |
-| 4 | `04_dashboard.ipynb` | Pruebas del código y generación de `_site/`. |
+Los cuatro notebooks forman un flujo: la salida de cada uno es la entrada del siguiente. Se ejecutan en orden y cada uno guarda sus resultados en `data/processed/` y sus gráficos en `docs/figuras/`.
 
-La reproducción completa requiere el Excel original anónimo y la base limpia de referencia, distribuidos por un canal autorizado. Esos archivos no se incluyen en GitHub ni en este paquete de código. Pueden colocarse en `data/raw/` y `data/processed/`, respectivamente, o indicarse por variables de entorno:
+| Orden | Notebook | Qué hace | Entrada | Salida |
+|---|---|---|---|---|
+| 1 | `01_limpieza.ipynb` | Diagnóstico de calidad (vacíos, tipos, duplicados, texto, atípicos, contradicciones), decisiones de limpieza justificadas y conciliación con la base de referencia | `data/raw/Base de Datos Nor-BG anónima.xlsx`, `data/processed/Base_Nor_BG_limpia.xlsx` | `productoras_limpia.csv`, `diagnostico_calidad.csv`, `conciliacion_campos.csv` |
+| 2 | `02_exploracion.ipynb` | Análisis univariado, bivariado y multivariado (correlaciones, pruebas entre cooperativas y PCA), cada uno con su conclusión | `productoras_limpia.csv` | `pca_productivo.csv`, `hallazgos_exploracion.csv` |
+| 3 | `03_indicadores.ipynb` | Definición de 13 indicadores con fórmula, denominador y decisión que apoyan; control contra las cifras del tablero | `productoras_limpia.csv` | `indicadores_kpi.csv`, `kpi_distritos.csv`, `ficha_comparativa.csv` |
+| 4 | `04_dashboard.ipynb` | Gráficos del tablero con su mensaje y recomendación, y verificación del sitio web | Salidas del notebook 3 | `docs/figuras/04_*.png` |
 
-```powershell
-$env:PD_RAW = 'C:\ruta\Base de Datos Nor-BG anonima.xlsx'
-$env:PD_CLEAN = 'C:\ruta\Base_Nor_BG_limpia.xlsx'
-py -X utf8 scripts/ejecutar_notebooks.py
-node tests/sources.test.cjs $env:PD_RAW $env:PD_CLEAN
+### Cómo reproducir los resultados
+
+Los datos de entrada están incluidos en el repositorio: la exportación anónima original y la base limpia de referencia. No hace falta configurar nada más.
+
+```sh
+pip install -r requirements.txt
+python scripts/ejecutar_notebooks.py          # corre los cuatro notebooks en orden
 ```
 
-En bash se definen con `export PD_RAW="/ruta/original.xlsx"` y `export PD_CLEAN="/ruta/limpia.xlsx"`. El ejecutor corre los cuatro notebooks en orden sin guardar salidas dentro de los `.ipynb`.
+Para abrirlos en Jupyter o regenerar los `.ipynb` con sus salidas guardadas:
 
-La limpieza genera la base operativa y las auditorías en `data/processed/`. Las reglas y salidas están documentadas en [Preparación y calidad](docs/PREPARACION_Y_CALIDAD.md). La [auditoría del 13 de noviembre](docs/AUDITORIA_ENTREGA_13NOV.md) registra una discrepancia de Yape pendiente de resolución en la referencia histórica; la prueba de conciliación la informa sin modificar el dato.
+```sh
+jupyter nbconvert --to notebook --execute --inplace notebooks/0*.ipynb
+```
+
+Los notebooks funcionan abiertos desde la raíz del proyecto o desde `notebooks/`. Las versiones exactas de las librerías están en `requirements.txt`. Las fechas de nacimiento se usan solo para calcular la edad y no se guardan en las salidas.
+
+Las reglas de limpieza también están en [Preparación y calidad](docs/PREPARACION_Y_CALIDAD.md) y en el [informe de limpieza](docs/INFORME_LIMPIEZA.md). La [auditoría del 13 de noviembre](docs/AUDITORIA_ENTREGA_13NOV.md) registra una discrepancia de Yape pendiente de resolución en la referencia histórica.
 
 ## Verificación y publicación
 
-La revisión del 16/11/2026 obtuvo 45 pruebas automáticas correctas y 26 comprobaciones de interfaz por ancho, a 1320 y 390 px. También se verificaron la sintaxis JavaScript, el notebook 04 y la generación del sitio. Los notebooks 01–03 y la conciliación histórica requieren los archivos de referencia; no se volvieron a ejecutar en esta revisión. El [registro de verificación](docs/ENTREGA_UX.md) detalla el alcance.
+La revisión del 16/11/2026 obtuvo 45 pruebas automáticas correctas y 26 comprobaciones de interfaz por ancho, a 1320 y 390 px. También se verificaron la sintaxis JavaScript y la generación del sitio. El 20/11/2026 se ejecutaron de principio a fin los cuatro notebooks, con los datos incluidos en el repositorio y sin errores; la conciliación de 15 campos contra la base de referencia coincide al 100 %. El [registro de verificación](docs/ENTREGA_UX.md) detalla el alcance.
 
 Versiones de esta revisión: Node.js 24.22.1 y Python 3.12.14; SheetJS CE 0.20.3 y Chart.js 4.4.0 incluidas en `vendor/`. No hay un proceso de compilación TypeScript ni una configuración de lint.
 
 GitHub Actions ejecuta las pruebas y publica exclusivamente los archivos que enumera `scripts/preparar_sitio.py`. El despliegue se activa al subir a `main`. En el repositorio, GitHub Pages debe usar **GitHub Actions** como origen. Antes de compartir una nueva versión, comprobar que el workflow terminó correctamente y abrir el enlace publicado.
 
-Los datos operativos, los Excel, las auditorías de sesión y la configuración local permanecen fuera de la publicación. La aceptación operativa requiere revisar el tablero con la base autorizada y confirmar las unidades, responsables de mantenimiento y canal de soporte con Producers Direct.
+El sitio web publicado en GitHub Pages no incluye datos operativos, Excel, auditorías de sesión ni configuración local (el repositorio sí guarda la base anónima y la de referencia para reproducir los notebooks). La aceptación operativa requiere revisar el tablero con la base autorizada y confirmar las unidades, responsables de mantenimiento y canal de soporte con Producers Direct.

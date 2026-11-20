@@ -1,18 +1,24 @@
 # Producers Direct - Tablero del Fondo Rotatorio
-# Versiones con las que se validó la ejecución completa (notebooks 01 a 04 en entregas anteriores; 45 pruebas sintéticas en cierre UX).
-# Las líneas con # son informativas: no hay paquetes que instalar con pip.
+# Versiones con las que se ejecutaron los notebooks 01 a 04 completos (Python 3.13).
+# Instalar con: pip install -r requirements.txt
 
-# Lenguajes
-# python==3.13.1   (también probado con 3.12.14); solo biblioteca estándar
-# node==24.11.1    (también probado con 24.22.1); sin npm install
+# Análisis y gráficos (notebooks 01 a 04)
+numpy==2.5.3
+pandas==3.0.5
+scipy==1.18.1
+scikit-learn==1.9.1
+matplotlib==3.11.2
+openpyxl==3.1.5
 
-# Librerías del navegador (incluidas en vendor/, no se descargan)
-# SheetJS CE==0.20.3
-# Chart.js==4.4.0
+# Para abrir y ejecutar los notebooks
+ipykernel==7.4.0
+nbformat==5.11.1
+nbconvert==7.17.2
 
-# Opcional: abrir los notebooks en Jupyter (si no, usa scripts/ejecutar_notebooks.py)
-# jupyterlab>=4
+# Lenguajes y librerías del tablero web (no se instalan con pip)
+# node >= 24 (solo para las pruebas automáticas: node scripts/verificar.cjs)
+# SheetJS CE 0.20.3 y Chart.js 4.4.0 vienen incluidas en vendor/
 
-# Datos de entrada (fuera del repositorio; ver README, sección "Entradas"):
+# Datos de entrada, incluidos en el repositorio:
 # data/raw/Base de Datos Nor-BG anónima.xlsx
 # data/processed/Base_Nor_BG_limpia.xlsx

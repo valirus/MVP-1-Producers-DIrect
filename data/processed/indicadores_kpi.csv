@@ -1,0 +1,40 @@
+﻿id,indicador,ámbito,valor,n,unidad
+productoras,Productoras,Total,138.0,138,productoras
+productoras,Productoras,Norandino,113.0,113,productoras
+productoras,Productoras,Bagua Grande,25.0,25,productoras
+monto_total,Monto solicitado total,Total,190175.0,138,S/
+monto_total,Monto solicitado total,Norandino,154275.0,113,S/
+monto_total,Monto solicitado total,Bagua Grande,35900.0,25,S/
+monto_mediano,Monto solicitado mediano,Total,1375.0,138,S/
+monto_mediano,Monto solicitado mediano,Norandino,1375.0,113,S/
+monto_mediano,Monto solicitado mediano,Bagua Grande,1500.0,25,S/
+area_total,Área de café total,Total,310.36,138,unidad por confirmar
+area_total,Área de café total,Norandino,255.85999999999999,113,unidad por confirmar
+area_total,Área de café total,Bagua Grande,54.5,25,unidad por confirmar
+quintales_total,Quintales acopiados totales,Total,5444.0,138,quintales
+quintales_total,Quintales acopiados totales,Norandino,4522.0,113,quintales
+quintales_total,Quintales acopiados totales,Bagua Grande,922.0,25,quintales
+quintales_mediana,Quintales por productora (mediana),Total,32.0,138,quintales
+quintales_mediana,Quintales por productora (mediana),Norandino,32.0,113,quintales
+quintales_mediana,Quintales por productora (mediana),Bagua Grande,30.0,25,quintales
+smartphone,Con smartphone propio,Total,86.23188405797102,138,%
+smartphone,Con smartphone propio,Norandino,88.49557522123894,113,%
+smartphone,Con smartphone propio,Bagua Grande,76.0,25,%
+sin_dificultad,Sin dificultad para leer ni escribir,Total,81.15942028985508,138,%
+sin_dificultad,Sin dificultad para leer ni escribir,Norandino,76.99115044247787,113,%
+sin_dificultad,Sin dificultad para leer ni escribir,Bagua Grande,100.0,25,%
+capacitacion,Con capacitación de la cooperativa,Total,86.23188405797102,138,%
+capacitacion,Con capacitación de la cooperativa,Norandino,85.84070796460178,113,%
+capacitacion,Con capacitación de la cooperativa,Bagua Grande,88.0,25,%
+sin_servicios,Sin ningún servicio financiero,Total,77.37226277372264,137,%
+sin_servicios,Sin ningún servicio financiero,Norandino,87.61061946902655,113,%
+sin_servicios,Sin ningún servicio financiero,Bagua Grande,29.166666666666668,24,%
+titulares,Socias titulares,Total,35.507246376811594,138,%
+titulares,Socias titulares,Norandino,33.6283185840708,113,%
+titulares,Socias titulares,Bagua Grande,44.0,25,%
+monto_sobre_ingreso,Monto solicitado sobre ingreso (mediana),Total,0.04296875,138,proporción
+monto_sobre_ingreso,Monto solicitado sobre ingreso (mediana),Norandino,0.0458333333333333,113,proporción
+monto_sobre_ingreso,Monto solicitado sobre ingreso (mediana),Bagua Grande,0.0333333333333333,25,proporción
+acopio_por_area,Acopio por unidad de área (mediana),Total,16.583333333333336,138,quintales por unidad de área
+acopio_por_area,Acopio por unidad de área (mediana),Norandino,17.5,113,quintales por unidad de área
+acopio_por_area,Acopio por unidad de área (mediana),Bagua Grande,15.0,25,quintales por unidad de área

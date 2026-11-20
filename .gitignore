@@ -12,3 +12,15 @@ _site/
 
 # Configuración local del editor.
 .vscode/
+
+# Entrega final: datos de entrada y resultados de los notebooks (base anónima, sin fechas de nacimiento en las salidas)
+!data/raw/Base de Datos Nor-BG anónima.xlsx
+!data/processed/Base_Nor_BG_limpia.xlsx
+!data/processed/productoras_limpia.csv
+!data/processed/diagnostico_calidad.csv
+!data/processed/conciliacion_campos.csv
+!data/processed/hallazgos_exploracion.csv
+!data/processed/pca_productivo.csv
+!data/processed/indicadores_kpi.csv
+!data/processed/kpi_distritos.csv
+!data/processed/ficha_comparativa.csv

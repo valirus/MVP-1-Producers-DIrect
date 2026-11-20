@@ -3,6 +3,8 @@ import json
 import os
 from pathlib import Path
 
+os.environ.setdefault("MPLBACKEND", "Agg")   # los gráficos se generan sin abrir ventanas
+
 root = Path(__file__).resolve().parent.parent
 os.chdir(root)
 for notebook in sorted((root / "notebooks").glob("[0-9][0-9]_*.ipynb")):

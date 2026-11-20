@@ -1,0 +1,10 @@
+﻿problema,cuántos,dónde,gravedad,decisión
+Registros cargados,138,113 Norandino y 25 Bagua Grande,Informativo,Se conservan todos
+Códigos duplicados,0,—,Ninguna,Sin acción
+Celdas vacías en preguntas del formulario,197,Preguntas opcionales o condicionales,Baja,No se imputan; se distingue pregunta ausente de dato faltante
+Vacíos en las siete variables numéricas del análisis,0,—,Ninguna,Sin acción
+Celdas de texto con espacios sobrantes,939,21 columnas,Media,Se normalizan espacios y categorías
+Valores atípicos por IQR (5 variables; en monto no aplica),79,"Área, quintales, ingreso, familiares, antigüedad",Media,Se conservan y se marcan; los indicadores usan mediana
+Servicios financieros contradictorios,1,PD-FR-121-FF-BG,Media,"Se conserva el dato, se marca y se consulta a Producers Direct"
+Padre con diferencia de edad menor a 12 años,3,"PD-FR-016-FF-NOR, PD-FR-078-FF-NOR, PD-FR-106-FF-NOR",Media,No se intercambian fechas; se marca para confirmar
+Valores negativos o edades imposibles,0,—,Ninguna,Sin acción
